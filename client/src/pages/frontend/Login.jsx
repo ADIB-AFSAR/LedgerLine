@@ -1,3 +1,6 @@
+import { Link } from "react-router-dom";
+
+
 export default function Login() {
   return (
     <div className="container vh-100 d-flex align-items-center justify-content-center">
@@ -26,7 +29,9 @@ export default function Login() {
               </div>
 
               <button type="submit" className="btn btn-primary w-100">
-                Login
+                <Link to="/" className="btn btn-primary text-decoration-none">
+  Login
+</Link>
               </button>
 
               <div className="text-center mt-3">
