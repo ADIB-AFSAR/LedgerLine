@@ -10,9 +10,9 @@ const UserForm = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const serviceId = searchParams.get('service') || 'default';
-  
+
   const formConfig = getFormConfig(serviceId);
-  
+
   // Find the service details
   const allServices = [
     ...individualServices,
@@ -23,7 +23,7 @@ const UserForm = () => {
 
   // console.log("Data", ...individualServices);
   const serviceDetails = allServices.find(s => s.id === serviceId);
-  
+
   const [formData, setFormData] = useState({});
   const [files, setFiles] = useState({});
   const [errors, setErrors] = useState({});
@@ -35,7 +35,7 @@ const UserForm = () => {
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -48,20 +48,20 @@ const UserForm = () => {
   const handleFileChange = (e, field) => {
     const { name } = e.target;
     const selectedFiles = field.multiple ? Array.from(e.target.files) : e.target.files[0];
-    
+
     // Validate file type and size
     const validateFile = (file) => {
       const acceptedTypes = field.accept.split(',').map(t => t.trim());
       const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-      
+
       if (!acceptedTypes.includes(fileExtension)) {
         return `Invalid file type. Accepted: ${field.accept}`;
       }
-      
+
       if (file.size > field.maxSize) {
         return `File size exceeds ${(field.maxSize / (1024 * 1024)).toFixed(0)}MB`;
       }
-      
+
       return null;
     };
 
@@ -71,7 +71,7 @@ const UserForm = () => {
         const error = validateFile(file);
         if (error) errors.push(error);
       });
-      
+
       if (errors.length > 0) {
         setErrors(prev => ({
           ...prev,
@@ -94,7 +94,7 @@ const UserForm = () => {
       ...prev,
       [name]: selectedFiles
     }));
-    
+
     // Clear error
     if (errors[name]) {
       setErrors(prev => ({
@@ -121,11 +121,11 @@ const UserForm = () => {
       if (field.validation.pattern && !field.validation.pattern.test(value)) {
         return field.validation.message || `Invalid ${field.label}`;
       }
-      
+
       if (field.validation.minLength && value.length < field.validation.minLength) {
         return `${field.label} must be at least ${field.validation.minLength} characters`;
       }
-      
+
       if (field.validation.maxLength && value.length > field.validation.maxLength) {
         return `${field.label} must not exceed ${field.validation.maxLength} characters`;
       }
@@ -158,11 +158,10 @@ const UserForm = () => {
 
     // Submit form data
     console.log('Form submitted:', { formData, files });
-    alert('Form submitted successfully!');
+
+    // Redirect to dummy payment gateway with form data
+    navigate('/payment', { state: { serviceId, formData } });
     setIsSubmitting(false);
-    
-    // Optionally redirect after submission
-    // navigate('/');
   };
 
   const renderField = (field) => {
@@ -186,9 +185,8 @@ const UserForm = () => {
               value={value}
               onChange={handleInputChange}
               placeholder={field.placeholder}
-              className={`w-full px-4 py-3 border ${
-                hasError ? 'border-red-500' : 'border-slate-300'
-              } rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
+              className={`w-full px-4 py-3 border ${hasError ? 'border-red-500' : 'border-slate-300'
+                } rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
             />
             {hasError && (
               <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
@@ -212,9 +210,8 @@ const UserForm = () => {
               onChange={handleInputChange}
               placeholder={field.placeholder}
               rows={field.rows || 4}
-              className={`w-full px-4 py-3 border ${
-                hasError ? 'border-red-500' : 'border-slate-300'
-              } rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors resize-none`}
+              className={`w-full px-4 py-3 border ${hasError ? 'border-red-500' : 'border-slate-300'
+                } rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors resize-none`}
             />
             {hasError && (
               <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
@@ -236,9 +233,8 @@ const UserForm = () => {
               name={field.name}
               value={value}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border ${
-                hasError ? 'border-red-500' : 'border-slate-300'
-              } rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
+              className={`w-full px-4 py-3 border ${hasError ? 'border-red-500' : 'border-slate-300'
+                } rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
             >
               {field.options.map(option => (
                 <option key={option.value} value={option.value}>
@@ -316,7 +312,7 @@ const UserForm = () => {
                 <div className="mt-2 text-sm text-green-600 flex items-center gap-2">
                   <CheckCircle size={16} />
                   <span>
-                    {field.multiple 
+                    {field.multiple
                       ? `${files[field.name].length} file(s) selected`
                       : files[field.name].name
                     }
