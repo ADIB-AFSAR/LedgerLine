@@ -26,6 +26,12 @@ const Login = () => {
 
   const [error, setError] = useState("");
 
+  // Admin credentials
+  const ADMIN_CREDENTIALS = {
+    email: "admin@ledgerline.com",
+    password: "admin123"
+  };
+
   const DUMMY_USER = {
     id: "ADMIN_001",
     email: "admin@gmail.com",
@@ -43,6 +49,23 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
+    // Check if admin credentials
+    if (
+      formData.email === ADMIN_CREDENTIALS.email &&
+      formData.password === ADMIN_CREDENTIALS.password
+    ) {
+      const adminUser = {
+        id: 'admin-001',
+        name: 'Admin',
+        email: formData.email,
+        role: 'admin'
+      };
+      login(adminUser);
+      navigate('/admin/dashboard');
+      return;
+    }
+
+    // Check regular user credentials
     if (
       formData.email === DUMMY_USER.email &&
       formData.password === DUMMY_USER.password
@@ -50,12 +73,13 @@ const Login = () => {
       const userData = {
         id: DUMMY_USER.id,
         email: DUMMY_USER.email,
+        name: DUMMY_USER.email.split('@')[0],
+        role: 'user',
         isLoggedIn: true,
       };
       
-      login(userData); // Use context login function
-      // alert("Login successful!");
-      // navigate('/'); 
+      login(userData);
+      navigate('/');
     } else {
       setError("Invalid email or password");
     }
@@ -207,6 +231,21 @@ const Login = () => {
                 Create an account
               </Link>
             </p>
+          </div>
+
+          {/* Demo Credentials */}
+          <div className="mt-6 pt-6 border-t border-slate-200">
+            <p className="text-xs text-slate-600 text-center mb-2 font-semibold">Demo Credentials:</p>
+            <div className="space-y-2 text-xs text-slate-600">
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <p className="font-semibold text-blue-900 mb-1">Admin Access:</p>
+                <p className="font-mono">admin@ledgerline.com / admin123</p>
+              </div>
+              <div className="bg-green-50 p-3 rounded-lg">
+                <p className="font-semibold text-green-900 mb-1">User Access:</p>
+                <p className="font-mono">admin@gmail.com / 1234</p>
+              </div>
+            </div>
           </div>
         </div>
 

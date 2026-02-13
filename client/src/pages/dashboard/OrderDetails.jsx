@@ -116,9 +116,9 @@ const OrderDetails = ({ order, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white flex-shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-2xl font-bold mb-1">Order Details</h2>
@@ -148,7 +148,7 @@ const OrderDetails = ({ order, onClose }) => {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-slate-200">
+        <div className="border-b border-slate-200 flex-shrink-0">
           <div className="flex">
             <button
               onClick={() => setActiveTab('client-docs')}
@@ -173,127 +173,129 @@ const OrderDetails = ({ order, onClose }) => {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-280px)]">
-          {/* Action Bar */}
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
-            <div className="flex items-center gap-4">
-              <p className="text-slate-600">
-                Please verify the documents and update the appropriate status.
-              </p>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {/* Action Bar */}
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
+              <div className="flex items-center gap-4">
+                <p className="text-slate-600">
+                  Please verify the documents and update the appropriate status.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowRequestModal(true)}
+                className="px-6 py-2 border-2 border-blue-600 text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap"
+              >
+                Request Document
+              </button>
             </div>
-            <button
-              onClick={() => setShowRequestModal(true)}
-              className="px-6 py-2 border-2 border-blue-600 text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
-            >
-              Request Document
-            </button>
-          </div>
 
-          {/* Download All Section */}
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-slate-900">Download All Documents</h3>
-            <button
-              onClick={handleSelectAll}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold"
-            >
-              <CheckCircle size={18} />
-              {selectedDocs.length === (activeTab === 'client-docs' ? clientDocuments : caDocuments).length
-                ? 'Deselect All'
-                : 'Select All'}
-            </button>
-          </div>
+            {/* Download All Section */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-slate-900">Download All Documents</h3>
+              <button
+                onClick={handleSelectAll}
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold"
+              >
+                <CheckCircle size={18} />
+                {selectedDocs.length === (activeTab === 'client-docs' ? clientDocuments : caDocuments).length
+                  ? 'Deselect All'
+                  : 'Select All'}
+              </button>
+            </div>
 
-          {/* Documents List */}
-          <div className="space-y-4">
-            {(activeTab === 'client-docs' ? clientDocuments : caDocuments).map((doc, index) => (
-              <div key={doc.id} className="border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-start gap-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedDocs.includes(doc.id)}
-                    onChange={() => handleSelectDoc(doc.id)}
-                    className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-bold text-slate-900 mb-1">
-                          {index + 1}. Upload Tax Notice to Connect With Tax ...
-                        </h4>
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="flex items-center gap-2 text-blue-600">
-                            <FileText size={18} />
-                            <span className="font-medium">{doc.name}</span>
+            {/* Documents List */}
+            <div className="space-y-4">
+              {(activeTab === 'client-docs' ? clientDocuments : caDocuments).map((doc, index) => (
+                <div key={doc.id} className="border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedDocs.includes(doc.id)}
+                      onChange={() => handleSelectDoc(doc.id)}
+                      className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900 mb-1">
+                            {index + 1}. Upload Tax Notice to Connect With Tax ...
+                          </h4>
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="flex items-center gap-2 text-blue-600">
+                              <FileText size={18} />
+                              <span className="font-medium">{doc.name}</span>
+                            </div>
+                            <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
+                              {doc.type}
+                            </span>
                           </div>
-                          <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
-                            {doc.type}
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-600 mb-3">
-                          {formatDate(doc.uploadDate)}
-                        </p>
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => handleViewDocument(doc)}
-                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
-                          >
-                            <Eye size={16} />
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleDownloadDocument(doc)}
-                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
-                          >
-                            <Download size={16} />
-                            Download
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col items-end gap-3">
-                        {activeTab === 'client-docs' && (
-                          <>
-                            {getStatusBadge(doc.status)}
-                            <select className="px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                              <option value="">Select action</option>
-                              <option value="verify">Mark as Verified</option>
-                              <option value="reject">Reject Document</option>
-                              <option value="request-reupload">Request Re-upload</option>
-                            </select>
-                          </>
-                        )}
-                        {activeTab === 'ca-docs' && (
-                          <div className="text-right">
-                            <p className="text-sm text-slate-600 mb-1">Sent by</p>
-                            <p className="font-semibold text-slate-900">{doc.sentBy}</p>
+                          <p className="text-sm text-slate-600 mb-3">
+                            {formatDate(doc.uploadDate)}
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleViewDocument(doc)}
+                              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+                            >
+                              <Eye size={16} />
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleDownloadDocument(doc)}
+                              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+                            >
+                              <Download size={16} />
+                              Download
+                            </button>
                           </div>
-                        )}
+                        </div>
+                        
+                        <div className="flex flex-col items-end gap-3 ml-4">
+                          {activeTab === 'client-docs' && (
+                            <>
+                              {getStatusBadge(doc.status)}
+                              <select className="px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select action</option>
+                                <option value="verify">Mark as Verified</option>
+                                <option value="reject">Reject Document</option>
+                                <option value="request-reupload">Request Re-upload</option>
+                              </select>
+                            </>
+                          )}
+                          {activeTab === 'ca-docs' && (
+                            <div className="text-right">
+                              <p className="text-sm text-slate-600 mb-1">Sent by</p>
+                              <p className="font-semibold text-slate-900">{doc.sentBy}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Download Selected Button */}
-          {selectedDocs.length > 0 && (
-            <div className="mt-6 flex justify-center">
-              <button
-                onClick={handleDownloadSelected}
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
-              >
-                <Download size={20} />
-                Download Selected ({selectedDocs.length})
-              </button>
+              ))}
             </div>
-          )}
+
+            {/* Download Selected Button */}
+            {selectedDocs.length > 0 && (
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={handleDownloadSelected}
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                >
+                  <Download size={20} />
+                  Download Selected ({selectedDocs.length})
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-200 p-6 bg-slate-50">
+        <div className="border-t border-slate-200 p-6 bg-slate-50 flex-shrink-0">
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
