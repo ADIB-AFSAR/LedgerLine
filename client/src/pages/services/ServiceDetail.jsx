@@ -1,33 +1,120 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, CheckCircle, FileText, Clock, Shield } from 'lucide-react';
+import { ArrowRight, CheckCircle, FileText, Clock, Shield, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import Navbar from '../frontend/Navbar';
 import Footer from '../frontend/Footer';
 import { individualServices, businessServices, registrationServices, otherServices } from '../../data/servicesData';
 import { useAuth } from '../../context/AuthContext';
+import { planMapping } from '../../data/planMapping';
+import api from '../../api/axios';
 
 const ServiceDetail = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
-  
+
+  const [loading, setLoading] = useState(false);
+  const [planError, setPlanError] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
+  // State for existing purchase
+  const [hasActivePurchase, setHasActivePurchase] = useState(false);
+  const [activePurchaseId, setActivePurchaseId] = useState(null);
+
   // Find service in all categories
   const allServices = [
     ...individualServices,
-    ...businessServices, 
+    ...businessServices,
     ...registrationServices,
     ...otherServices
   ];
 
-  console.log("all the data " , allServices);
-  
   const service = allServices.find(s => s.id === serviceId);
 
+  useEffect(() => {
+    const fetchPlanAndStatus = async () => {
+      if (!serviceId) return;
+
+      setLoading(true);
+      try {
+        const mappedPlan = planMapping[serviceId];
+        if (!mappedPlan) {
+          console.warn(`No plan mapping found for service: ${serviceId}`);
+          setLoading(false);
+          return;
+        }
+
+        // 1. Fetch Plan Details
+        const { data } = await api.get('/plans');
+        let matchedPlan = null;
+
+        if (data.success) {
+          matchedPlan = data.data.find(p => p.name === mappedPlan.name);
+          if (matchedPlan) {
+            setSelectedPlan(matchedPlan);
+          } else {
+            console.warn(`Plan '${mappedPlan.name}' not found in backend.`);
+            // Fallback: If backend plans are empty but valid mapping exists, maybe don't error out entirely?
+            // But we need planId for payment. So we stick to "Plan Unavailable" if not found.
+            // Exception: If user already bought it, maybe we don't strictly need plan object for checking purchase?
+            // But we need plan._id to check purchase status.
+          }
+        }
+
+        // 2. Check Active Purchase Status (Only if logged in and plan found)
+        if (isLoggedIn && matchedPlan) {
+          try {
+            const statusRes = await api.get('/payments/check-status', {
+              params: { planId: matchedPlan._id }
+            });
+
+            if (statusRes.data.success && statusRes.data.hasActivePlan) {
+              setHasActivePurchase(true);
+              setActivePurchaseId(statusRes.data.purchaseId);
+            }
+          } catch (statusErr) {
+            console.error("Error checking purchase status:", statusErr);
+            // Allow continuing to payment if check fails, logic handles duplicate payments on backend too
+          }
+        }
+
+      } catch (error) {
+        console.error("Error fetching plan:", error);
+        setPlanError('Unable to load pricing details. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlanAndStatus();
+  }, [serviceId, isLoggedIn]);
+
   const handleStartFiling = () => {
-    if (isLoggedIn) {
-      navigate(`/services/userform?service=${serviceId}`);
-    } else {
-      navigate('/login');
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: `/services/${serviceId}` } });
+      return;
     }
+
+    if (hasActivePurchase && activePurchaseId) {
+      // Redirect directly to form
+      navigate(`/services/userform?service=${serviceId}&purchaseId=${activePurchaseId}`);
+      return;
+    }
+
+    if (!selectedPlan) {
+      alert("The pricing plan for this service is currently unavailable. Please contact support.");
+      return;
+    }
+
+    // Navigate to Payment Gateway
+    navigate('/payment', {
+      state: {
+        serviceId,
+        planId: selectedPlan._id,
+        amount: selectedPlan.price,
+        planName: selectedPlan.name
+      }
+    });
   };
 
   if (!service) {
@@ -49,7 +136,7 @@ const ServiceDetail = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      
+
       <div className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
@@ -66,17 +153,36 @@ const ServiceDetail = () => {
                   {service.description}
                 </p>
                 <div className="text-4xl font-extrabold text-slate-900 mb-8">
-                  {service.price}
+                  {selectedPlan ? `₹${selectedPlan.price}` : service.price}
                 </div>
+
+                {planError && (
+                  <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
+                    <AlertCircle size={16} />
+                    <span className="text-sm">{planError}</span>
+                  </div>
+                )}
+
+                {hasActivePurchase && (
+                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-green-800">Active Plan Found</h4>
+                      <p className="text-sm text-green-700">You have already purchased this plan. Click below to continue filing.</p>
+                    </div>
+                  </div>
+                )}
+
                 <button
                   onClick={handleStartFiling}
-                  className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all group"
+                  disabled={loading || (!selectedPlan && !hasActivePurchase)}
+                  className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Start Filing Now
+                  {loading ? 'Checking status...' : hasActivePurchase ? 'Continue Filing' : 'Start Filing Now'}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
-              
+
               <div className="bg-slate-50 rounded-2xl p-8">
                 <h3 className="text-xl font-bold text-slate-900 mb-6">What's Included</h3>
                 <ul className="space-y-4">
@@ -101,7 +207,7 @@ const ServiceDetail = () => {
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-4">Service Overview</h3>
                 <p className="text-slate-600 mb-6">{service.detailContent.overview}</p>
-                
+
                 <h4 className="font-semibold text-slate-900 mb-3">Service Inclusions:</h4>
                 <ul className="space-y-2">
                   {service.detailContent.inclusions.map((item, idx) => (
@@ -120,7 +226,7 @@ const ServiceDetail = () => {
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-4">Documents Required</h3>
                 <p className="text-slate-600 mb-6">Please keep these documents ready for smooth processing:</p>
-                
+
                 <ul className="space-y-3">
                   {service.detailContent.documents.map((doc, idx) => (
                     <li key={idx} className="flex items-start gap-3">
@@ -137,7 +243,7 @@ const ServiceDetail = () => {
                   <Clock className="w-6 h-6 text-purple-600" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-4">Process & Timeline</h3>
-                
+
                 <div className="space-y-4">
                   <div className="flex gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">1</div>
@@ -146,7 +252,7 @@ const ServiceDetail = () => {
                       <p className="text-sm text-slate-600">Upload required documents</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">2</div>
                     <div>
@@ -154,7 +260,7 @@ const ServiceDetail = () => {
                       <p className="text-sm text-slate-600">CA reviews and prepares return</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">3</div>
                     <div>
@@ -162,7 +268,7 @@ const ServiceDetail = () => {
                       <p className="text-sm text-slate-600">ITR filed with income tax department</p>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6 p-4 bg-green-50 rounded-xl">
                     <div className="flex items-center gap-2 text-green-700">
                       <Shield className="w-4 h-4" />
@@ -183,16 +289,11 @@ const ServiceDetail = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={handleStartFiling}
-                className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold hover:bg-slate-100 transition-colors"
+                disabled={loading || (!selectedPlan && !hasActivePurchase)}
+                className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold hover:bg-slate-100 transition-colors disabled:opacity-75 disabled:cursor-not-allowed"
               >
-                Start Filing Now - {service.price}
+                {loading ? 'Checking status...' : hasActivePurchase ? 'Continue Filing' : `Start Filing Now - ${selectedPlan ? '₹' + selectedPlan.price : service.price}`}
               </button>
-              <Link
-                to="/"
-                className="border-2 border-white text-white px-8 py-4 rounded-2xl font-bold hover:bg-white hover:text-blue-600 transition-colors"
-              >
-                View All Services
-              </Link>
             </div>
           </div>
         </div>

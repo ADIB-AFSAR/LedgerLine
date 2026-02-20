@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { FileText, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { FileText, CheckCircle, AlertCircle, ArrowLeft, UploadCloud } from 'lucide-react';
 import Footer from "../frontend/Footer";
 import Navbar from "../frontend/Navbar";
 import { getFormConfig } from '../../data/formFieldsData';
 import { individualServices, businessServices, registrationServices, otherServices } from '../../data/servicesData';
+import api from '../../api/axios';
 
 const UserForm = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const serviceId = searchParams.get('service') || 'default';
+  const purchaseId = searchParams.get('purchaseId'); // Get purchaseId from query params
 
   const formConfig = getFormConfig(serviceId);
 
@@ -21,13 +23,20 @@ const UserForm = () => {
     ...otherServices
   ];
 
-  // console.log("Data", ...individualServices);
   const serviceDetails = allServices.find(s => s.id === serviceId);
 
   const [formData, setFormData] = useState({});
   const [files, setFiles] = useState({});
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState(''); // 'uploading', 'submitting', 'success', 'error'
+
+  useEffect(() => {
+    // Optional: Can add a check here if purchaseId is valid via API
+    if (!purchaseId) {
+      // Maybe redirect if required, but staying on page with error message is safer
+    }
+  }, [purchaseId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -36,12 +45,8 @@ const UserForm = () => {
       [name]: value
     }));
 
-    // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -49,43 +54,28 @@ const UserForm = () => {
     const { name } = e.target;
     const selectedFiles = field.multiple ? Array.from(e.target.files) : e.target.files[0];
 
-    // Validate file type and size
+    // Validation logic
     const validateFile = (file) => {
-      const acceptedTypes = field.accept.split(',').map(t => t.trim());
-      const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-
-      if (!acceptedTypes.includes(fileExtension)) {
-        return `Invalid file type. Accepted: ${field.accept}`;
-      }
-
       if (file.size > field.maxSize) {
         return `File size exceeds ${(field.maxSize / (1024 * 1024)).toFixed(0)}MB`;
       }
-
       return null;
     };
 
     if (field.multiple) {
-      const errors = [];
+      const fileErrors = [];
       selectedFiles.forEach(file => {
-        const error = validateFile(file);
-        if (error) errors.push(error);
+        const err = validateFile(file);
+        if (err) fileErrors.push(err);
       });
-
-      if (errors.length > 0) {
-        setErrors(prev => ({
-          ...prev,
-          [name]: errors[0]
-        }));
+      if (fileErrors.length > 0) {
+        setErrors(prev => ({ ...prev, [name]: fileErrors[0] }));
         return;
       }
     } else if (selectedFiles) {
-      const error = validateFile(selectedFiles);
-      if (error) {
-        setErrors(prev => ({
-          ...prev,
-          [name]: error
-        }));
+      const err = validateFile(selectedFiles);
+      if (err) {
+        setErrors(prev => ({ ...prev, [name]: err }));
         return;
       }
     }
@@ -95,50 +85,55 @@ const UserForm = () => {
       [name]: selectedFiles
     }));
 
-    // Clear error
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   const validateField = (field, value) => {
-    // For file fields, check if file is uploaded
     if (field.type === 'file') {
       if (field.required && !files[field.name]) {
         return `${field.label} is required`;
       }
       return '';
     }
-
     if (field.required && !value) {
       return `${field.label} is required`;
     }
-
     if (value && field.validation) {
       if (field.validation.pattern && !field.validation.pattern.test(value)) {
         return field.validation.message || `Invalid ${field.label}`;
       }
-
       if (field.validation.minLength && value.length < field.validation.minLength) {
         return `${field.label} must be at least ${field.validation.minLength} characters`;
       }
-
       if (field.validation.maxLength && value.length > field.validation.maxLength) {
         return `${field.label} must not exceed ${field.validation.maxLength} characters`;
       }
     }
-
     return '';
   };
 
-  const handleSubmit = (e) => {
+  const uploadFile = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const { data } = await api.post('/documents', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return data.data._id; // Based on assumption that response structure is { success: true, data: { _id: ... } }
+    } catch (error) {
+      console.error("File upload failed:", error);
+      throw new Error(`Failed to upload ${file.name}`);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmissionStatus('');
 
-    // Validate all fields
+    // 1. Validation
     const newErrors = {};
     formConfig.sections.forEach(section => {
       section.fields.forEach(field => {
@@ -156,12 +151,56 @@ const UserForm = () => {
       return;
     }
 
-    // Submit form data
-    console.log('Form submitted:', { formData, files });
+    if (!purchaseId) {
+      setErrors({ general: "Payment verification failed. Please complete the payment process first." });
+      setIsSubmitting(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
-    // Redirect to dummy payment gateway with form data
-    navigate('/payment', { state: { serviceId, formData } });
-    setIsSubmitting(false);
+    try {
+      // 2. Upload Documents
+      setSubmissionStatus('uploading');
+      const uploadedDocIds = [];
+
+      for (const key in files) {
+        const fileOrFiles = files[key];
+        if (Array.isArray(fileOrFiles)) {
+          for (const file of fileOrFiles) {
+            const docId = await uploadFile(file);
+            uploadedDocIds.push(docId);
+          }
+        } else if (fileOrFiles) {
+          const docId = await uploadFile(fileOrFiles);
+          uploadedDocIds.push(docId);
+        }
+      }
+
+      // 3. Submit ITR
+      setSubmissionStatus('submitting');
+      const itrPayload = {
+        purchaseId,
+        formType: serviceId,
+        personalInfo: formData,
+        uploadedDocs: uploadedDocIds
+      };
+
+      const { data } = await api.post('/itr', itrPayload);
+
+      if (data.success) {
+        setSubmissionStatus('success');
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+      }
+
+    } catch (error) {
+      console.error("Submission error:", error);
+      setErrors({ general: error.response?.data?.message || "Something went wrong. Please try again." });
+      setSubmissionStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderField = (field) => {
@@ -236,6 +275,7 @@ const UserForm = () => {
               className={`w-full px-4 py-3 border ${hasError ? 'border-red-500' : 'border-slate-300'
                 } rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
             >
+              <option value="">Select an option</option>
               {field.options.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -299,14 +339,14 @@ const UserForm = () => {
                 accept={field.accept}
                 multiple={field.multiple}
                 className="block w-full text-sm text-slate-500
-                  file:mr-4 file:py-3 file:px-6
-                  file:rounded-xl file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-blue-50 file:text-blue-700
-                  hover:file:bg-blue-100
-                  file:cursor-pointer cursor-pointer
-                  border border-slate-300 rounded-xl
-                  focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  file:mr-4 file:py-3 file:px-6
+                                  file:rounded-xl file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-blue-50 file:text-blue-700
+                                  hover:file:bg-blue-100
+                                  file:cursor-pointer cursor-pointer
+                                  border border-slate-300 rounded-xl
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               {files[field.name] && (
                 <div className="mt-2 text-sm text-green-600 flex items-center gap-2">
@@ -340,16 +380,21 @@ const UserForm = () => {
 
       <div className="min-h-screen bg-slate-50 py-12">
         <div className="max-w-4xl mx-auto px-4">
-          {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-slate-600 hover:text-blue-600 mb-6 transition-colors"
           >
             <ArrowLeft size={20} />
-            <span className="font-medium">Back to Service Details</span>
+            <span className="font-medium">Back</span>
           </button>
 
-          {/* Service Info Banner */}
+          {errors.general && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2">
+              <AlertCircle size={20} />
+              <p>{errors.general}</p>
+            </div>
+          )}
+
           {serviceDetails && (
             <div className="mb-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
               <div className="flex items-start justify-between">
@@ -361,34 +406,21 @@ const UserForm = () => {
                   </div>
                   <h2 className="text-2xl font-bold mb-2">{serviceDetails.title}</h2>
                   <p className="text-blue-100 mb-3">{serviceDetails.description}</p>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle size={18} />
-                      <span className="text-sm font-semibold">{serviceDetails.price}</span>
+
+                  {!purchaseId && (
+                    <div className="bg-yellow-500/20 px-4 py-2 rounded-lg inline-block">
+                      <p className="text-sm font-semibold text-yellow-100 flex items-center gap-2">
+                        <AlertCircle size={16} />
+                        Payment pending. You must complete payment to file.
+                      </p>
                     </div>
-                    <div className="h-4 w-px bg-white/30"></div>
-                    <div className="text-sm">
-                      {serviceDetails.features.length} features included
-                    </div>
-                  </div>
+                  )}
                 </div>
-                {serviceDetails.icon && (
-                  <div className={`w-16 h-16 ${serviceDetails.bgColor} rounded-xl flex items-center justify-center`}>
-                    {(() => {
-                      const ServiceIcon = serviceDetails.icon;
-                      return <ServiceIcon className={`w-8 h-8 ${serviceDetails.iconColor}`} />;
-                    })()}
-                  </div>
-                )}
               </div>
             </div>
           )}
 
-          {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-blue-600" />
-            </div>
             <h1 className="text-4xl font-bold text-slate-900 mb-2">
               {formConfig.title}
             </h1>
@@ -397,7 +429,6 @@ const UserForm = () => {
             </p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
             {formConfig.sections.map((section, sectionIndex) => (
               <div key={sectionIndex} className="mb-8">
@@ -419,42 +450,38 @@ const UserForm = () => {
               </div>
             ))}
 
-            {/* Submit Button */}
             <div className="flex gap-4 pt-6 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => navigate(-1)}
                 className="px-8 py-3 border border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !purchaseId}
                 className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-8 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Submitting...
+                    {submissionStatus === 'uploading' ? 'Uploading Files...' : 'Submitting ITR...'}
                   </>
+                ) : !purchaseId ? (
+                  'Payment Required'
                 ) : (
                   <>
                     <CheckCircle size={20} />
-                    Submit Form
+                    Submit ITR
                   </>
                 )}
               </button>
             </div>
           </form>
-
-          {/* Help Text */}
-          {/* <div className="mt-8 text-center text-sm text-slate-600">
-            <p>Need help? Contact our support team at <a href="mailto:support@firstfiling.com" className="text-blue-600 hover:underline">support@firstfiling.com</a></p>
-          </div> */}
         </div>
       </div>
-
       <Footer />
     </>
   );

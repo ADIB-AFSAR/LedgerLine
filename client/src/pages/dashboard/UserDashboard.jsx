@@ -1,39 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, ShoppingBag, Gift, LogOut, HelpCircle, ChevronRight, Mail, Phone, MapPin, Edit2, Package, Clock, CheckCircle } from 'lucide-react';
+import { User, ShoppingBag, Gift, LogOut, HelpCircle, ChevronRight, Mail, Phone, MapPin, Edit2, Package, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import Navbar from '../frontend/Navbar';
 import Footer from '../frontend/Footer';
 import { useAuth } from '../../context/AuthContext';
 import OrderDetails from './OrderDetails';
+import api from '../../api/axios';
 
 const UserDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
-  // Mock data - replace with actual API calls
-  const orders = [
-    {
-      id: 'ORD001',
-      service: 'Salary (Basic) ITR',
-      date: '2024-01-15',
-      status: 'completed',
-      amount: '₹799'
-    },
-    {
-      id: 'ORD002',
-      service: 'GST Registration',
-      date: '2024-02-01',
-      status: 'in-progress',
-      amount: '₹1,499'
+  const fetchOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      const { data } = await api.get('/payments/my-orders');
+      if (data.success) {
+        // Map API data to dashboard format
+        const mappedOrders = data.data.map(order => ({
+          id: order._id,
+          service: order.planId?.name || 'Tax Service',
+          date: new Date(order.createdAt).toLocaleDateString(),
+          status: order.itrStatus || 'Pending',
+          amount: order.planId?.price ? `₹${order.planId.price}` : 'Paid',
+          originalData: order,
+          canFile: order.itrStatus === 'Pending Filing',
+          serviceSlug: order.planId?.slug || 'salary-basic-itr' // Fallback or handle error
+        }));
+        setOrders(mappedOrders);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoadingOrders(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    if (activeTab === 'orders') {
+      fetchOrders();
+    }
+  }, [activeTab]);
+
 
   const rewards = {
     points: 250,
@@ -92,7 +109,7 @@ const UserDashboard = () => {
             <Phone className="w-5 h-5 text-blue-600 mt-1" />
             <div>
               <p className="text-sm text-slate-600 mb-1">Phone Number</p>
-              <p className="font-semibold text-slate-900">{user?.phone || '+91 98765 43210'}</p>
+              <p className="font-semibold text-slate-900">{user?.mobile || 'Not provided'}</p>
             </div>
           </div>
 
@@ -113,8 +130,8 @@ const UserDashboard = () => {
               <p className="font-semibold text-slate-900">{user?.pan || 'Not provided'}</p>
             </div>
             <div className="bg-slate-50 rounded-xl p-4">
-              <p className="text-sm text-slate-600 mb-1">Member Since</p>
-              <p className="font-semibold text-slate-900">{user?.joinDate || 'January 2024'}</p>
+              <p className="text-sm text-slate-600 mb-1">Role</p>
+              <p className="font-semibold text-slate-900 capitalize">{user?.role || 'User'}</p>
             </div>
           </div>
         </div>
@@ -126,7 +143,12 @@ const UserDashboard = () => {
     <div className="bg-white rounded-2xl shadow-lg p-8">
       <h2 className="text-2xl font-bold text-slate-900 mb-6">My Orders</h2>
 
-      {orders.length === 0 ? (
+      {loadingOrders ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading your orders...</p>
+        </div>
+      ) : orders.length === 0 ? (
         <div className="text-center py-12">
           <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-600 mb-4">No orders yet</p>
@@ -144,29 +166,39 @@ const UserDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="font-bold text-slate-900 text-lg">{order.service}</h3>
-                  <p className="text-sm text-slate-600">Order ID: {order.id}</p>
+                  <p className="text-sm text-slate-600">Order ID: {order.id.substring(0, 8)}...</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-slate-900 text-lg">{order.amount}</p>
-                  <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${
-                    order.status === 'completed' 
-                      ? 'bg-green-100 text-green-700' 
+                  <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${['completed', 'submitted'].includes(order.status.toLowerCase())
+                      ? 'bg-green-100 text-green-700'
                       : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {order.status === 'completed' ? <CheckCircle size={14} /> : <Clock size={14} />}
-                    {order.status === 'completed' ? 'Completed' : 'In Progress'}
+                    }`}>
+                    {['completed', 'submitted'].includes(order.status.toLowerCase()) ? <CheckCircle size={14} /> : <Clock size={14} />}
+                    <span className="capitalize">{order.status}</span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center justify-between pt-4 border-t border-slate-200">
                 <p className="text-sm text-slate-600">Order Date: {order.date}</p>
-                <button
-                  onClick={() => setSelectedOrder(order)}
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
-                >
-                  View Details
-                  <ChevronRight size={16} />
-                </button>
+                <div className="flex gap-3">
+                  {order.canFile && (
+                    <button
+                      onClick={() => navigate(`/services/userform?service=${order.serviceSlug}&purchaseId=${order.id}`)}
+                      className="flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
+                    >
+                      Complete Filing
+                      <ArrowRight size={16} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setSelectedOrder(order)}
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+                  >
+                    View Details
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -193,7 +225,7 @@ const UserDashboard = () => {
             <span>{rewards.points}/{rewards.points + rewards.pointsToNext}</span>
           </div>
           <div className="w-full bg-white/20 rounded-full h-3">
-            <div 
+            <div
               className="bg-white rounded-full h-3 transition-all"
               style={{ width: `${(rewards.points / (rewards.points + rewards.pointsToNext)) * 100}%` }}
             ></div>
@@ -330,13 +362,12 @@ const UserDashboard = () => {
                       <button
                         key={item.id}
                         onClick={() => handleMenuClick(item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all ${
-                          isLogout
-                            ? 'text-red-600 hover:bg-red-50'
-                            : isActive
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all ${isLogout
+                          ? 'text-red-600 hover:bg-red-50'
+                          : isActive
                             ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                             : 'text-slate-700 hover:bg-slate-50'
-                        }`}
+                          }`}
                       >
                         <Icon size={20} />
                         <span>{item.label}</span>

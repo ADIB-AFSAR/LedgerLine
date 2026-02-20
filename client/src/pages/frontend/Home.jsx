@@ -15,9 +15,10 @@ import {
 } from "lucide-react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { Link } from "react-router-dom";
 
 const Home = () => {
-  
+
   const [selectedIncome, setSelectedIncome] = useState([]);
   const [suggestedITR, setSuggestedITR] = useState(null);
 
@@ -45,7 +46,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      
+
       {/* Navigation */}
       <Navbar />
 
@@ -66,9 +67,11 @@ const Home = () => {
                 filing for everyone. Don't risk notices, file with confidence.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:shadow-lg hover:bg-blue-700 flex items-center justify-center gap-2 transition-all">
-                  File ITR Now <ArrowRight size={20} />
-                </button>
+                <Link to="/services/individual">
+                  <button className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:shadow-lg hover:bg-blue-700 flex items-center justify-center gap-2 transition-all">
+                    File ITR Now <ArrowRight size={20} />
+                  </button>
+                </Link>
                 <button className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl text-lg font-bold hover:bg-slate-50 flex items-center justify-center gap-2">
                   <PlayCircle size={20} /> Watch How it Works
                 </button>
@@ -182,11 +185,10 @@ const Home = () => {
                   <button
                     key={type.id}
                     onClick={() => toggleIncome(type.id)}
-                    className={`px-6 py-3 rounded-full font-medium transition-all border ${
-                      selectedIncome.includes(type.id)
-                        ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                        : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
-                    }`}
+                    className={`px-6 py-3 rounded-full font-medium transition-all border ${selectedIncome.includes(type.id)
+                      ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                      : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
+                      }`}
                   >
                     {type.label}
                   </button>
@@ -220,7 +222,7 @@ const Home = () => {
         </div>
       </section>
 
-        {/* Pricing Section */}
+      {/* Pricing Section */}
       <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -242,7 +244,7 @@ const Home = () => {
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">Basic Filing</h3>
                 <p className="text-slate-600">Perfect for salaried individuals</p>
               </div>
-              
+
               <div className="text-center mb-8">
                 <div className="flex items-baseline justify-center">
                   <span className="text-5xl font-extrabold text-slate-900">₹799</span>
@@ -268,10 +270,11 @@ const Home = () => {
                   </li>
                 ))}
               </ul>
-
-              <button className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-colors">
-                Get Started
-              </button>
+              <Link to="/services/salary-basic-itr">
+                <button className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-colors">
+                  Get Started
+                </button>
+              </Link>
             </div>
 
             {/* Premium Plan - Most Popular */}
@@ -281,7 +284,7 @@ const Home = () => {
                   Most Popular
                 </span>
               </div>
-              
+
               <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Calculator className="w-8 h-8 text-white" />
@@ -289,7 +292,7 @@ const Home = () => {
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">Premium Filing</h3>
                 <p className="text-slate-600">For multiple income sources</p>
               </div>
-              
+
               <div className="text-center mb-8">
                 <div className="flex items-baseline justify-center">
                   <span className="text-5xl font-extrabold text-slate-900">₹1,299</span>
@@ -316,10 +319,11 @@ const Home = () => {
                   </li>
                 ))}
               </ul>
-
-              <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-2xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all">
-                Choose Premium
-              </button>
+              <Link to="/services/salary-premium">
+                <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-2xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all">
+                  Choose Premium
+                </button>
+              </Link>
             </div>
 
             {/* Business Plan */}
@@ -331,7 +335,7 @@ const Home = () => {
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">Business Pro</h3>
                 <p className="text-slate-600">For freelancers & businesses</p>
               </div>
-              
+
               <div className="text-center mb-8">
                 <div className="flex items-baseline justify-center">
                   <span className="text-5xl font-extrabold text-slate-900">₹2,999</span>
@@ -358,10 +362,11 @@ const Home = () => {
                   </li>
                 ))}
               </ul>
-
-              <button className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold hover:bg-green-700 transition-colors">
-                Go Business
-              </button>
+              <Link to="/services/business">
+                <button className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold hover:bg-green-700 transition-colors">
+                  Go Business
+                </button>
+              </Link>
             </div>
           </div>
 
@@ -507,7 +512,7 @@ const Home = () => {
         </div>
       </section>
 
-    
+
 
       {/* Footer */}
       <Footer />

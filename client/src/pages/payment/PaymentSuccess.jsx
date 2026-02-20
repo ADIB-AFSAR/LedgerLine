@@ -1,19 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle, Home, ArrowRight } from 'lucide-react';
+import { CheckCircle, Home, LayoutDashboard, FileText } from 'lucide-react';
 
 const PaymentSuccess = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [countdown, setCountdown] = useState(5);
-    const transactionId = location.state?.transactionId || 'TXN_SUCCESS';
+    const [countdown, setCountdown] = useState(10);
+
+    // Extract state
+    const { transactionId, serviceId, purchaseId, planName } = location.state || {};
+
+    // Determine redirect target
+    const targetUrl = serviceId && purchaseId
+        ? `/services/userform?service=${serviceId}&purchaseId=${purchaseId}`
+        : '/dashboard';
 
     useEffect(() => {
         const timer = setInterval(() => {
             setCountdown((prev) => {
                 if (prev <= 1) {
                     clearInterval(timer);
-                    navigate('/');
+                    navigate(targetUrl);
                     return 0;
                 }
                 return prev - 1;
@@ -21,7 +28,7 @@ const PaymentSuccess = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [navigate]);
+    }, [navigate, targetUrl]);
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -32,25 +39,34 @@ const PaymentSuccess = () => {
 
                 <h2 className="text-3xl font-bold text-slate-900 mb-2">Payment Successful!</h2>
                 <p className="text-slate-600 mb-6">
-                    Thank you for your payment. Your request has been processed successfully.
+                    Thank you for your payment. You can now proceed to file your
+                    <span className="font-semibold text-slate-800"> {planName || 'ITR'}</span>.
                 </p>
 
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-8 inline-block w-full">
                     <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">Transaction ID</p>
-                    <p className="text-slate-800 font-mono font-medium">{transactionId}</p>
+                    <p className="text-slate-800 font-mono font-medium truncate">{transactionId || 'N/A'}</p>
                 </div>
 
                 <div className="space-y-3">
                     <button
-                        onClick={() => navigate('/')}
-                        className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white py-3 px-6 rounded-xl font-semibold hover:bg-slate-800 transition-colors"
+                        onClick={() => navigate(targetUrl)}
+                        className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
                     >
-                        <Home size={18} />
-                        Back to Home
+                        <FileText size={18} />
+                        Start Filing Now
                     </button>
 
-                    <p className="text-sm text-slate-500">
-                        Redirecting to home in <span className="font-bold text-blue-600">{countdown}</span> seconds...
+                    <button
+                        onClick={() => navigate('/dashboard')}
+                        className="w-full flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 py-3 px-6 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+                    >
+                        <LayoutDashboard size={18} />
+                        Go to Dashboard
+                    </button>
+
+                    <p className="text-sm text-slate-500 mt-4">
+                        Redirecting to filing page in <span className="font-bold text-blue-600">{countdown}</span> seconds...
                     </p>
                 </div>
             </div>
