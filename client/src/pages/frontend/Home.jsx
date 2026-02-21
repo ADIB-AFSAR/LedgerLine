@@ -51,74 +51,44 @@ const Home = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-32 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full text-blue-700 text-sm font-semibold mb-6">
-                <ShieldCheck size={16} /> Trusted by 1M+ Indian Taxpayers
-              </div>
-              <h1 className="text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.1] mb-6">
-                File Your Income Tax Return{" "}
-                <span className="text-blue-600">Easily & Accurately</span>
-              </h1>
-              <p className="text-xl text-slate-600 mb-10 leading-relaxed">
-                Salaried, Business & Capital Gains — Secure, expert-reviewed ITR
-                filing for everyone. Don't risk notices, file with confidence.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/services/individual">
-                  <button className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:shadow-lg hover:bg-blue-700 flex items-center justify-center gap-2 transition-all">
-                    File ITR Now <ArrowRight size={20} />
-                  </button>
-                </Link>
-                <button className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl text-lg font-bold hover:bg-slate-50 flex items-center justify-center gap-2">
-                  <PlayCircle size={20} /> Watch How it Works
-                </button>
-              </div>
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
+        <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10"></div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-20">
+          {/* <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-blue-700 text-xs sm:text-sm font-semibold mb-6 sm:mb-8">
+            <ShieldCheck size={14} className="sm:w-4 sm:h-4" /> 
+            <span className="whitespace-nowrap">Trusted by 1M+ Taxpayers</span>
+          </div> */}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-slate-900 leading-tight sm:leading-[1.1] mb-4 sm:mb-6 md:mb-8 px-2">
+            File Your Income Tax Return{" "}
+            <span className="text-blue-600">Easily & Accurately</span>
+          </h1>
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-slate-600 mb-8 sm:mb-10 md:mb-12 leading-relaxed max-w-3xl mx-auto px-2">
+            Salaried, Business & Capital Gains — Secure, expert-reviewed ITR
+            filing for everyone. Don't risk notices, file with confidence.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+            <Link to="/services/individual" className="w-full sm:w-auto">
+              <button className="w-full bg-blue-600 text-white px-6 sm:px-8 md:px-10 py-3.5 sm:py-4 md:py-5 rounded-xl text-base sm:text-lg font-bold hover:shadow-lg hover:bg-blue-700 flex items-center justify-center gap-2 transition-all">
+                File ITR Now <ArrowRight size={18} className="sm:w-5 sm:h-5" />
+              </button>
+            </Link>
+            <button className="w-full sm:w-auto bg-white text-slate-700 border border-slate-200 px-6 sm:px-8 md:px-10 py-3.5 sm:py-4 md:py-5 rounded-xl text-base sm:text-lg font-bold hover:bg-slate-50 flex items-center justify-center gap-2">
+              <PlayCircle size={18} className="sm:w-5 sm:h-5" /> Watch How it Works
+            </button>
+          </div>
 
-              <div className="mt-12 flex items-center gap-8 grayscale opacity-70">
-                <div className="flex items-center gap-2">
-                  <Lock size={18} /> SSL Secure
-                </div>
-                <div className="flex items-center gap-2">
-                  <UserCheck size={18} /> CA Reviewed
-                </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={18} /> Data Encrypted
-                </div>
-              </div>
+          <div className="mt-10 sm:mt-12 md:mt-16 flex flex-wrap items-center justify-center gap-4 sm:gap-6 md:gap-12 text-slate-600 text-xs sm:text-sm md:text-base">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Lock size={16} className="sm:w-5 sm:h-5" /> 
+              <span>SSL Secure</span>
             </div>
-
-            <div className="relative">
-              <div className="bg-blue-600/10 absolute inset-0 rounded-3xl rotate-3 scale-105 -z-10"></div>
-              <div className="bg-white p-6 rounded-3xl shadow-2xl border border-slate-100">
-                <img
-                  src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=800"
-                  alt="Dashboard Preview"
-                  className="rounded-xl mb-6 shadow-sm"
-                />
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-slate-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-slate-500 uppercase font-bold mb-1">
-                      Users
-                    </p>
-                    <p className="text-lg font-bold text-blue-600">500k+</p>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-slate-500 uppercase font-bold mb-1">
-                      CAs
-                    </p>
-                    <p className="text-lg font-bold text-blue-600">200+</p>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-slate-500 uppercase font-bold mb-1">
-                      Savings
-                    </p>
-                    <p className="text-lg font-bold text-blue-600">₹10Cr+</p>
-                  </div>
-                </div>
-              </div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <UserCheck size={16} className="sm:w-5 sm:h-5" /> 
+              <span>CA Reviewed</span>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <ShieldCheck size={16} className="sm:w-5 sm:h-5" /> 
+              <span>Data Encrypted</span>
             </div>
           </div>
         </div>
@@ -370,12 +340,12 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="text-center mt-12">
+          {/* <div className="text-center mt-12">
             <p className="text-slate-600 mb-4">Need a custom solution?</p>
             <button className="bg-slate-900 text-white px-8 py-3 rounded-xl font-semibold hover:bg-slate-800 transition-colors">
               Contact Our Tax Experts
             </button>
-          </div>
+          </div> */}
         </div>
       </section>
 

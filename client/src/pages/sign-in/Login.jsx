@@ -9,8 +9,8 @@ import {
   ArrowRight,
   ShieldCheck,
   UserCheck,
-  Chrome
 } from 'lucide-react';
+import { FcGoogle } from "react-icons/fc";
 import Navbar from '../frontend/Navbar';
 import { useAuth } from '../../context/AuthContext';
 
@@ -203,7 +203,7 @@ const Login = () => {
                 onClick={() => window.location.href = 'http://localhost:5000/api/v1/auth/google'}
                 className="w-full bg-white border border-slate-300 text-slate-700 py-3 px-4 rounded-xl font-semibold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-all flex items-center justify-center gap-2"
               >
-                <Chrome className="w-5 h-5" />
+                <FcGoogle size={20} />
                 Sign in with Google
               </button>
             </form>
@@ -219,19 +219,7 @@ const Login = () => {
             </div>
 
             {/* Demo Credentials */}
-            <div className="mt-6 pt-6 border-t border-slate-200">
-              <p className="text-xs text-slate-600 text-center mb-2 font-semibold">Demo Credentials:</p>
-              <div className="space-y-2 text-xs text-slate-600">
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="font-semibold text-blue-900 mb-1">Admin Access:</p>
-                  <p className="font-mono">admin@ledgerline.com / admin123</p>
-                </div>
-                <div className="bg-green-50 p-3 rounded-lg">
-                  <p className="font-semibold text-green-900 mb-1">User Access:</p>
-                  <p className="font-mono">admin@gmail.com / 1234</p>
-                </div>
-              </div>
-            </div>
+            
           </div>
 
           {/* Security Features */}
