@@ -28,24 +28,30 @@ export const uploadDocument = asyncHandler(async (req, res, next) => {
     });
 
     blobStream.on('finish', async () => {
-        // Get public URL (Make sure bucket is public or generate signed URL)
-        // For security, generated signed URL is better, or make file public
+        try {
+            // Get a signed URL for secure, long-term access
+            const [url] = await fileUpload.getSignedUrl({
+                action: 'read',
+                expires: '01-01-2100' // Far future
+            });
 
-        await fileUpload.makePublic();
-        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+            const publicUrl = url;
 
-        const document = await Document.create({
-            userId: req.user.id,
-            // formId: req.body.formId, // Optional link to form
-            fileUrl: publicUrl,
-            fileName: file.originalname,
-            fileType: file.mimetype
-        });
+            const document = await Document.create({
+                userId: req.user.id,
+                fileUrl: publicUrl,
+                fileName: file.originalname,
+                fileType: file.mimetype
+            });
 
-        res.status(201).json({
-            success: true,
-            data: document
-        });
+            res.status(201).json({
+                success: true,
+                data: document
+            });
+        } catch (error) {
+            console.error("Error finalizing document upload:", error);
+            res.status(500).json({ success: false, message: error.message || "Error processing uploaded file" });
+        }
     });
 
     blobStream.end(file.buffer);

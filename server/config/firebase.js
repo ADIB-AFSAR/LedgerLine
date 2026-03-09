@@ -8,7 +8,7 @@ const initializeFirebase = () => {
     try {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
-            storageBucket: "itr-project-9be2b.appspot.com"
+            storageBucket: "itr-project-9be2b.firebasestorage.app"
         });
         console.log('Firebase Admin Initialized Successfully');
     } catch (error) {
