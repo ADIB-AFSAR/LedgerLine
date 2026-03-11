@@ -14,12 +14,15 @@ import {
   CreditCard,
   Shield,
   Users,
+  LogOut,
+  LayoutDashboard,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -118,8 +121,8 @@ const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 items-center">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 cursor-pointer">
             <div className="bg-blue-600 p-2 rounded-lg">
@@ -203,38 +206,61 @@ const Navbar = () => {
 
             {/* Auth Buttons */}
             {!isLoggedIn ? (
-              <>
-                <Link
-                  to="/login"
-                  className="text-blue-600 font-semibold px-4 py-2 hover:bg-blue-50 rounded-lg transition-all duration-200"
-                >
-                  Login
-                </Link>
-
-                <Link
-                  to="/sign_up"
-                  className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                  Sign Up
-                </Link>
-              </>
+              <Link
+                to="/login"
+                className="bg-blue-600 text-white px-8 py-2.5 rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm"
+              >
+                Login
+              </Link>
             ) : (
-              <>
-                <Link
-                  to="/dashboard"
-                  className="flex items-center gap-2 text-slate-700 font-semibold px-4 py-2 hover:bg-blue-50 rounded-lg transition-all duration-200"
-                >
-                  <User size={18} />
-                  Dashboard
-                </Link>
-
+              <div className="relative">
                 <button
-                  onClick={handleLogout}
-                  className="text-red-600 font-semibold px-4 py-2 hover:bg-red-50 rounded-lg transition-all duration-200"
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  onMouseEnter={() => setIsProfileOpen(true)}
+                  onMouseLeave={() => setIsProfileOpen(false)}
+                  className="flex items-center gap-2 p-1 border-2 border-slate-100 rounded-full hover:border-blue-600 transition-all duration-200 bg-slate-50"
                 >
-                  Logout
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                    <User size={20} />
+                  </div>
                 </button>
-              </>
+
+                {/* Profile Dropdown */}
+                <div
+                  onMouseEnter={() => setIsProfileOpen(true)}
+                  onMouseLeave={() => setIsProfileOpen(false)}
+                  className={`absolute right-0 top-full mt-2 w-48 bg-white shadow-2xl rounded-2xl border border-slate-100 transition-all duration-300 ${
+                    isProfileOpen
+                      ? "opacity-100 visible translate-y-0"
+                      : "opacity-0 invisible translate-y-2"
+                  }`}
+                >
+                  <div className="p-2 space-y-1">
+                    <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account</p>
+                      <p className="text-sm font-bold text-slate-800 truncate">{user?.name || "User"}</p>
+                    </div>
+                    <Link
+                      to="/dashboard"
+                      className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <LayoutDashboard size={18} />
+                      <span className="text-sm font-semibold">Dashboard</span>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
+                    >
+                      <LogOut size={18} />
+                      <span className="text-sm font-semibold">Logout</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
@@ -305,36 +331,42 @@ const Navbar = () => {
 
             <div className="space-y-2 pt-4">
               {!isLoggedIn ? (
-                <>
-                  <Link
-                    to="/login"
-                    className="block p-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-semibold"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/sign_up"
-                    className="block p-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-center"
-                  >
-                    Sign Up
-                  </Link>
-                </>
+                <Link
+                  to="/login"
+                  className="block p-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors text-center"
+                >
+                  Login
+                </Link>
               ) : (
-                <>
+                <div className="bg-slate-50 rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center gap-3 pb-3 border-b border-slate-200">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                      <User size={24} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account</p>
+                      <p className="text-sm font-bold text-slate-800">{user?.name || "User"}</p>
+                    </div>
+                  </div>
                   <Link
                     to="/dashboard"
-                    className="flex items-center gap-2 p-3 text-slate-700 hover:bg-blue-50 rounded-lg transition-colors font-semibold"
+                    className="flex items-center gap-3 p-3 text-slate-700 hover:bg-white rounded-xl transition-all font-semibold shadow-sm"
+                    onClick={() => setIsMenuOpen(false)}
                   >
-                    <User size={18} />
+                    <LayoutDashboard size={20} className="text-blue-600" />
                     Dashboard
                   </Link>
                   <button
-                    onClick={handleLogout}
-                    className="w-full text-left p-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-semibold"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-3 p-3 text-red-600 hover:bg-white rounded-xl transition-all font-semibold shadow-sm"
                   >
+                    <LogOut size={20} />
                     Logout
                   </button>
-                </>
+                </div>
               )}
             </div>
           </div>

@@ -31,20 +31,20 @@ const BusinessITR = () => {
   }, [isLoggedIn]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
 
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 py-6">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="text-center mb-16">
-            <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Briefcase className="w-8 h-8 text-green-600" />
+          <div className="text-center mb-8">
+            <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Briefcase className="w-6 h-6 text-green-600" />
             </div>
-            <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
+            <h1 className="text-3xl font-extrabold text-slate-900 mb-2">
               Business ITR Filing Services
             </h1>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
               Professional tax filing services for businesses, traders, and specialized income sources
             </p>
           </div>
@@ -56,14 +56,14 @@ const BusinessITR = () => {
               const isPurchased = purchasedPlanNames.includes(service.title);
 
               return (
-                <div key={index} className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col">
+                <div key={index} className="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col">
                   <div className="text-center mb-6">
-                    <div className={`w-16 h-16 ${service.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                      <ServiceIcon className={`w-8 h-8 ${service.iconColor}`} />
+                    <div className={`w-12 h-12 ${service.bgColor} rounded-xl flex items-center justify-center mx-auto mb-3`}>
+                      <ServiceIcon className={`w-6 h-6 ${service.iconColor}`} />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">{service.title}</h3>
-                    <p className="text-slate-600 mb-4 text-sm">{service.description}</p>
-                    <div className="text-2xl font-extrabold text-slate-900 mb-6">{service.price}</div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-1">{service.title}</h3>
+                    <p className="text-slate-600 mb-3 text-xs">{service.description}</p>
+                    <div className="text-2xl font-extrabold text-slate-900 mb-4">{service.price}</div>
                   </div>
 
                   <ul className="space-y-3 mb-8 flex-1">
@@ -110,22 +110,22 @@ const BusinessITR = () => {
           </div>
 
           {/* Help Section */}
-          <div className="mt-16 text-center">
-            <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8">
+          <div className="mt-10 text-center">
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-6">
               <h3 className="text-2xl font-bold text-slate-900 mb-4">Need Business Tax Consultation?</h3>
               <p className="text-slate-600 mb-6">
                 Complex business income? Our CA experts specialize in business tax planning and compliance.
               </p>
-              <Link
-                to="/login"
+              <a
+                href="tel:8126456433"
                 className="inline-block bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-slate-800 transition-colors"
               >
-                Get Business Tax Consultation
-              </Link>
+                Get Expert Consultation
+              </a>
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>

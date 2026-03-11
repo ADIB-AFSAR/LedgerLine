@@ -2,6 +2,7 @@ import express from 'express';
 import {
     submitITR,
     getMyITRs,
+    getITRById,
     getAllITRs,
     updateITRStatus,
     assignCA
@@ -17,6 +18,10 @@ router
     .route('/')
     .post(submitITR)
     .get(getMyITRs);
+
+router
+    .route('/:id')
+    .get(getITRById);
 
 router.get('/all', authorize('admin', 'ca'), getAllITRs);
 

@@ -1,12 +1,15 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from '../pages/frontend/Home';
-import Login from '../pages/sign-in/Login';
+import Login from '../pages/Login';
 import Sign_up from '../pages/sign-in/Sign_up';
 import UnifiedVerification from '../pages/sign-in/UnifiedVerification';
 import UserForm from '../pages/from/UserFrom';
 import UserDashboard from '../pages/dashboard/UserDashboard';
 import AdminLogin from '../pages/admin/AdminLogin';
 import AdminDashboard from '../pages/admin/AdminDashboard';
+import AdminRequestAccess from '../pages/admin/requests/AdminRequestAccess';
+import AdminRequestStatus from '../pages/admin/requests/AdminRequestStatus';
+import AdminAccessRejected from '../pages/admin/requests/AdminAccessRejected';
 
 // ITR Category Pages (keep existing)
 import IndividualITR from '../pages/services/itr/IndividualITR';
@@ -65,7 +68,11 @@ export default function AppRoutes() {
       />
 
       {/* Admin Routes */}
+      <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/request-access" element={<AdminRequestAccess />} />
+      <Route path="/admin/request-status" element={<AdminRequestStatus />} />
+      <Route path="/admin/rejected" element={<AdminAccessRejected />} />
       <Route
         path="/admin/dashboard"
         element={

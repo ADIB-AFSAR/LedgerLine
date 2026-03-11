@@ -65,6 +65,34 @@ export const getMyITRs = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @desc      Get Single ITR
+// @route     GET /api/v1/itr/:id
+// @access    Private
+export const getITRById = asyncHandler(async (req, res, next) => {
+    const itr = await ITRForm.findById(req.params.id)
+        .populate('uploadedDocs')
+        .populate({
+            path: 'purchaseId',
+            populate: {
+                path: 'planId'
+            }
+        });
+
+    if (!itr) {
+        return next(new AppError('ITR Form not found', 404));
+    }
+
+    // Check ownership or role
+    if (itr.userId.toString() !== req.user.id.toString() && req.user.role === 'user') {
+        return next(new AppError('Not authorized to access this ITR', 403));
+    }
+
+    res.status(200).json({
+        success: true,
+        data: itr
+    });
+});
+
 // @desc      Get All ITRs (Admin/CA)
 // @route     GET /api/v1/itr/all
 // @access    Private (Admin/CA)

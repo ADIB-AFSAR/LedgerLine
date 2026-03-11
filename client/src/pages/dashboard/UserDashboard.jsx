@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User, ShoppingBag, Gift, LogOut, HelpCircle, ChevronRight, Mail, Phone, MapPin, Edit2, Package, Clock, CheckCircle, ArrowRight } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { User, ShoppingBag, LogOut, HelpCircle, ChevronRight, Mail, Phone, Edit2, Package, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import Navbar from '../frontend/Navbar';
 import Footer from '../frontend/Footer';
 import { useAuth } from '../../context/AuthContext';
@@ -10,7 +10,8 @@ import api from '../../api/axios';
 const UserDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -51,18 +52,19 @@ const UserDashboard = () => {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['profile', 'orders', 'help'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
-  const rewards = {
-    points: 250,
-    tier: 'Silver',
-    nextTier: 'Gold',
-    pointsToNext: 250
-  };
+
+
 
   const menuItems = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'orders', label: 'My Orders', icon: ShoppingBag },
-    { id: 'rewards', label: 'My Rewards', icon: Gift },
     { id: 'help', label: 'Need Help', icon: HelpCircle },
     { id: 'logout', label: 'Log Out', icon: LogOut }
   ];
@@ -87,7 +89,7 @@ const UserDashboard = () => {
 
       <div className="space-y-6">
         <div className="flex items-center gap-4 pb-6 border-b border-slate-200">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+          <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold font-['Outfit']">
             {user?.name?.charAt(0) || 'U'}
           </div>
           <div>
@@ -113,13 +115,7 @@ const UserDashboard = () => {
             </div>
           </div>
 
-          <div className="flex items-start gap-3 md:col-span-2">
-            <MapPin className="w-5 h-5 text-blue-600 mt-1" />
-            <div>
-              <p className="text-sm text-slate-600 mb-1">Address</p>
-              <p className="font-semibold text-slate-900">{user?.address || 'Address not provided'}</p>
-            </div>
-          </div>
+
         </div>
 
         <div className="pt-6 border-t border-slate-200">
@@ -154,7 +150,7 @@ const UserDashboard = () => {
           <p className="text-slate-600 mb-4">No orders yet</p>
           <button
             onClick={() => navigate('/')}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all"
+            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all"
           >
             Browse Services
           </button>
@@ -207,66 +203,7 @@ const UserDashboard = () => {
     </div>
   );
 
-  const renderRewards = () => (
-    <div className="bg-white rounded-2xl shadow-lg p-8">
-      <h2 className="text-2xl font-bold text-slate-900 mb-6">My Rewards</h2>
 
-      <div className="bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl p-8 text-white mb-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <p className="text-purple-100 mb-2">Current Tier</p>
-            <h3 className="text-3xl font-bold">{rewards.tier}</h3>
-          </div>
-          <Gift className="w-16 h-16 text-white opacity-50" />
-        </div>
-        <div className="mb-4">
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span>Points to {rewards.nextTier}</span>
-            <span>{rewards.points}/{rewards.points + rewards.pointsToNext}</span>
-          </div>
-          <div className="w-full bg-white/20 rounded-full h-3">
-            <div
-              className="bg-white rounded-full h-3 transition-all"
-              style={{ width: `${(rewards.points / (rewards.points + rewards.pointsToNext)) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-        <p className="text-purple-100 text-sm">Earn {rewards.pointsToNext} more points to reach {rewards.nextTier} tier</p>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="font-bold text-slate-900 text-lg">Available Points</h3>
-        <div className="bg-slate-50 rounded-xl p-6 text-center">
-          <p className="text-4xl font-bold text-slate-900 mb-2">{rewards.points}</p>
-          <p className="text-slate-600">Reward Points</p>
-        </div>
-
-        <div className="pt-6">
-          <h3 className="font-bold text-slate-900 text-lg mb-4">How to Earn Points</h3>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <ShoppingBag className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="font-semibold text-slate-900">Complete a Service</p>
-                <p className="text-sm text-slate-600">Earn 50 points per service</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="font-semibold text-slate-900">Refer a Friend</p>
-                <p className="text-sm text-slate-600">Earn 100 points per referral</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
   const renderHelp = () => (
     <div className="bg-white rounded-2xl shadow-lg p-8">
@@ -311,7 +248,7 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white">
+        <div className="bg-blue-600 rounded-xl p-6 text-white shadow-lg shadow-blue-500/10">
           <h3 className="font-bold mb-2">Need Immediate Assistance?</h3>
           <p className="text-purple-100 mb-4">Chat with our support team</p>
           <button className="bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-blue-50 transition-colors">
@@ -328,8 +265,7 @@ const UserDashboard = () => {
         return renderProfile();
       case 'orders':
         return renderOrders();
-      case 'rewards':
-        return renderRewards();
+
       case 'help':
         return renderHelp();
       default:
@@ -338,10 +274,10 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
 
-      <div className="py-12">
+      <main className="py-12 flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-slate-900 mb-2">My Dashboard</h1>
@@ -365,7 +301,7 @@ const UserDashboard = () => {
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all ${isLogout
                           ? 'text-red-600 hover:bg-red-50'
                           : isActive
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
                             : 'text-slate-700 hover:bg-slate-50'
                           }`}
                       >
@@ -384,7 +320,7 @@ const UserDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <Footer />
 

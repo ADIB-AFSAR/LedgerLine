@@ -1,7 +1,9 @@
 import asyncHandler from '../middlewares/asyncHandler.js';
 import User from '../models/User.js';
+import { Admin } from '../config/index.js';
 import ErrorResponse from '../utils/AppError.js';
 import sendEmail from '../utils/sendEmail.js';
+import admin from 'firebase-admin';
 
 // @desc      Register user
 // @route     POST /api/v1/auth/register
@@ -213,7 +215,11 @@ export const resendOTP = asyncHandler(async (req, res, next) => {
 // @route     GET /api/v1/auth/me
 // @access    Private
 export const getMe = asyncHandler(async (req, res, next) => {
-    const user = await User.findById(req.user.id);
+    // Check Admin DB first then User DB
+    let user = await Admin.findById(req.user.id);
+    if (!user) {
+        user = await User.findById(req.user.id);
+    }
 
     res.status(200).json({
         success: true,
@@ -227,11 +233,8 @@ export const getMe = asyncHandler(async (req, res, next) => {
 export const googleCallback = asyncHandler(async (req, res, next) => {
     // Generate Token
     const user = req.user;
-
-    // Google users are verified by default in passport strategy now.
-    // If not, we could check here.
-
     const token = user.getSignedJwtToken();
+    const state = req.query.state; // 'admin' or undefined
 
     // Set cookie
     const options = {
@@ -244,8 +247,31 @@ export const googleCallback = asyncHandler(async (req, res, next) => {
 
     res.cookie('token', token, options);
 
-    // Redirect to frontend with token
-    res.redirect(`http://localhost:5173/login?token=${token}`);
+    // Default redirect
+    let redirectUrl = `http://localhost:5173/login?token=${token}`;
+
+    if (state === 'admin') {
+        // User intended to log into admin portal
+        if (user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved')) {
+            redirectUrl = `http://localhost:5173/admin/dashboard?token=${token}`;
+        } else if (user.adminStatus === 'pending') {
+            redirectUrl = `http://localhost:5173/admin/request-status?token=${token}`;
+        } else if (user.adminStatus === 'rejected') {
+            redirectUrl = `http://localhost:5173/admin/rejected?token=${token}`;
+        } else {
+            // First time or 'none' status, needs to raise request
+            redirectUrl = `http://localhost:5173/admin/request-access?token=${token}`;
+        }
+    } else {
+        // Regular user login
+        if (user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved')) {
+            redirectUrl = `http://localhost:5173/admin/dashboard?token=${token}`;
+        } else {
+            redirectUrl = `http://localhost:5173/login?token=${token}`;
+        }
+    }
+
+    res.redirect(redirectUrl);
 });
 
 // @desc      Get all users
@@ -327,6 +353,193 @@ export const verifyMobileOTP = asyncHandler(async (req, res, next) => {
     sendTokenResponse(user, 200, res);
 });
 
+// @desc      Request Admin Access
+// @route     POST /api/v1/auth/request-admin
+// @access    Private
+export const requestAdminAccess = asyncHandler(async (req, res, next) => {
+    // Try finding in both DBs
+    let user = await Admin.findById(req.user.id);
+    if (!user) user = await User.findById(req.user.id);
+
+    if (!user) {
+        return next(new ErrorResponse('User not found', 404));
+    }
+
+    if ((user.role === 'admin' || user.role === 'ca') && user.adminStatus === 'approved') {
+        return next(new ErrorResponse('User already has administrative access', 400));
+    }
+
+    if (user.adminStatus === 'pending') {
+        return next(new ErrorResponse('Access request is already pending', 400));
+    }
+
+    user.adminStatus = 'pending';
+    user.adminRequestedAt = Date.now();
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+        success: true,
+        message: 'Administrative access request submitted successfully'
+    });
+});
+
+// @desc      Get all admin access requests
+// @route     GET /api/v1/auth/admin-requests
+// @access    Private/Admin
+export const getAdminRequests = asyncHandler(async (req, res, next) => {
+    const adminReqs = await Admin.find({ adminStatus: 'pending' });
+    const userReqs = await User.find({ adminStatus: 'pending' });
+    
+    const allRequests = [...adminReqs, ...userReqs].sort((a,b) => b.adminRequestedAt - a.adminRequestedAt);
+
+    res.status(200).json({
+        success: true,
+        count: allRequests.length,
+        data: allRequests
+    });
+});
+
+// @desc      Handle Admin Access Request (Approve/Reject)
+// @route     PUT /api/v1/auth/admin-requests/:id
+// @access    Private/Admin
+export const handleAdminRequest = asyncHandler(async (req, res, next) => {
+    const { status, role } = req.body; // status: 'approved' | 'rejected', role: 'admin' | 'ca'
+
+    if (!['approved', 'rejected'].includes(status)) {
+        return next(new ErrorResponse('Invalid status provided', 400));
+    }
+
+    let user = await Admin.findById(req.params.id);
+    if (!user) user = await User.findById(req.params.id);
+
+    if (!user) {
+        return next(new ErrorResponse('User not found', 404));
+    }
+
+    user.adminStatus = status;
+    
+    if (status === 'approved') {
+        user.role = role || 'ca'; // Default to CA if role not provided
+    } else {
+        user.role = 'user'; // Ensure role is user if rejected
+    }
+
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+        success: true,
+        message: `Admin request ${status} successfully`,
+        data: user
+    });
+});
+
+// @desc      Firebase Login Sync
+// @route     POST /api/v1/auth/firebase-login
+// @access    Public
+export const firebaseLogin = asyncHandler(async (req, res, next) => {
+    const { idToken, uid, mobile } = req.body;
+
+    if (!idToken) {
+        return next(new ErrorResponse('Please provide a Firebase ID token', 400));
+    }
+
+    try {
+        // Verify Firebase Token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const { uid: firebaseUid, email: firebaseEmail, phone_number: firebasePhone } = decodedToken;
+
+        // Normalize mobile numbers (use last 10 digits for consistent lookup)
+        const normalizeMobile = (num) => {
+            if (!num) return null;
+            const cleaned = num.replace(/\D/g, '');
+            return cleaned.length >= 10 ? cleaned.slice(-10) : cleaned;
+        };
+
+        const searchMobile = normalizeMobile(firebasePhone || mobile);
+
+        // Find user in our DB
+        // We check firebaseUid, then email, then mobile
+        let user = await User.findOne({
+            $or: [
+                { firebaseUid: decodedToken.uid },
+                ...(firebaseEmail ? [{ email: firebaseEmail }] : []),
+                ...(searchMobile ? [{ mobile: searchMobile }] : [])
+            ]
+        });
+
+        if (!user) {
+            return next(new ErrorResponse('You are a new user, please register yourself first.', 404));
+        } else {
+            // Update existing user with info if missing
+            let updated = false;
+            
+            if (!user.firebaseUid) {
+                user.firebaseUid = decodedToken.uid;
+                updated = true;
+            }
+            if (!user.email && firebaseEmail) {
+                user.email = firebaseEmail;
+                user.isEmailVerified = decodedToken.email_verified || true;
+                updated = true;
+            }
+            if (!user.mobile && searchMobile) {
+                user.mobile = searchMobile;
+                user.isMobileVerified = true;
+                updated = true;
+            }
+
+            if (updated) {
+                await user.save({ validateBeforeSave: false });
+            }
+        }
+
+        sendTokenResponse(user, 200, res);
+    } catch (error) {
+        console.error('Firebase token verification failed:', error);
+        return next(new ErrorResponse('Authentication failed', 401));
+    }
+});
+
+// @desc      Verify Mobile via Firebase
+// @route     POST /api/v1/auth/verify-mobile-firebase
+// @access    Private
+export const firebaseVerifyMobile = asyncHandler(async (req, res, next) => {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+        return next(new ErrorResponse('Please provide a Firebase ID token', 400));
+    }
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const { phone_number: firebasePhone } = decodedToken;
+
+        if (!firebasePhone) {
+            return next(new ErrorResponse('Firebase token does not contain a verified phone number', 400));
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) return next(new ErrorResponse('User not found', 404));
+
+        // Update user
+        user.isMobileVerified = true;
+        // Also update the mobile number if it's currently a dummy or missing
+        const normalizedMobile = firebasePhone.replace(/\D/g, '').slice(-10);
+        user.mobile = normalizedMobile;
+        user.firebaseUid = decodedToken.uid;
+
+        await user.save({ validateBeforeSave: false });
+
+        res.status(200).json({
+            success: true,
+            message: 'Mobile verified successfully via Firebase'
+        });
+    } catch (error) {
+        console.error('Firebase verification failed:', error);
+        return next(new ErrorResponse('Verification failed', 401));
+    }
+});
+
 // Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
     // Create token
@@ -348,6 +561,10 @@ const sendTokenResponse = (user, statusCode, res) => {
         .cookie('token', token, options)
         .json({
             success: true,
-            token
+            token,
+            data: {
+                role: user.role,
+                adminStatus: user.adminStatus
+            }
         });
 };

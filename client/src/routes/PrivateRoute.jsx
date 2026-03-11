@@ -15,19 +15,38 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
     }
 
     if (!isLoggedIn) {
+        // If trying to access admin routes, redirect to admin login
+        if (location.pathname.startsWith('/admin')) {
+            return <Navigate to="/admin/login" state={{ from: location }} replace />;
+        }
         // Redirect to login but save the attempted location
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     // Check Mobile Verification (Exclude verify-mobile and verification pages to avoid loop)
-    if (user && !user.isMobileVerified && location.pathname !== '/verify-mobile' && location.pathname !== '/verification' && !isAdmin) {
+    // Only enforced for regular users, admins/CA usually bypassed or handled differently
+    if (user && !user.isMobileVerified && location.pathname !== '/verify-mobile' && location.pathname !== '/verification' && user.role === 'user') {
         return <Navigate to="/verification" replace />;
     }
 
-    // Enforce matching role (admin vs user)
-    if (adminOnly && !isAdmin) {
-        // Redirect non-admins to user dashboard
-        return <Navigate to="/dashboard" replace />;
+    // Enforce matching role (admin/ca vs user)
+    if (adminOnly) {
+        const hasAdminAccess = user?.role === 'admin' || (user?.role === 'ca' && user?.adminStatus === 'approved');
+        
+        if (!hasAdminAccess) {
+            // Check status for smarter redirection if on an admin path
+            if (location.pathname.startsWith('/admin')) {
+                if (user?.adminStatus === 'pending') {
+                    return <Navigate to="/admin/request-status" replace />;
+                } else if (user?.adminStatus === 'rejected') {
+                    return <Navigate to="/admin/rejected" replace />;
+                } else if (location.pathname !== '/admin/request-access') {
+                    return <Navigate to="/admin/request-access" replace />;
+                }
+            }
+            // Redirect non-admins to user dashboard if not trying to access admin request flow
+            return <Navigate to="/dashboard" replace />;
+        }
     }
 
     return children;

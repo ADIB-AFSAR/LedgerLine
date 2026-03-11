@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const userSchema = new mongoose.Schema({
+const adminSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Please add a name']
@@ -42,12 +42,16 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ['user', 'admin', 'ca'],
-        default: 'user'
+        default: 'user' // Default to user until approved
     },
-    purchasedPlans: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Purchase'
-    }],
+    adminStatus: {
+        type: String,
+        enum: ['none', 'pending', 'approved', 'rejected'],
+        default: 'none'
+    },
+    adminRequestedAt: {
+        type: Date
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -68,10 +72,10 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     }
-});
+}, { collection: 'users' }); // Specify collection name as 'users'
 
 // Encrypt password using bcrypt
-userSchema.pre('save', async function (next) {
+adminSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
         next();
     }
@@ -80,15 +84,15 @@ userSchema.pre('save', async function (next) {
 });
 
 // Match user entered password to hashed password in database
-userSchema.methods.matchPassword = async function (enteredPassword) {
+adminSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
 // Sign JWT and return
-userSchema.methods.getSignedJwtToken = function () {
+adminSchema.methods.getSignedJwtToken = function () {
     return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRE
     });
 };
 
-export default mongoose.model('User', userSchema);
+export default adminSchema;

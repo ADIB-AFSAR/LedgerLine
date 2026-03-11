@@ -6,11 +6,22 @@ const serviceAccount = require('./serviceAccountKey.json');
 
 const initializeFirebase = () => {
     try {
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            storageBucket: "itr-project-9be2b.firebasestorage.app"
-        });
-        console.log('Firebase Admin Initialized Successfully');
+        if (admin.apps.length === 0) {
+            // Standard PKCS#8 formatting for service account keys
+            const privateKey = serviceAccount.private_key 
+                ? serviceAccount.private_key.replace(/\\n/g, '\n') 
+                : undefined;
+
+            admin.initializeApp({
+                credential: admin.credential.cert({
+                    projectId: serviceAccount.project_id,
+                    clientEmail: serviceAccount.client_email,
+                    privateKey: privateKey
+                }),
+                storageBucket: "itr-project-9be2b.firebasestorage.app"
+            });
+            console.log('Firebase Admin Initialized Successfully');
+        }
     } catch (error) {
         console.error('Firebase Admin Initialization Failed:', error);
     }
@@ -18,10 +29,6 @@ const initializeFirebase = () => {
 
 initializeFirebase();
 
-let bucket;
-
-if (admin.apps.length > 0) {
-    bucket = admin.storage().bucket();
-}
+const bucket = admin.storage().bucket();
 
 export { bucket };

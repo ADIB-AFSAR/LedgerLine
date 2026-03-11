@@ -45,97 +45,71 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-900">
 
       {/* Navigation */}
       <Navbar />
+      <main className="flex-1">
 
       {/* Hero Section */}
-      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-32 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full text-blue-700 text-sm font-semibold mb-6">
-                <ShieldCheck size={16} /> Trusted by 1M+ Indian Taxpayers
-              </div>
-              <h1 className="text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.1] mb-6">
-                File Your Income Tax Return{" "}
-                <span className="text-blue-600">Easily & Accurately</span>
-              </h1>
-              <p className="text-xl text-slate-600 mb-10 leading-relaxed">
-                Salaried, Business & Capital Gains — Secure, expert-reviewed ITR
-                filing for everyone. Don't risk notices, file with confidence.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/services/individual">
-                  <button className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:shadow-lg hover:bg-blue-700 flex items-center justify-center gap-2 transition-all">
-                    File ITR Now <ArrowRight size={20} />
-                  </button>
-                </Link>
-                <button className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl text-lg font-bold hover:bg-slate-50 flex items-center justify-center gap-2">
-                  <PlayCircle size={20} /> Watch How it Works
+      <section className="relative pt-16 pb-24 lg:pt-24 lg:pb-36 overflow-hidden bg-white">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-1.5 rounded-full text-blue-700 text-sm font-semibold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <ShieldCheck size={16} /> Trusted by 1M+ Indian Taxpayers
+            </div>
+            <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+              File Your Income Tax Return{" "}
+              <span className="text-blue-600">Easily & Accurately</span>
+            </h1>
+            <p className="text-xl lg:text-2xl text-slate-600 mb-12 leading-relaxed max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+              Salaried, Business & Capital Gains — Secure, expert-reviewed ITR
+              filing for everyone. Don't risk notices, file with confidence.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+              <Link to="/services/individual" className="w-full sm:w-auto">
+                <button className="w-full bg-blue-600 text-white px-10 py-4 rounded-2xl text-lg font-bold hover:shadow-2xl hover:bg-blue-700 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-1">
+                  File ITR Now <ArrowRight size={20} />
                 </button>
-              </div>
-
-              <div className="mt-12 flex items-center gap-8 grayscale opacity-70">
-                <div className="flex items-center gap-2">
-                  <Lock size={18} /> SSL Secure
-                </div>
-                <div className="flex items-center gap-2">
-                  <UserCheck size={18} /> CA Reviewed
-                </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={18} /> Data Encrypted
-                </div>
-              </div>
+              </Link>
+              <button className="w-full sm:w-auto bg-white text-slate-700 border border-slate-200 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-slate-50 flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md transform hover:-translate-y-1">
+                <PlayCircle size={20} /> Watch How it Works
+              </button>
             </div>
 
-            <div className="relative">
-              <div className="bg-blue-600/10 absolute inset-0 rounded-3xl rotate-3 scale-105 -z-10"></div>
-              <div className="bg-white p-6 rounded-3xl shadow-2xl border border-slate-100">
-                <img
-                  src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=800"
-                  alt="Dashboard Preview"
-                  className="rounded-xl mb-6 shadow-sm"
-                />
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-slate-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-slate-500 uppercase font-bold mb-1">
-                      Users
-                    </p>
-                    <p className="text-lg font-bold text-blue-600">500k+</p>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-slate-500 uppercase font-bold mb-1">
-                      CAs
-                    </p>
-                    <p className="text-lg font-bold text-blue-600">200+</p>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-slate-500 uppercase font-bold mb-1">
-                      Savings
-                    </p>
-                    <p className="text-lg font-bold text-blue-600">₹10Cr+</p>
-                  </div>
-                </div>
+            <div className="flex flex-wrap justify-center items-center gap-10 grayscale opacity-60 animate-in fade-in duration-1000 delay-500">
+              <div className="flex items-center gap-2 font-medium text-slate-600">
+                <Lock size={18} /> SSL Secure
+              </div>
+              <div className="flex items-center gap-2 font-medium text-slate-600">
+                <UserCheck size={18} /> CA Reviewed
+              </div>
+              <div className="flex items-center gap-2 font-medium text-slate-600">
+                <ShieldCheck size={18} /> Data Encrypted
               </div>
             </div>
           </div>
         </div>
+
+        {/* Background Decorative Elements */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-50 rounded-full blur-3xl opacity-50"></div>
+          <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-indigo-50 rounded-full blur-3xl opacity-50"></div>
+        </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-4">
+      <section className="py-16 bg-slate-50/50 backdrop-blur-sm border-y border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl font-extrabold text-slate-900 mb-6">
               How It Works
             </h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
               Get your taxes done in 3 simple steps without leaving your home.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-12">
+          <div className="grid md:grid-cols-3 gap-16">
             {[
               {
                 step: "01",
@@ -153,14 +127,17 @@ const Home = () => {
                 desc: "We file your return instantly. Simply e-verify via Aadhaar OTP.",
               },
             ].map((item, idx) => (
-              <div key={idx} className="relative group text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-600 transition-colors">
-                  <span className="text-2xl font-bold text-blue-600 group-hover:text-white">
+              <div key={idx} className="relative group text-center px-4">
+                <div className="w-20 h-20 bg-blue-100 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:bg-blue-600 transition-all duration-300 transform group-hover:rotate-6 group-hover:scale-110 shadow-sm">
+                  <span className="text-3xl font-bold text-blue-600 group-hover:text-white">
                     {item.step}
                   </span>
                 </div>
-                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-                <p className="text-slate-600 leading-relaxed">{item.desc}</p>
+                <h3 className="text-2xl font-bold mb-4 text-slate-900">{item.title}</h3>
+                <p className="text-lg text-slate-600 leading-relaxed">{item.desc}</p>
+                {idx < 2 && (
+                  <div className="hidden lg:block absolute top-10 left-full w-full h-[2px] bg-gradient-to-r from-blue-100 to-transparent -ml-8 z-0"></div>
+                )}
               </div>
             ))}
           </div>
@@ -168,26 +145,29 @@ const Home = () => {
       </section>
 
       {/* ITR Auto-Suggester Widget */}
-      <section className="py-20 bg-slate-50">
+      <section className="py-24 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
-            <div className="bg-blue-600 p-8 text-white">
-              <h2 className="text-2xl font-bold mb-2">
+          <div className="bg-slate-50/50 rounded-[2.5rem] shadow-2xl shadow-blue-100/50 overflow-hidden border border-slate-100">
+            <div className="bg-blue-600 p-12 text-center text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Calculator size={120} />
+              </div>
+              <h2 className="text-4xl font-bold mb-4 relative z-10">
                 Which ITR should I file?
               </h2>
-              <p className="opacity-90">
-                Select your income sources to get an instant recommendation.
+              <p className="text-xl opacity-90 relative z-10 max-w-xl mx-auto">
+                Select your income sources to get an instant recommendation from our AI-powered engine.
               </p>
             </div>
-            <div className="p-8">
-              <div className="flex flex-wrap gap-3 mb-8">
+            <div className="p-12">
+              <div className="flex flex-wrap justify-center gap-4 mb-10">
                 {incomeTypes.map((type) => (
                   <button
                     key={type.id}
                     onClick={() => toggleIncome(type.id)}
-                    className={`px-6 py-3 rounded-full font-medium transition-all border ${selectedIncome.includes(type.id)
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
+                    className={`px-8 py-3.5 rounded-2xl font-semibold transition-all duration-300 border-2 ${selectedIncome.includes(type.id)
+                      ? "bg-blue-600 text-white border-blue-600 shadow-lg scale-105"
+                      : "bg-white text-slate-600 border-slate-100 hover:border-blue-200 hover:bg-slate-50"
                       }`}
                   >
                     {type.label}
@@ -197,22 +177,22 @@ const Home = () => {
               <button
                 onClick={handleSuggest}
                 disabled={selectedIncome.length === 0}
-                className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-xl hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 mb-2"
               >
                 Show My Correct ITR Form
               </button>
 
               {suggestedITR && (
-                <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
-                  <div className="bg-green-500 p-2 rounded-full text-white">
-                    <CheckCircle2 size={24} />
+                <div className="mt-10 p-8 bg-green-50 border border-green-200 rounded-3xl flex items-center gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div className="bg-green-500 p-3 rounded-2xl text-white shadow-lg shadow-green-200">
+                    <CheckCircle2 size={32} />
                   </div>
                   <div>
-                    <p className="text-green-800 font-bold text-lg">
+                    <p className="text-green-900 font-extrabold text-2xl mb-1">
                       You should file {suggestedITR}
                     </p>
-                    <p className="text-green-700 text-sm">
-                      Our plans start from ₹499 for this category.
+                    <p className="text-green-700 text-lg">
+                      Our plans start from just <span className="font-bold">₹499</span> for this category.
                     </p>
                   </div>
                 </div>
@@ -223,37 +203,37 @@ const Home = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
+      <section className="py-24 bg-slate-50 border-y border-slate-100">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-24">
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-6">
               Choose Your Perfect Plan
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
               Transparent pricing for every taxpayer. From simple salary returns to complex business filings.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-3 gap-10 max-w-6xl mx-auto items-stretch">
             {/* Basic Plan */}
-            <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 relative hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-10 flex flex-col hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+              <div className="mb-8">
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
                   <FileText className="w-8 h-8 text-blue-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">Basic Filing</h3>
-                <p className="text-slate-600">Perfect for salaried individuals</p>
+                <p className="text-slate-500">Perfect for salaried individuals</p>
               </div>
 
-              <div className="text-center mb-8">
-                <div className="flex items-baseline justify-center">
+              <div className="mb-10">
+                <div className="flex items-baseline">
                   <span className="text-5xl font-extrabold text-slate-900">₹799</span>
-                  <span className="text-slate-500 ml-2">/year</span>
+                  <span className="text-slate-400 ml-2 font-medium">/year</span>
                 </div>
                 <p className="text-sm text-slate-500 mt-2">Less than 50 Lacs income</p>
               </div>
 
-              <ul className="space-y-4 mb-8">
+              <ul className="space-y-5 mb-10 flex-grow">
                 {[
                   "ITR for salaried individuals",
                   "Filing confirmation",
@@ -262,46 +242,46 @@ const Home = () => {
                   "Tax due/refund status",
                   "Single income source"
                 ].map((feature, idx) => (
-                  <li key={idx} className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                  <li key={idx} className="flex items-center gap-4">
+                    <div className="w-6 h-6 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
                     </div>
-                    <span className="text-slate-700">{feature}</span>
+                    <span className="text-slate-600 font-medium">{feature}</span>
                   </li>
                 ))}
               </ul>
               <Link to="/services/salary-basic-itr">
-                <button className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-colors">
+                <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 hover:text-white transition-all duration-300">
                   Get Started
                 </button>
               </Link>
             </div>
 
             {/* Premium Plan - Most Popular */}
-            <div className="bg-white rounded-3xl shadow-2xl border-2 border-blue-500 p-8 relative hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 scale-105">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-bold">
+            <div className="bg-white rounded-[2.5rem] shadow-2xl border-2 border-blue-500 p-10 flex flex-col relative hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 lg:-mt-4 lg:mb-4 z-10">
+              <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-max">
+                <span className="bg-blue-600 text-white px-8 py-2.5 rounded-full text-sm font-bold shadow-xl shadow-blue-200 uppercase tracking-widest whitespace-nowrap block">
                   Most Popular
                 </span>
               </div>
 
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="mb-8 mt-4">
+                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-200">
                   <Calculator className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">Premium Filing</h3>
-                <p className="text-slate-600">For multiple income sources</p>
+                <p className="text-slate-500">For multiple income sources</p>
               </div>
 
-              <div className="text-center mb-8">
-                <div className="flex items-baseline justify-center">
+              <div className="mb-10">
+                <div className="flex items-baseline">
                   <span className="text-5xl font-extrabold text-slate-900">₹1,299</span>
-                  <span className="text-slate-500 ml-2">/year</span>
+                  <span className="text-slate-400 ml-2 font-medium">/year</span>
                 </div>
                 <p className="text-sm text-slate-500 mt-2">More than 50 Lacs income</p>
               </div>
 
-              <ul className="space-y-4 mb-8">
+              <ul className="space-y-5 mb-10 flex-grow">
                 {[
                   "All Basic plan features",
                   "Multiple income sources",
@@ -311,40 +291,40 @@ const Home = () => {
                   "Advanced tax planning",
                   "Dividend income support"
                 ].map((feature, idx) => (
-                  <li key={idx} className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                  <li key={idx} className="flex items-center gap-4">
+                    <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
                     </div>
-                    <span className="text-slate-700">{feature}</span>
+                    <span className="text-slate-700 font-bold">{feature}</span>
                   </li>
                 ))}
               </ul>
               <Link to="/services/salary-premium">
-                <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-2xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all">
+                <button className="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
                   Choose Premium
                 </button>
               </Link>
             </div>
 
             {/* Business Plan */}
-            <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 relative hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-10 flex flex-col hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+              <div className="mb-8">
+                <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6">
                   <MessageSquare className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">Business Pro</h3>
-                <p className="text-slate-600">For freelancers & businesses</p>
+                <p className="text-slate-500">For freelancers & businesses</p>
               </div>
 
-              <div className="text-center mb-8">
-                <div className="flex items-baseline justify-center">
+              <div className="mb-10">
+                <div className="flex items-baseline">
                   <span className="text-5xl font-extrabold text-slate-900">₹2,999</span>
-                  <span className="text-slate-500 ml-2">/year</span>
+                  <span className="text-slate-400 ml-2 font-medium">/year</span>
                 </div>
                 <p className="text-sm text-slate-500 mt-2">Presumptive/Business income</p>
               </div>
 
-              <ul className="space-y-4 mb-8">
+              <ul className="space-y-5 mb-10 flex-grow">
                 {[
                   "All Premium features",
                   "Business/Professional income",
@@ -354,44 +334,37 @@ const Home = () => {
                   "Quarterly consultations",
                   "GST integration support"
                 ].map((feature, idx) => (
-                  <li key={idx} className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                  <li key={idx} className="flex items-center gap-4">
+                    <div className="w-6 h-6 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
                     </div>
-                    <span className="text-slate-700">{feature}</span>
+                    <span className="text-slate-600 font-medium">{feature}</span>
                   </li>
                 ))}
               </ul>
               <Link to="/services/business">
-                <button className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold hover:bg-green-700 transition-colors">
+                <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all">
                   Go Business
                 </button>
               </Link>
             </div>
           </div>
-
-          <div className="text-center mt-12">
-            <p className="text-slate-600 mb-4">Need a custom solution?</p>
-            <button className="bg-slate-900 text-white px-8 py-3 rounded-xl font-semibold hover:bg-slate-800 transition-colors">
-              Contact Our Tax Experts
-            </button>
-          </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
+      <section className="py-24 bg-white">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-6">
               What Our Clients Say
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
               Join thousands of satisfied taxpayers who trust FirstFiling for their tax needs
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-10">
             {[
               {
                 name: "Priya Sharma",
@@ -418,47 +391,42 @@ const Home = () => {
                 avatar: "AP"
               }
             ].map((testimonial, idx) => (
-              <div key={idx} className="bg-slate-50 rounded-3xl p-8 relative hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+              <div key={idx} className="bg-slate-50/50 rounded-[2rem] p-10 relative hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-slate-100">
+                <div className="flex items-center mb-8">
+                  <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl mr-5 shadow-lg shadow-blue-100">
                     {testimonial.avatar}
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900">{testimonial.name}</h4>
-                    <p className="text-sm text-slate-600">{testimonial.role}</p>
-                    <p className="text-xs text-slate-500">{testimonial.company}</p>
+                    <h4 className="font-bold text-slate-900 text-lg">{testimonial.name}</h4>
+                    <p className="text-sm text-slate-500 font-medium">{testimonial.role}</p>
                   </div>
                 </div>
 
-                <div className="flex mb-4">
+                <div className="flex mb-6">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <div key={i} className="w-5 h-5 text-yellow-400">
+                    <div key={i} className="w-5 h-5 text-yellow-400 mr-1">
                       ⭐
                     </div>
                   ))}
                 </div>
 
-                <p className="text-slate-700 leading-relaxed italic">
+                <p className="text-slate-600 leading-relaxed italic text-lg mb-4">
                   "{testimonial.text}"
                 </p>
-
-                <div className="absolute -top-4 -right-4 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">"</span>
-                </div>
               </div>
             ))}
           </div>
 
-          <div className="text-center mt-12">
-            <div className="flex justify-center items-center gap-2 mb-6">
+          <div className="text-center mt-20">
+            <div className="flex justify-center items-center gap-3 mb-6 bg-blue-50/50 w-fit mx-auto px-6 py-3 rounded-full border border-blue-100">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="w-6 h-6 text-yellow-400">⭐</div>
+                  <div key={i} className="w-5 h-5 text-yellow-500">⭐</div>
                 ))}
               </div>
-              <span className="text-slate-600 font-semibold">4.9/5 from 10,000+ reviews</span>
+              <span className="text-slate-900 font-bold">4.9/5 from 10,000+ reviews</span>
             </div>
-            <p className="text-slate-500">
+            <p className="text-slate-500 font-medium tracking-wide">
               Trusted by professionals, businesses, and individuals across India
             </p>
           </div>
@@ -466,12 +434,12 @@ const Home = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-white">
+      <section className="py-24 bg-slate-50/50 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-extrabold text-center mb-12">
+          <h2 className="text-4xl font-extrabold text-center text-slate-900 mb-16">
             Frequently Asked Questions
           </h2>
-          <div className="space-y-6">
+          <div className="space-y-4">
             {[
               {
                 q: "Which ITR should I file?",
@@ -496,16 +464,20 @@ const Home = () => {
             ].map((faq, i) => (
               <details
                 key={i}
-                className="group border border-slate-200 rounded-2xl p-6 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="group border border-slate-200 bg-white rounded-2xl p-6 hover:bg-slate-50 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
               >
                 <summary className="flex justify-between items-center font-bold text-slate-800 list-none">
                   {faq.q}
-                  <ChevronDown
-                    size={20}
-                    className="group-open:rotate-180 transition-transform"
-                  />
+                  <div className="bg-slate-100 p-1 rounded-lg group-open:bg-blue-600 group-open:text-white transition-colors">
+                    <ChevronDown
+                      size={20}
+                      className="group-open:rotate-180 transition-transform"
+                    />
+                  </div>
                 </summary>
-                <p className="mt-4 text-slate-600 leading-relaxed">{faq.a}</p>
+                <p className="mt-4 text-slate-600 leading-relaxed text-lg border-t border-slate-100 pt-4 animate-in fade-in slide-in-from-top-2">
+                  {faq.a}
+                </p>
               </details>
             ))}
           </div>
@@ -514,6 +486,7 @@ const Home = () => {
 
 
 
+      </main>
       {/* Footer */}
       <Footer />
 

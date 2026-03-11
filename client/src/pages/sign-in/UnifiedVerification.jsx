@@ -3,11 +3,21 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../frontend/Navbar';
 import { Mail, Smartphone, CheckCircle, ArrowRight, Loader2, Lock, AlertCircle, Phone, RefreshCcw, LogOut } from 'lucide-react';
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "../../firebase/firebase";
+import api from '../../api/axios';
 
 const UnifiedVerification = () => {
     const { state } = useLocation();
     const navigate = useNavigate();
-    const { user, verifyOTP, resendOTP, verifyMobileOTP, sendMobileOTP, logout } = useAuth();
+    const { isLoggedIn, loading, user, verifyOTP, resendOTP, verifyMobileOTP, sendMobileOTP, logout } = useAuth();
+
+    // Redirect if not logged in and not in registration flow
+    useEffect(() => {
+        if (!loading && !isLoggedIn && !state?.email) {
+            navigate('/login');
+        }
+    }, [isLoggedIn, loading, state, navigate]);
 
     // Identify user/email based on Login vs Register state
     const emailAddress = user?.email || state?.email;
@@ -30,6 +40,8 @@ const UnifiedVerification = () => {
     const [resendMobileTimer, setResendMobileTimer] = useState(0);
     const [mobileOtpSent, setMobileOtpSent] = useState(state?.verificationType === 'mobile');
     const [needsMobileInput, setNeedsMobileInput] = useState(false); // If placeholder or user wants to edit
+
+    const [confirmationResult, setConfirmationResult] = useState(null);
 
     const mobileAutoSent = useRef(false);
 
@@ -100,26 +112,90 @@ const UnifiedVerification = () => {
         }
     };
 
+    const recaptchaVerifierRef = useRef(null);
+    const handleSendMobileOTPRef = useRef(null);
+
+    // Sync the function to a ref so the recaptcha callback can always find it
+    useEffect(() => {
+        handleSendMobileOTPRef.current = handleSendMobileOTP;
+    });
+
+    useEffect(() => {
+        const initRecaptcha = async () => {
+            if (!recaptchaVerifierRef.current) {
+                try {
+                    const verifier = new RecaptchaVerifier(auth, 'recaptcha-container-verify', {
+                        'size': 'invisible', // Background mode
+                        'callback': (response) => {
+                            console.log("Invisible reCAPTCHA verified in background");
+                            if (handleSendMobileOTPRef.current) {
+                                handleSendMobileOTPRef.current();
+                            }
+                        }
+                    });
+
+                    await verifier.render();
+                    recaptchaVerifierRef.current = verifier;
+                    setMobileError('');
+                } catch (err) {
+                    console.error("reCAPTCHA init failed:", err);
+                }
+            }
+        };
+
+        initRecaptcha();
+
+        return () => {
+            if (recaptchaVerifierRef.current) {
+                try {
+                    recaptchaVerifierRef.current.clear();
+                } catch (e) { }
+                recaptchaVerifierRef.current = null;
+            }
+        };
+    }, []);
+
     // --- Mobile Handlers ---
     const handleSendMobileOTP = async (customMobile) => {
-        if (resendMobileTimer > 0) return;
+        if (isMobileVerified) return;
+        if (resendMobileTimer > 0 && !customMobile) return;
+
         setMobileLoading(true);
         setMobileError('');
         setMobileMsg('');
 
-        const res = await sendMobileOTP(customMobile);
-        setMobileLoading(false);
+        try {
+            const finalMobile = customMobile || user?.mobile;
+            if (!finalMobile) {
+                setNeedsMobileInput(true);
+                setMobileLoading(false);
+                return;
+            }
 
-        if (res.success) {
+            // Ensure format is +91...
+            const formattedMobile = finalMobile.startsWith('+') ? finalMobile : `+91${finalMobile.replace(/\D/g, '').slice(-10)}`;
+
+            if (!recaptchaVerifierRef.current) {
+                setMobileError("Security check not ready. Please refresh.");
+                setMobileLoading(false);
+                return;
+            }
+
+            const result = await signInWithPhoneNumber(auth, formattedMobile, recaptchaVerifierRef.current);
+            setConfirmationResult(result);
             setMobileMsg('Mobile OTP sent!');
             setMobileOtpSent(true);
             setNeedsMobileInput(false);
             setResendMobileTimer(60);
-        } else {
-            setMobileError(res.message);
-            if (res.message && (res.message.toLowerCase().includes('valid mobile') || res.message.toLowerCase().includes('provide'))) {
-                setNeedsMobileInput(true);
+        } catch (err) {
+            console.error("Firebase Mobile OTP Fail:", err);
+            setMobileError(err.message || 'Failed to send OTP via Firebase');
+            if (window.recaptchaVerifier) {
+                window.recaptchaVerifier.clear();
+                window.recaptchaVerifier = null;
             }
+        } finally {
+            setMobileLoading(false);
         }
     };
 
@@ -143,11 +219,34 @@ const UnifiedVerification = () => {
             return;
         }
 
-        const res = await verifyMobileOTP(mobileOtp);
-        if (!res.success) {
-            setMobileError(res.message);
+        try {
+            if (!confirmationResult) {
+                setMobileError("Please request OTP first");
+                setMobileLoading(false);
+                return;
+            }
+
+            const result = await confirmationResult.confirm(mobileOtp);
+            const idToken = await result.user.getIdToken();
+
+            // Sync with backend
+            const response = await api.post('/auth/verify-mobile-firebase', { idToken });
+
+            if (response.data.success) {
+                setMobileMsg("Mobile verified successfully!");
+                // The useEffect for redirection will trigger because useAuth user object should refresh 
+                // However, we might need a window.location.reload() or refresh call if AuthContext isn't polling fast enough
+                // Let's rely on the context reload if possible, or force it
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                setMobileError("Verification failed on our servers.");
+            }
+        } catch (err) {
+            console.error("Mobile OTP Verification Fail:", err);
+            setMobileError('Invalid OTP or verification expired');
+        } finally {
+            setMobileLoading(false);
         }
-        setMobileLoading(false);
     };
 
 
@@ -155,6 +254,7 @@ const UnifiedVerification = () => {
         <>
             <Navbar />
             <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+
 
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-extrabold text-slate-900">
@@ -268,6 +368,8 @@ const UnifiedVerification = () => {
                                         </form>
                                     ) : (
                                         <form onSubmit={handleVerifyMobile} className="space-y-4">
+                                            <div id="recaptcha-container-verify" className="flex justify-center my-4"></div>
+
                                             <div>
                                                 <label className="block text-sm font-medium text-slate-700 mb-1">Enter Mobile OTP</label>
                                                 <input

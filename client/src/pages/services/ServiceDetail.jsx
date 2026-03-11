@@ -134,25 +134,25 @@ const ServiceDetail = () => {
   const ServiceIcon = service.icon;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
 
-      <div className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 py-8">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
-          <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-12 mb-12">
+          <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-8 mb-8">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <div className={`w-20 h-20 ${service.bgColor} rounded-2xl flex items-center justify-center mb-6`}>
-                  <ServiceIcon className={`w-10 h-10 ${service.iconColor}`} />
+                <div className={`w-16 h-16 ${service.bgColor} rounded-2xl flex items-center justify-center mb-5`}>
+                  <ServiceIcon className={`w-8 h-8 ${service.iconColor}`} />
                 </div>
-                <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
+                <h1 className="text-3xl font-extrabold text-slate-900 mb-2">
                   {service.title}
                 </h1>
-                <p className="text-xl text-slate-600 mb-6">
+                <p className="text-lg text-slate-600 mb-5">
                   {service.description}
                 </p>
-                <div className="text-4xl font-extrabold text-slate-900 mb-8">
+                <div className="text-3xl font-extrabold text-slate-900 mb-6">
                   {selectedPlan ? `₹${selectedPlan.price}` : service.price}
                 </div>
 
@@ -201,11 +201,11 @@ const ServiceDetail = () => {
           {service.detailContent && (
             <div className="grid lg:grid-cols-3 gap-8 mb-12">
               {/* Overview */}
-              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                  <FileText className="w-6 h-6 text-blue-600" />
+              <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+                  <FileText className="w-5 h-5 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-4">Service Overview</h3>
+                <h3 className="text-lg font-bold text-slate-900 mb-3">Service Overview</h3>
                 <p className="text-slate-600 mb-6">{service.detailContent.overview}</p>
 
                 <h4 className="font-semibold text-slate-900 mb-3">Service Inclusions:</h4>
@@ -220,11 +220,11 @@ const ServiceDetail = () => {
               </div>
 
               {/* Documents Required */}
-              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
-                  <FileText className="w-6 h-6 text-green-600" />
+              <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
+                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center mb-3">
+                  <FileText className="w-5 h-5 text-green-600" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-4">Documents Required</h3>
+                <h3 className="text-lg font-bold text-slate-900 mb-3">Documents Required</h3>
                 <p className="text-slate-600 mb-6">Please keep these documents ready for smooth processing:</p>
 
                 <ul className="space-y-3">
@@ -238,17 +238,16 @@ const ServiceDetail = () => {
               </div>
 
               {/* Process & Timeline */}
-              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
-                  <Clock className="w-6 h-6 text-purple-600" />
+              <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
+                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
+                  <FileText className="w-5 h-5 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-4">Process & Timeline</h3>
+                <h3 className="text-lg font-bold text-slate-900 mb-3">Process & Timeline</h3>
 
                 <div className="space-y-4">
                   <div className="flex gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">1</div>
                     <div>
-                      <h4 className="font-semibold text-slate-900">Document Collection</h4>
                       <p className="text-sm text-slate-600">Upload required documents</p>
                     </div>
                   </div>
@@ -281,8 +280,8 @@ const ServiceDetail = () => {
           )}
 
           {/* CTA Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 text-center text-white">
-            <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-8 text-center text-white">
+            <h2 className="text-2xl font-bold mb-3">Ready to Get Started?</h2>
             <p className="text-xl mb-8 opacity-90">
               Join thousands of satisfied customers who trust FirstFiling for their tax needs
             </p>
@@ -297,7 +296,7 @@ const ServiceDetail = () => {
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>

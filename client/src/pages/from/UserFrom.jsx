@@ -190,7 +190,7 @@ const UserForm = () => {
       if (data.success) {
         setSubmissionStatus('success');
         setTimeout(() => {
-          navigate('/dashboard');
+        navigate('/dashboard?tab=orders');
         }, 1500);
       }
 
@@ -375,10 +375,10 @@ const UserForm = () => {
   };
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
 
-      <div className="min-h-screen bg-slate-50 py-12">
+      <main className="flex-1 py-12">
         <div className="max-w-4xl mx-auto px-4">
           <button
             onClick={() => navigate(-1)}
@@ -481,9 +481,9 @@ const UserForm = () => {
             </div>
           </form>
         </div>
-      </div>
+      </main>
       <Footer />
-    </>
+    </div>
   );
 };
 
