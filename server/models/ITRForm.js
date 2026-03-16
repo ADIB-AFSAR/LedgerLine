@@ -38,7 +38,27 @@ const itrFormSchema = new mongoose.Schema({
     },
     submittedAt: {
         type: Date
-    }
+    },
+    documentRequests: [{
+        message: String,
+        requestedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Admin'
+        },
+        requestedAt: {
+            type: Date,
+            default: Date.now
+        },
+        status: {
+            type: String,
+            enum: ['Pending', 'Fulfilled'],
+            default: 'Pending'
+        },
+        responseDocs: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Document'
+        }]
+    }]
 }, {
     timestamps: true
 });

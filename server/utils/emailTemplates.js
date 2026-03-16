@@ -133,3 +133,103 @@ export const getVerificationTemplate = (otp, type = 'Verification') => {
     </html>
     `;
 };
+
+export const getStatusUpdateTemplate = (user, itr, status, remarks, updaterName, updaterEmail) => {
+    const statusColors = {
+        'Pending': '#f59e0b',
+        'CA Reviewing': '#3b82f6',
+        'Filed': '#10b981',
+        'Completed': '#059669',
+        'Rejected': '#ef4444'
+    };
+
+    const statusBg = {
+        'Pending': '#fffbeb',
+        'CA Reviewing': '#eff6ff',
+        'Filed': '#ecfdf5',
+        'Completed': '#f0fdf4',
+        'Rejected': '#fef2f2'
+    };
+
+    const color = statusColors[status] || '#64748b';
+    const bg = statusBg[status] || '#f8fafc';
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; }
+            .wrapper { width: 100%; background-color: #f8fafc; padding: 40px 0; }
+            .content { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+            .header { background: #2563eb; padding: 32px; text-align: center; color: #ffffff; }
+            .body { padding: 40px; }
+            .status-badge { display: inline-block; background: ${bg}; color: ${color}; padding: 6px 16px; border-radius: 9999px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid ${color}20; }
+            .info-card { background: #f1f5f9; border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid #e2e8f0; }
+            .info-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+            .info-label { color: #64748b; font-weight: 500; }
+            .info-value { color: #1e293b; font-weight: 700; }
+            .remarks-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 4px; margin-top: 20px; font-style: italic; color: #92400e; font-size: 14px; }
+            .button { display: inline-block; background: #2563eb; color: #ffffff !important; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 24px; }
+            .footer { padding: 24px; text-align: center; font-size: 12px; color: #94a3b8; background: #f8fafc; }
+        </style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="content">
+                <div class="header">
+                    <h1 style="margin:0; font-size: 24px; font-weight: 800;">LedgerLine</h1>
+                    <p style="margin: 8px 0 0; opacity: 0.9;">ITR Filing Progress Update</p>
+                </div>
+                <div class="body">
+                    <h2 style="color: #0f172a; margin-top:0;">Hi ${user.name},</h2>
+                    <p style="color: #64748b; line-height: 1.6;">There has been an update to your ITR filing. Our experts are working diligently on your case.</p>
+                    
+                    <div style="text-align: center; margin: 32px 0;">
+                        <p style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Current Status</p>
+                        <div class="status-badge">${status}</div>
+                    </div>
+
+                    <div class="info-card">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td align="left" style="padding: 6px 0; color: #64748b; font-size: 14px; font-weight: 500;">Order ID</td>
+                                <td align="right" style="padding: 6px 0; color: #1e293b; font-size: 14px; font-weight: 700;">#${itr._id.toString().slice(-8).toUpperCase()}</td>
+                            </tr>
+                            <tr>
+                                <td align="left" style="padding: 6px 0; color: #64748b; font-size: 14px; font-weight: 500;">Service Plan</td>
+                                <td align="right" style="padding: 6px 0; color: #1e293b; font-size: 14px; font-weight: 700;">${itr.purchaseId?.planId?.name || 'Tax Filing'}</td>
+                            </tr>
+                            <tr>
+                                <td align="left" style="padding: 6px 0; color: #64748b; font-size: 14px; font-weight: 500;">Updated By</td>
+                                <td align="right" style="padding: 6px 0; color: #1e293b; font-size: 14px; font-weight: 700;">
+                                    ${updaterName || 'Our Expert CA'}<br>
+                                    <span style="font-size: 11px; font-weight: 500; color: #64748b;">${updaterEmail || ''}</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    ${remarks ? `
+                        <div class="remarks-box">
+                            <strong>Note from Expert:</strong><br>
+                            "${remarks}"
+                        </div>
+                    ` : ''}
+
+                    <div style="text-align: center;">
+                        <a href="http://localhost:5173/dashboard?tab=orders" class="button" style="color: #ffffff !important; background-color: #2563eb;">View Order Details</a>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>&copy; ${new Date().getFullYear()} LedgerLine. All rights reserved.</p>
+                    <p>This is an automated notification. Please do not reply to this email.</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+};

@@ -221,6 +221,7 @@ export const getMyOrders = asyncHandler(async (req, res, next) => {
         let itrStatus = 'Pending Filing';
         let itrId = null;
         let submittedAt = null;
+        let itrUpdatedAt = null;
 
         if (purchase.formUnlocked) {
             const itr = await ITRForm.findOne({ purchaseId: purchase._id });
@@ -228,6 +229,7 @@ export const getMyOrders = asyncHandler(async (req, res, next) => {
                 itrStatus = itr.status || 'Submitted'; // Or fetch specific status from ITR
                 itrId = itr._id;
                 submittedAt = itr.submittedAt || itr.createdAt;
+                itrUpdatedAt = itr.updatedAt;
             }
         }
 
@@ -238,7 +240,8 @@ export const getMyOrders = asyncHandler(async (req, res, next) => {
             ...purchaseObj,
             itrStatus,
             itrId,
-            submittedAt
+            submittedAt,
+            itrUpdatedAt
         };
     }));
 
@@ -261,6 +264,7 @@ export const getAllOrders = asyncHandler(async (req, res, next) => {
         let itrStatus = 'Pending Filing';
         let itrId = null;
         let submittedAt = null;
+        let itrUpdatedAt = null;
 
         if (purchase.formUnlocked) {
             const itr = await ITRForm.findOne({ purchaseId: purchase._id });
@@ -268,6 +272,7 @@ export const getAllOrders = asyncHandler(async (req, res, next) => {
                 itrStatus = itr.status || 'Submitted';
                 itrId = itr._id;
                 submittedAt = itr.submittedAt || itr.createdAt;
+                itrUpdatedAt = itr.updatedAt;
             }
         }
 
@@ -277,7 +282,8 @@ export const getAllOrders = asyncHandler(async (req, res, next) => {
             ...purchaseObj,
             itrStatus,
             itrId,
-            submittedAt
+            submittedAt,
+            itrUpdatedAt
         };
     }));
 

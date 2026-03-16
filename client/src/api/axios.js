@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api/v1',
+    // baseURL: 'http://localhost:5000/api/v1',
+    baseURL: 'https://ledger-line-api.vercel.app/',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -12,7 +13,7 @@ api.interceptors.request.use(
     (config) => {
         const path = window.location.pathname;
         const isAdminPath = path.startsWith('/admin');
-        
+
         let token = null;
         if (isAdminPath) {
             token = localStorage.getItem('admin_token') || localStorage.getItem('token');

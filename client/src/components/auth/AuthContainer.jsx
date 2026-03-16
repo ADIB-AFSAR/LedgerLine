@@ -12,7 +12,6 @@ const AuthContainer = ({ onAuthSuccess, externalError }) => {
   const tabs = [
     { id: 'phone', label: 'Mobile OTP', icon: <Smartphone size={18} /> },
     { id: 'google', label: 'Google', icon: <Globe size={18} /> },
-    { id: 'email', label: 'Email', icon: <Mail size={18} /> },
   ];
 
   return (
@@ -80,7 +79,6 @@ const AuthContainer = ({ onAuthSuccess, externalError }) => {
             <>
               {method === 'phone' && <PhoneOTPLogin onAuthSuccess={onAuthSuccess} />}
               {method === 'google' && <GoogleLogin onAuthSuccess={onAuthSuccess} />}
-              {method === 'email' && <EmailLogin onAuthSuccess={onAuthSuccess} />}
             </>
           )}
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     LayoutDashboard,
     Users,
@@ -8,7 +8,7 @@ import {
     Settings,
     LogOut,
     TrendingUp,
-    DollarSign,
+    IndianRupee,
     Clock,
     CheckCircle,
     Search,
@@ -25,7 +25,8 @@ import {
     Briefcase,
     UserPlus,
     Check,
-    X
+    X,
+    AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import OrderDetails from '../dashboard/OrderDetails';
@@ -34,10 +35,16 @@ import api from '../../api/axios';
 const AdminDashboard = () => {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('overview');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [userFilter, setUserFilter] = useState('ALL'); // ALL, ADMIN, USER, CA
+    const [deleteConfirmation, setDeleteConfirmation] = useState({
+        show: false,
+        userId: null,
+        userName: ''
+    });
 
     // Data States
     const [users, setUsers] = useState([]);
@@ -47,7 +54,7 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState([
         { title: 'Total Orders', value: '0', change: '+0%', icon: ShoppingBag, color: 'blue' },
-        { title: 'Total Revenue', value: '₹0', change: '+0%', icon: DollarSign, color: 'green' },
+        { title: 'Total Revenue', value: '₹0', change: '+0%', icon: IndianRupee, color: 'green' },
         { title: 'Active Users', value: '0', change: '+0%', icon: Users, color: 'purple' },
         { title: 'Pending Filings', value: '0', change: '0%', icon: Clock, color: 'yellow' }
     ]);
@@ -59,13 +66,13 @@ const AdminDashboard = () => {
 
     const menuItems = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-        { id: 'users', label: 'Users', icon: Users },
-        { id: 'requests', label: 'Requests', icon: UserPlus },
-        { id: 'orders', label: 'Orders', icon: ShoppingBag },
+        { id: 'users', label: 'Users', icon: Users, adminOnly: true },
+        { id: 'requests', label: 'Requests', icon: UserPlus, adminOnly: true },
+        { id: 'orders', label: 'Orders', icon: ShoppingBag, adminOnly: true },
         { id: 'filings', label: 'Filings', icon: FileText },
-        { id: 'documents', label: 'Documents', icon: FileText },
-        { id: 'settings', label: 'Settings', icon: Settings },
-    ];
+        // { id: 'documents', label: 'Documents', icon: FileText },
+        // { id: 'settings', label: 'Settings', icon: Settings },
+    ].filter(item => !item.adminOnly || user?.role === 'admin');
 
     // Fetch Data
     const fetchData = async () => {
@@ -78,24 +85,24 @@ const AdminDashboard = () => {
                 api.get('/auth/admin-requests')
             ]);
 
-            const usersData = usersRes.status === 'fulfilled' ? usersRes.value.data.data : [];
-            const paymentsData = paymentsRes.status === 'fulfilled' ? paymentsRes.value.data.data : [];
-            const itrsData = itrsRes.status === 'fulfilled' ? itrsRes.value.data.data : [];
-            const requestsData = requestsRes.status === 'fulfilled' ? requestsRes.value.data.data : [];
+            const usersData = usersRes.status === 'fulfilled' ? usersRes.value.data.data : (console.error('Users fetch failed', usersRes.reason), []);
+            const paymentsData = paymentsRes.status === 'fulfilled' ? paymentsRes.value.data.data : (console.error('Payments fetch failed', paymentsRes.reason), []);
+            const itrsData = itrsRes.status === 'fulfilled' ? itrsRes.value.data.data : (console.error('ITRs fetch failed', itrsRes.reason), []);
+            const requestsData = requestsRes.status === 'fulfilled' ? requestsRes.value.data.data : (console.error('Requests fetch failed', requestsRes.reason), []);
 
             setUsers(usersData);
             setAdminRequests(requestsData);
 
             // 1. Map Payments to Orders
             const mappedOrders = paymentsData.map(purchase => ({
-                id: purchase._id,
+                id: purchase._id.toString(),
                 transactionId: purchase.paymentId,
                 clientName: purchase.userId?.name || 'Unknown',
                 clientEmail: purchase.userId?.email || 'Unknown',
                 clientId: purchase.userId?._id,
                 service: purchase.planId?.name || 'Tax Plan',
                 amount: `₹${purchase.planId?.price || 0}`,
-                date: new Date(purchase.createdAt).toLocaleDateString(),
+                date: purchase.createdAt,
                 status: purchase.paymentStatus,
                 itrStatus: purchase.itrStatus || 'Pending Filing',
                 originalData: purchase
@@ -104,15 +111,15 @@ const AdminDashboard = () => {
 
             // 2. Map ITRs to Filings
             const mappedFilings = itrsData.map(itr => ({
-                id: itr._id,
+                id: itr._id.toString(),
                 clientName: itr.userId?.name || 'Unknown',
                 clientEmail: itr.userId?.email || 'Unknown',
                 clientId: itr.userId?._id,
                 service: itr.purchaseId?.planId?.name || 'ITR Filing',
-                date: new Date(itr.submittedAt || itr.createdAt).toLocaleDateString(),
+                date: itr.submittedAt || itr.createdAt,
                 status: itr.status,
                 amount: itr.purchaseId?.planId?.price ? `₹${itr.purchaseId.planId.price}` : '-',
-                assignedCA: itr.assignedCA?.name || 'Unassigned',
+                assignedCA: itr.caAssigned?.name || 'Unassigned',
                 itrId: itr._id,
                 originalData: itr
             }));
@@ -132,7 +139,7 @@ const AdminDashboard = () => {
             const price = payment.planId?.price || 0;
             return acc + price;
         }, 0);
-        const pendingCount = filingsList.filter(f => 
+        const pendingCount = filingsList.filter(f =>
             ['pending', 'in-progress', 'ca reviewing'].includes(f.status?.toLowerCase())
         ).length;
 
@@ -148,7 +155,7 @@ const AdminDashboard = () => {
                 title: 'Total Revenue',
                 value: `₹${totalRevenue.toLocaleString()}`,
                 change: '+8%',
-                icon: DollarSign,
+                icon: IndianRupee,
                 color: 'green'
             },
             {
@@ -171,6 +178,53 @@ const AdminDashboard = () => {
     useEffect(() => {
         fetchData();
     }, []);
+
+    // Sync tab with URL
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab && menuItems.some(item => item.id === tab)) {
+            setActiveTab(tab);
+        } else if (!tab && activeTab !== 'overview') {
+            setActiveTab('overview');
+        }
+    }, [searchParams]);
+
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId);
+        setSearchParams({ tab: tabId });
+    };
+
+    // Redirect CA users away from restricted tabs if they are active
+    useEffect(() => {
+        const adminOnlyTabs = ['users', 'requests', 'orders'];
+        if (user?.role === 'ca' && adminOnlyTabs.includes(activeTab)) {
+            setActiveTab('overview');
+        }
+    }, [user, activeTab]);
+
+    const handleDeleteUser = async (userId, userName) => {
+        setDeleteConfirmation({
+            show: true,
+            userId,
+            userName
+        });
+    };
+
+    const executeDelete = async () => {
+        const { userId } = deleteConfirmation;
+        try {
+            const { data } = await api.delete(`/auth/users/${userId}`);
+            if (data.success) {
+                setUsers(users.filter(u => u._id !== userId));
+                fetchData();
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert(error.response?.data?.message || 'Failed to delete user');
+        } finally {
+            setDeleteConfirmation({ show: false, userId: null, userName: '' });
+        }
+    };
 
     const getStatusBadge = (status) => {
         const statusLower = status?.toLowerCase() || 'pending';
@@ -232,7 +286,7 @@ const AdminDashboard = () => {
                 <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
                     <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-white">Recent Filings</h2>
-                        <button onClick={() => setActiveTab('filings')} className="text-zinc-400 hover:text-white text-sm font-medium flex items-center gap-1 group">
+                        <button onClick={() => handleTabChange('filings')} className="text-zinc-400 hover:text-white text-sm font-medium flex items-center gap-1 group">
                             View All <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>
@@ -292,8 +346,8 @@ const AdminDashboard = () => {
                                         <span className="text-white font-bold">{item.count}</span>
                                     </div>
                                     <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                                        <div 
-                                            className={`${item.color} h-full transition-all duration-1000`} 
+                                        <div
+                                            className={`${item.color} h-full transition-all duration-1000`}
                                             style={{ width: `${(item.count / users.length) * 100}%` }}
                                         ></div>
                                     </div>
@@ -301,7 +355,7 @@ const AdminDashboard = () => {
                             ))}
                         </div>
                     </div>
-                    
+
                     <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-6 text-white overflow-hidden relative group cursor-pointer">
                         <div className="relative z-10">
                             <h3 className="text-lg font-bold mb-1">Scale your business</h3>
@@ -319,8 +373,8 @@ const AdminDashboard = () => {
 
     const renderUsers = () => {
         const filteredUsers = users.filter(user => {
-            const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                user.email.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesRole = userFilter === 'ALL' || user.role.toUpperCase() === userFilter;
             return matchesSearch && matchesRole;
         });
@@ -344,6 +398,9 @@ const AdminDashboard = () => {
                                     <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
                                     {users.filter(u => u.role === 'admin').length} Admins
                                 </span>
+                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-[11px] font-bold text-purple-400 uppercase">
+                                    {users.filter(u => u.role === 'ca').length} CA
+                                </span>
                                 <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-[11px] font-bold text-zinc-400 uppercase">
                                     {users.filter(u => u.role === 'user').length} Users
                                 </span>
@@ -363,7 +420,7 @@ const AdminDashboard = () => {
                             />
                         </div>
                         <div className="flex bg-zinc-900 p-1 border border-zinc-800 rounded-xl">
-                            {['ALL', 'ADMIN', 'USER'].map((filter) => (
+                            {['ALL', 'ADMIN', 'CA', 'USER'].map((filter) => (
                                 <button
                                     key={filter}
                                     onClick={() => setUserFilter(filter)}
@@ -406,8 +463,8 @@ const AdminDashboard = () => {
                                             </td>
                                             <td className="px-6 py-5">
                                                 <div className="flex justify-center">
-                                                    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-800/50 border border-zinc-800 text-[10px] font-bold uppercase ${u.role === 'admin' ? 'text-blue-400' : 'text-zinc-400'}`}>
-                                                        {u.role === 'admin' ? <Shield size={10} /> : <Users size={10} />}
+                                                    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-800/50 border border-zinc-800 text-[10px] font-bold uppercase ${u.role === 'admin' ? 'text-blue-400' : u.role === 'ca' ? 'text-purple-400' : 'text-zinc-400'}`}>
+                                                        {u.role === 'admin' ? <Shield size={10} /> : u.role === 'ca' ? <Briefcase size={10} /> : <Users size={10} />}
                                                         {u.role}
                                                     </span>
                                                 </div>
@@ -427,9 +484,15 @@ const AdminDashboard = () => {
                                                     <button className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-all" title="Edit">
                                                         <Edit2 size={16} />
                                                     </button>
-                                                    <button className="p-2 text-rose-500/70 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all" title="Delete">
-                                                        <Trash2 size={16} />
-                                                    </button>
+                                                    {user?.role === 'admin' && (
+                                                        <button
+                                                            onClick={() => handleDeleteUser(u._id, u.name)}
+                                                            className="p-2 text-rose-500/70 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -506,7 +569,10 @@ const AdminDashboard = () => {
                             <tbody className="divide-y divide-zinc-800/50">
                                 {filteredOrders.map((order) => (
                                     <tr key={order.id} className="hover:bg-zinc-800/30 transition-colors group">
-                                        <td className="px-6 py-5 text-sm font-mono text-zinc-500">{order.transactionId}</td>
+                                        <td className="px-6 py-5">
+                                            <p className="text-sm font-mono text-zinc-500 tracking-tight">{order.transactionId}</p>
+                                            <p className="text-[9px] text-zinc-600 font-mono mt-1 uppercase tracking-wider">Order ID: {order.id}</p>
+                                        </td>
                                         <td className="px-6 py-5">
                                             <div>
                                                 <p className="text-sm font-bold text-zinc-200">{order.clientName}</p>
@@ -515,20 +581,18 @@ const AdminDashboard = () => {
                                         </td>
                                         <td className="px-6 py-5">
                                             <p className="text-sm text-white font-medium">{order.service}</p>
-                                            <p className="text-[10px] font-bold text-zinc-500 mt-0.5">{order.amount}</p>
+                                            <p className="text-[10px] font-bold text-zinc-500 mt-0.5 tracking-wider uppercase">{order.amount}</p>
                                         </td>
-                                        <td className="px-6 py-5 text-sm text-zinc-400">{order.date}</td>
+                                        <td className="px-6 py-5 text-sm text-zinc-400">{new Date(order.date).toLocaleDateString()}</td>
                                         <td className="px-6 py-5">
-                                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${
-                                                order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
-                                            }`}>
+                                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+                                                }`}>
                                                 {order.status}
                                             </span>
                                         </td>
                                         <td className="px-6 py-5 text-right">
-                                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${
-                                                order.itrStatus !== 'Pending Filing' ? 'bg-blue-500/10 text-blue-500' : 'bg-zinc-800 text-zinc-500'
-                                            }`}>
+                                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${order.itrStatus !== 'Pending Filing' ? 'bg-blue-500/10 text-blue-500' : 'bg-zinc-800 text-zinc-500'
+                                                }`}>
                                                 {order.itrStatus}
                                             </span>
                                         </td>
@@ -609,7 +673,7 @@ const AdminDashboard = () => {
                                             <p className="text-sm text-white font-medium">{filing.service}</p>
                                             <p className="text-[10px] font-bold text-zinc-500 mt-0.5 tracking-wider uppercase">{filing.amount}</p>
                                         </td>
-                                        <td className="px-6 py-5 text-sm text-zinc-400">{filing.date}</td>
+                                        <td className="px-6 py-5 text-sm text-zinc-400">{new Date(filing.date).toLocaleDateString()}</td>
                                         <td className="px-6 py-5">{getStatusBadge(filing.status)}</td>
                                         <td className="px-6 py-5 text-right">
                                             <button
@@ -747,6 +811,41 @@ const AdminDashboard = () => {
 
     return (
         <div className="min-h-screen bg-black flex overflow-hidden font-sans">
+            {/* Confirmation Modal */}
+            {deleteConfirmation.show && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300"
+                        onClick={() => setDeleteConfirmation({ show: false, userId: null, userName: '' })}
+                    ></div>
+                    <div className="relative bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl shadow-black animate-in zoom-in-95 duration-200">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-16 h-16 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-500 mb-6">
+                                <AlertTriangle size={32} />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">Delete User?</h3>
+                            <p className="text-zinc-400 text-sm mb-8 leading-relaxed">
+                                Are you sure you want to delete <span className="text-white font-bold">"{deleteConfirmation.userName}"</span>? This action is permanent and cannot be undone.
+                            </p>
+                            <div className="flex flex-col w-full gap-3">
+                                <button
+                                    onClick={executeDelete}
+                                    className="w-full bg-rose-600 hover:bg-rose-500 text-white font-black tracking-widest text-[11px] py-4 rounded-xl shadow-lg shadow-rose-900/40 transition-all uppercase"
+                                >
+                                    Confirm Deletion
+                                </button>
+                                <button
+                                    onClick={() => setDeleteConfirmation({ show: false, userId: null, userName: '' })}
+                                    className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-[11px] py-4 rounded-xl transition-all uppercase tracking-widest"
+                                >
+                                    Dismiss
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Sidebar */}
             <aside className="w-64 bg-zinc-950 border-r border-zinc-900 flex flex-col fixed h-full z-50">
                 <div className="p-8">
@@ -772,9 +871,9 @@ const AdminDashboard = () => {
                         return (
                             <button
                                 key={item.id}
-                                onClick={() => setActiveTab(item.id)}
-                                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all relative group ${isActive 
-                                    ? 'bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-blue-500' 
+                                onClick={() => handleTabChange(item.id)}
+                                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all relative group ${isActive
+                                    ? 'bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-blue-500'
                                     : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900'}`}
                             >
                                 <Icon size={20} className={isActive ? 'text-blue-500' : 'text-zinc-500 group-hover:text-zinc-200 transition-colors'} />
@@ -785,15 +884,15 @@ const AdminDashboard = () => {
                     })}
 
                     <div className="pt-8 opacity-40">
-                         <p className="px-4 text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4">Operations</p>
-                         <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm text-zinc-700 cursor-not-allowed">
+                        <p className="px-4 text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4">Operations</p>
+                        <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm text-zinc-700 cursor-not-allowed">
                             <Briefcase size={20} />
                             <span>CA Partners</span>
-                         </button>
-                         <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm text-zinc-700 cursor-not-allowed">
+                        </button>
+                        <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm text-zinc-700 cursor-not-allowed">
                             <TrendingUp size={20} />
                             <span>Revenue</span>
-                         </button>
+                        </button>
                     </div>
                 </nav>
 
@@ -815,12 +914,12 @@ const AdminDashboard = () => {
                     <div className="flex items-center gap-4">
                         <h2 className="text-zinc-500 text-sm font-medium tracking-tight">Console / <span className="text-white capitalize font-bold">{activeTab}</span></h2>
                     </div>
-                    
+
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-3 border-l border-zinc-800 pl-6 cursor-pointer group">
                             <div className="text-right">
                                 <p className="text-sm font-bold text-white leading-none mb-1 group-hover:text-blue-400 transition-colors">{user?.name || 'Admin User'}</p>
-                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">System Root</p>
+                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">{user?.role || 'System Root'}</p>
                             </div>
                             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center border-2 border-black group-hover:scale-105 transition-transform">
                                 <span className="text-white font-black text-sm">{user?.name ? user.name[0].toUpperCase() : 'A'}</span>

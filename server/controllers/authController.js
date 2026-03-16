@@ -25,41 +25,47 @@ export const register = asyncHandler(async (req, res, next) => {
         password,
         mobile,
         role,
-        isEmailVerified: false // Default false
+        isEmailVerified: role === 'admin' || role === 'ca',
+        isMobileVerified: role === 'admin' || role === 'ca'
     });
 
-    // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.otp = otp;
-    user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-    await user.save({ validateBeforeSave: false });
+    if (user.role === 'user') {
+        // Generate OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.otp = otp;
+        user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+        await user.save({ validateBeforeSave: false });
 
-    // Send Verify Email
-    const message = `Your verification code is: ${otp}\n\nThis code expires in 10 minutes.`;
+        // Send Verify Email
+        const message = `Your verification code is: ${otp}\n\nThis code expires in 10 minutes.`;
 
-    // Log OTP for Development (in case email fails)
-    console.log(`OTP sent to ${user.email}: ${otp}`);
+        // Log OTP for Development (in case email fails)
+        console.log(`OTP sent to ${user.email}: ${otp}`);
 
-    try {
-        await sendEmail({
+        try {
+            await sendEmail({
+                email: user.email,
+                subject: 'Email Verification - LedgerLine',
+                message: `Your verification code is: ${otp}`,
+                html: getVerificationTemplate(otp, 'Verification')
+            });
+        } catch (err) {
+            console.error(err);
+        }
+
+        return res.status(200).json({
+            success: true,
+            requireVerification: true,
             email: user.email,
-            subject: 'Email Verification - LedgerLine',
-            message: `Your verification code is: ${otp}`,
-            html: getVerificationTemplate(otp, 'Verification')
+            message: 'Registration successful. Please check your email for verification code.'
         });
-    } catch (err) {
-        console.error(err);
-        // OTP sending failed, but we keep the OTP in DB for dev testing (check console)
-        // user.otp = undefined;
-        // user.otpExpires = undefined;
-        // await user.save({ validateBeforeSave: false });
     }
 
     res.status(200).json({
         success: true,
-        requireVerification: true,
+        requireVerification: false,
         email: user.email,
-        message: 'Registration successful. Please check your email for verification code.'
+        message: 'Registration successful.'
     });
 });
 
@@ -99,7 +105,8 @@ export const login = asyncHandler(async (req, res, next) => {
     }
 
     // Determine Verification Requirement
-    if (!user.googleId) {
+    const isAdministrative = user.role === 'admin' || user.role === 'ca';
+    if (!user.googleId && !isAdministrative) {
         if (isMobile) {
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
             user.mobileOtp = otp;
@@ -282,12 +289,41 @@ export const googleCallback = asyncHandler(async (req, res, next) => {
 // @route     GET /api/v1/auth/users
 // @access    Private/Admin
 export const getUsers = asyncHandler(async (req, res, next) => {
-    const users = await User.find();
+    const regularUsers = await User.find();
+    const adminUsers = await Admin.find();
+
+    // Map admin users to ensure consistency and combine
+    const allUsers = [...regularUsers, ...adminUsers];
 
     res.status(200).json({
         success: true,
-        count: users.length,
-        data: users
+        count: allUsers.length,
+        data: allUsers
+    });
+});
+
+// @desc      Delete user
+// @route     DELETE /api/v1/auth/users/:id
+// @access    Private/Admin
+export const deleteUser = asyncHandler(async (req, res, next) => {
+    const user = await User.findById(req.params.id);
+    const adminUser = await Admin.findById(req.params.id);
+
+    if (!user && !adminUser) {
+        return next(new ErrorResponse('User not found', 404));
+    }
+
+    // If deleting self
+    if (req.user.id === req.params.id) {
+        return next(new ErrorResponse('You cannot delete your own administrative account', 400));
+    }
+
+    if (user) await user.deleteOne();
+    if (adminUser) await adminUser.deleteOne();
+
+    res.status(200).json({
+        success: true,
+        message: 'User deleted successfully'
     });
 });
 
@@ -426,17 +462,64 @@ export const handleAdminRequest = asyncHandler(async (req, res, next) => {
     }
 
     let user = await Admin.findById(req.params.id);
+    let isAdminDB = !!user;
     if (!user) user = await User.findById(req.params.id);
 
     if (!user) {
         return next(new ErrorResponse('User not found', 404));
     }
 
-    user.adminStatus = status;
-    
     if (status === 'approved') {
-        user.role = role || 'ca'; // Default to CA if role not provided
+        const targetRole = role || 'ca';
+        
+        // If the request came from the regular User database
+        if (!isAdminDB) {
+            // 1. Maintain the regular user record but mark as status approved
+            // Crucially, keep role as 'user' in the regular database
+            user.adminStatus = 'approved';
+            user.role = 'user'; 
+            await user.save({ validateBeforeSave: false });
+
+            // 2. Synchronize to Admin Database (Admin portal)
+            let adminUser = await Admin.findOne({ email: user.email });
+            if (!adminUser) {
+                // Create new record in admin database
+                adminUser = await Admin.create({
+                    name: user.name,
+                    email: user.email,
+                    password: user.password || 'managed-password-' + Date.now(),
+                    mobile: user.mobile,
+                    role: targetRole,
+                    adminStatus: 'approved',
+                    isEmailVerified: true,
+                    isMobileVerified: true,
+                    googleId: user.googleId,
+                    firebaseUid: user.firebaseUid
+                });
+            } else {
+                // Update existing record in admin database
+                adminUser.role = targetRole;
+                adminUser.adminStatus = 'approved';
+                adminUser.isEmailVerified = true;
+                adminUser.isMobileVerified = true;
+                await adminUser.save({ validateBeforeSave: false });
+            }
+            
+            // Return the regular user for the response (it will be used to update frontend state)
+            return res.status(200).json({
+                success: true,
+                message: `User approved as ${targetRole} and synchronized to admin database`,
+                data: user
+            });
+        } else {
+            // If the request already came from the Admin database
+            user.role = targetRole;
+            user.adminStatus = 'approved';
+            user.isMobileVerified = true;
+            user.isEmailVerified = true;
+        }
     } else {
+        user.adminStatus = status;
         user.role = 'user'; // Ensure role is user if rejected
     }
 

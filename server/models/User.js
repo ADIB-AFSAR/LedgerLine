@@ -43,6 +43,14 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin', 'ca'],
         default: 'user'
     },
+    adminStatus: {
+        type: String,
+        enum: ['none', 'pending', 'approved', 'rejected'],
+        default: 'none'
+    },
+    adminRequestedAt: {
+        type: Date
+    },
     purchasedPlans: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Purchase'

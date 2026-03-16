@@ -30,10 +30,11 @@ const UserDashboard = () => {
         const mappedOrders = data.data.map(order => ({
           id: order._id,
           service: order.planId?.name || 'Tax Service',
-          date: new Date(order.createdAt).toLocaleDateString(),
+          date: order.createdAt,
           status: order.itrStatus || 'Pending',
           amount: order.planId?.price ? `₹${order.planId.price}` : 'Paid',
           originalData: order,
+          statusDate: order.itrUpdatedAt || order.updatedAt,
           canFile: order.itrStatus === 'Pending Filing',
           serviceSlug: order.planId?.slug || 'salary-basic-itr' // Fallback or handle error
         }));
@@ -173,10 +174,23 @@ const UserDashboard = () => {
                     {['completed', 'submitted'].includes(order.status.toLowerCase()) ? <CheckCircle size={14} /> : <Clock size={14} />}
                     <span className="capitalize">{order.status}</span>
                   </div>
+                  {order.statusDate && (
+                    <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-end gap-1">
+                      <Clock size={10} />
+                      {new Date(order.statusDate).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-                <p className="text-sm text-slate-600">Order Date: {order.date}</p>
+                <p className="text-sm text-slate-600">Order Date: {new Date(order.date).toLocaleDateString()}</p>
                 <div className="flex gap-3">
                   {order.canFile && (
                     <button

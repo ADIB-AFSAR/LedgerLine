@@ -14,7 +14,8 @@ import {
     handleAdminRequest,
     firebaseLogin,
     firebaseVerifyMobile,
-    checkUser
+    checkUser,
+    deleteUser
 } from '../controllers/authController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 import passport from 'passport';
@@ -35,6 +36,7 @@ router.post('/check-user', checkUser);
 
 router.get('/me', protect, getMe);
 router.get('/users', protect, authorize('admin'), getUsers);
+router.delete('/users/:id', protect, authorize('admin'), deleteUser);
 
 // Admin Access Management
 router.post('/request-admin', protect, requestAdminAccess);

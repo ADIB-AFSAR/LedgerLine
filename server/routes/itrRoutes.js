@@ -5,7 +5,9 @@ import {
     getITRById,
     getAllITRs,
     updateITRStatus,
-    assignCA
+    assignCA,
+    requestDocument,
+    fulfillDocumentRequest
 } from '../controllers/itrController.js';
 
 import { protect, authorize } from '../middlewares/authMiddleware.js';
@@ -19,13 +21,15 @@ router
     .post(submitITR)
     .get(getMyITRs);
 
+router.get('/all', authorize('admin', 'ca'), getAllITRs);
+
 router
     .route('/:id')
     .get(getITRById);
 
-router.get('/all', authorize('admin', 'ca'), getAllITRs);
-
 router.put('/:id/status', authorize('admin', 'ca'), updateITRStatus);
 router.put('/:id/assign', authorize('admin'), assignCA);
+router.post('/:id/request-document', authorize('admin', 'ca'), requestDocument);
+router.put('/:id/request/:requestId/fulfill', fulfillDocumentRequest);
 
 export default router;

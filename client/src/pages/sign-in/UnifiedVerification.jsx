@@ -46,11 +46,22 @@ const UnifiedVerification = () => {
 
     // --- Redirect Logic ---
     useEffect(() => {
-        if (isEmailVerified && isMobileVerified) {
-            const t = setTimeout(() => navigate('/dashboard'), 1500);
-            return () => clearTimeout(t);
+        if (!loading && user) {
+            const isAdmin = user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved');
+            
+            // Admins and Approved CAs bypass verification entirely
+            if (isAdmin) {
+                navigate('/admin/dashboard');
+                return;
+            }
+
+            // Regular users redirect to dashboard only when both are verified
+            if (isEmailVerified && isMobileVerified) {
+                const t = setTimeout(() => navigate('/dashboard'), 1500);
+                return () => clearTimeout(t);
+            }
         }
-    }, [isEmailVerified, isMobileVerified, navigate]);
+    }, [isEmailVerified, isMobileVerified, navigate, user, loading]);
 
     // Initialize Mobile preference
     useEffect(() => {
@@ -59,6 +70,25 @@ const UnifiedVerification = () => {
             if (isPlaceholder) setNeedsMobileInput(true);
         }
     }, [isMobileVerified, user]);
+
+    // Fast polling while on this page to catch admin approval
+    useEffect(() => {
+        const poll = setInterval(async () => {
+            if (isLoggedIn && (!isEmailVerified || !isMobileVerified || user?.role === 'user')) {
+                try {
+                    const { data } = await api.get('/auth/me');
+                    if (data.success) {
+                        // This will trigger the redirection useEffect above
+                        // We rely on AuthContext potentially updating, or we can just check local logic
+                        if (data.data.role !== 'user' || (data.data.isEmailVerified && data.data.isMobileVerified)) {
+                             window.location.reload(); // Hard reload to ensures all context reflects the change
+                        }
+                    }
+                } catch (e) {}
+            }
+        }, 5000); // Poll every 5 seconds
+        return () => clearInterval(poll);
+    }, [isLoggedIn, isEmailVerified, isMobileVerified, user]);
 
     // --- Timers ---
     useEffect(() => {
