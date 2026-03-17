@@ -259,26 +259,26 @@ export const googleCallback = asyncHandler(async (req, res, next) => {
     res.cookie('token', token, options);
 
     // Default redirect
-    let redirectUrl = `http://localhost:5173/login?token=${token}`;
+    let redirectUrl = `https://taxproject-stg.vercel.app/login?token=${token}`;
 
     if (state === 'admin') {
         // User intended to log into admin portal
         if (user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved')) {
-            redirectUrl = `http://localhost:5173/admin/dashboard?token=${token}`;
+            redirectUrl = `https://taxproject-stg.vercel.app/admin/dashboard?token=${token}`;
         } else if (user.adminStatus === 'pending') {
-            redirectUrl = `http://localhost:5173/admin/request-status?token=${token}`;
+            redirectUrl = `https://taxproject-stg.vercel.app/admin/request-status?token=${token}`;
         } else if (user.adminStatus === 'rejected') {
-            redirectUrl = `http://localhost:5173/admin/rejected?token=${token}`;
+            redirectUrl = `https://taxproject-stg.vercel.app/admin/rejected?token=${token}`;
         } else {
             // First time or 'none' status, needs to raise request
-            redirectUrl = `http://localhost:5173/admin/request-access?token=${token}`;
+            redirectUrl = `https://taxproject-stg.vercel.app/admin/request-access?token=${token}`;
         }
     } else {
         // Regular user login
         if (user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved')) {
-            redirectUrl = `http://localhost:5173/admin/dashboard?token=${token}`;
+            redirectUrl = `https://taxproject-stg.vercel.app/admin/dashboard?token=${token}`;
         } else {
-            redirectUrl = `http://localhost:5173/login?token=${token}`;
+            redirectUrl = `https://taxproject-stg.vercel.app/login?token=${token}`;
         }
     }
 
