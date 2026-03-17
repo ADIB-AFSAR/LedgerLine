@@ -4,6 +4,47 @@ import Purchase from '../models/Purchase.js';
 import AppError from '../utils/AppError.js';
 import sendEmail from '../utils/sendEmail.js';
 import { getStatusUpdateTemplate } from '../utils/emailTemplates.js';
+import { bucket } from '../config/firebase.js';
+
+// Helper to refresh signed URLs for documents
+const refreshDocumentUrls = async (documents) => {
+    if (!documents || !Array.isArray(documents)) return documents;
+
+    const refreshedDocs = await Promise.all(documents.map(async (doc) => {
+        // If it's a plain object (not mongoose doc), convert or handle
+        const docObj = doc.toObject ? doc.toObject() : doc;
+        
+        // We need the storage path to re-sign. 
+        // If storagePath is missing (old docs), we try to extract it from the URL
+        let storagePath = docObj.storagePath;
+        if (!storagePath && docObj.fileUrl) {
+            try {
+                const url = new URL(docObj.fileUrl);
+                const pathParts = url.pathname.split('/');
+                storagePath = decodeURIComponent(pathParts[pathParts.length - 1]);
+            } catch (e) {
+                console.error('Failed to extract storage path from URL:', docObj.fileUrl);
+            }
+        }
+
+        if (storagePath) {
+            try {
+                const [newUrl] = await bucket.file(storagePath).getSignedUrl({
+                    version: 'v4',
+                    action: 'read',
+                    expires: Date.now() + 15 * 60 * 1000 // 15 mins fresh URL
+                });
+                return { ...docObj, fileUrl: newUrl };
+            } catch (err) {
+                console.error(`Failed to refresh URL for ${storagePath}:`, err.message);
+                return docObj;
+            }
+        }
+        return docObj;
+    }));
+    
+    return refreshedDocs;
+};
 
 // @desc      Submit ITR Form
 // @route     POST /api/v1/itr
@@ -88,9 +129,26 @@ export const getITRById = asyncHandler(async (req, res, next) => {
         return next(new AppError('Not authorized to access this ITR', 403));
     }
 
+    // Refresh signed URLs for documents
+    const itrObj = itr.toObject();
+    if (itrObj.uploadedDocs) {
+        itrObj.uploadedDocs = await refreshDocumentUrls(itr.uploadedDocs);
+    }
+    
+    // Also refresh docs in requests
+    if (itrObj.documentRequests) {
+        for (let req of itrObj.documentRequests) {
+            if (req.responseDocs) {
+                // Populate responseDocs if not already populated (though usually it is)
+                // Assuming it's already populated as per the controller's logic
+                req.responseDocs = await refreshDocumentUrls(req.responseDocs);
+            }
+        }
+    }
+
     res.status(200).json({
         success: true,
-        data: itr
+        data: itrObj
     });
 });
 

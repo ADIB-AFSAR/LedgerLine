@@ -5,13 +5,13 @@ import { getAnalytics } from "firebase/analytics";
 // Firebase configuration using project ID found in server config
 // Replace these placeholders with your actual Firebase project settings
 const firebaseConfig = {
-  apiKey: "AIzaSyCOQyY8Kpk2sEi5t4Skd1R1p7MfT9bQ6Mw",
-  authDomain: "itr-project-9be2b.firebaseapp.com",
-  projectId: "itr-project-9be2b",
-  storageBucket: "itr-project-9be2b.firebasestorage.app",
-  messagingSenderId: "364114167905",
-  appId: "1:364114167905:web:de377eb60e331ba7654220",
-  measurementId: "G-MJQHD3S9P5"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase

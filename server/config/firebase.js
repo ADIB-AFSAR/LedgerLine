@@ -1,23 +1,26 @@
 import admin from 'firebase-admin';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const serviceAccount = require('./serviceAccountKey.json');
 
 const initializeFirebase = () => {
     try {
         if (admin.apps.length === 0) {
-            const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
+            const privateKey = process.env.FIREBASE_PRIVATE_KEY
+                ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n').trim()
+                : undefined;
             
+            if (!privateKey || !process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL) {
+                console.error('Missing Firebase environment variables');
+                return;
+            }
+
             admin.initializeApp({
                 credential: admin.credential.cert({
-                    projectId: serviceAccount.project_id,
-                    clientEmail: serviceAccount.client_email,
+                    projectId: process.env.FIREBASE_PROJECT_ID,
+                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
                     privateKey: privateKey,
                 }),
-                storageBucket: "itr-project-9be2b.firebasestorage.app"
+                storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "itr-project-9be2b.firebasestorage.app"
             });
-            console.log('Firebase Admin Initialized Successfully');
+            console.log('Firebase Admin Initialized Successfully via Environment Variables');
         }
     } catch (error) {
         console.error('Firebase Admin Initialization Failed:', error);

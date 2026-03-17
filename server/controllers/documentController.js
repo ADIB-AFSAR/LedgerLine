@@ -13,7 +13,9 @@ export const uploadDocument = asyncHandler(async (req, res, next) => {
     }
 
     const file = req.file;
-    const fileName = `${uuidv4()}_${file.originalname}`;
+    // Normalize filename: remove spaces and special characters from original name, keep extension
+    const normalizedOriginalName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
+    const fileName = `${uuidv4()}_${normalizedOriginalName}`;
     const fileUpload = bucket.file(fileName);
 
     const blobStream = fileUpload.createWriteStream({
@@ -29,10 +31,11 @@ export const uploadDocument = asyncHandler(async (req, res, next) => {
 
     blobStream.on('finish', async () => {
         try {
-            // Get a signed URL for secure, long-term access
+            // Get a signed URL with V4 - much more robust and standard
             const [url] = await fileUpload.getSignedUrl({
+                version: 'v4',
                 action: 'read',
-                expires: '01-01-2100' // Far future
+                expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days (Max for V4)
             });
 
             const publicUrl = url;
@@ -40,6 +43,7 @@ export const uploadDocument = asyncHandler(async (req, res, next) => {
             const document = await Document.create({
                 userId: req.user.id,
                 fileUrl: publicUrl,
+                storagePath: fileName,
                 fileName: file.originalname,
                 fileType: file.mimetype
             });
