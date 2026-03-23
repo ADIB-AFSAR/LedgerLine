@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import adminSchema from '../models/Admin.js';
 
 let adminConn;
-let Admin;
+export let Admin;
 
 export const connectDB = async () => {
     try {
@@ -33,5 +33,4 @@ export const connectDB = async () => {
         process.exit(1);
     }
 };
-
-export { Admin };
+

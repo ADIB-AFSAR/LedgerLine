@@ -39,43 +39,54 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// Enable CORS
+// Enable CORS - Place this at the very top of middleware stack
 const allowedOrigins = [
     'http://localhost:5173',
     'https://taxproject-stg.vercel.app',
     'https://taxproject-api.vercel.app',
-    'https://ledgerline.vercel.app' // Adding potential production domain if exists
+    'https://ledgerline.vercel.app'
 ];
 
-const corsOptions = {
-    origin: function (origin, callback) {
-        // allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        
-        const isAllowed = allowedOrigins.indexOf(origin) !== -1 || 
-                         origin.endsWith('.vercel.app'); // More flexible for Vercel preview/stg domains
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin) {
+        // More flexible check for Vercel and local domains
+        const isAllowed = allowedOrigins.includes(origin) || 
+                         origin.endsWith('.vercel.app') || 
+                         origin.includes('localhost');
         
         if (isAllowed) {
-            callback(null, true);
-        } else {
-            console.warn(`CORS blocked for origin: ${origin}`);
-            callback(new Error('Not allowed by CORS'), false);
+            res.header('Access-Control-Allow-Origin', origin);
+            res.header('Access-Control-Allow-Credentials', 'true');
+            res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
+            res.header('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
         }
+    }
+
+    // Handle OPTIONS preflight immediately with 200 OK
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
+
+// Primary CORS middleware for standard routes
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const isAllowed = allowedOrigins.includes(origin) || 
+                         origin.endsWith('.vercel.app') || 
+                         origin.includes('localhost');
+        callback(null, isAllowed);
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    credentials: true,
-    optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
-};
+    credentials: true
+}));
 
-app.use(cors(corsOptions));
-// Handle preflight requests for all routes
-app.options('*', cors(corsOptions));
-
-// Rate limiting
+// Rate limiting - Skip OPTIONS to ensure preflights aren't blocked
 const limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 10 mins
+    windowMs: 10 * 60 * 1000,
     max: 100,
+    skip: (req) => req.method === 'OPTIONS',
     standardHeaders: true,
     legacyHeaders: false,
     validate: { xForwardedForHeader: false }

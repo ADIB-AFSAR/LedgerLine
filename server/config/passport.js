@@ -17,6 +17,11 @@ passport.use(
                 // Decide which model to use based on intent
                 const Model = intent === 'admin' ? Admin : User;
 
+                if (!Model) {
+                    console.error("Auth Error: Model not initialized", { intent, isAdminNull: !Admin, isUserNull: !User });
+                    return done(new Error("Authentication system not fully initialized. Please try again in a few seconds."), null);
+                }
+
                 // Check if user already exists
                 let user = await Model.findOne({ googleId: profile.id });
 
@@ -63,6 +68,9 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
     try {
+        if (!Admin || !User) {
+            return done(new Error("Database not initialized"), null);
+        }
         // We try to find in Admin first, then User
         let user = await Admin.findById(id);
         if (!user) {
