@@ -45,7 +45,7 @@ export const register = asyncHandler(async (req, res, next) => {
         try {
             await sendEmail({
                 email: user.email,
-                subject: 'Email Verification - LedgerLine',
+                subject: 'Email Verification - Powerfilling',
                 message: `Your verification code is: ${otp}`,
                 html: getVerificationTemplate(otp, 'Verification')
             });
@@ -134,7 +134,7 @@ export const login = asyncHandler(async (req, res, next) => {
         try {
             await sendEmail({
                 email: user.email,
-                subject: 'Login Verification - LedgerLine',
+                subject: 'Login Verification - Powerfilling',
                 message: `Your verification code is: ${otp}`,
                 html: getVerificationTemplate(otp, 'Login')
             });
@@ -202,7 +202,7 @@ export const resendOTP = asyncHandler(async (req, res, next) => {
     try {
         await sendEmail({
             email: user.email,
-            subject: 'New Verification Code - LedgerLine',
+            subject: 'New Verification Code - Powerfilling',
             message: `Your new verification code is: ${otp}`,
             html: getVerificationTemplate(otp, 'Verification')
         });
@@ -259,26 +259,26 @@ export const googleCallback = asyncHandler(async (req, res, next) => {
     res.cookie('token', token, options);
 
     // Default redirect
-    let redirectUrl = `https://taxproject-stg.vercel.app/login?token=${token}`;
+    let redirectUrl = `https://powerfiling.com/login?token=${token}`;
 
     if (state === 'admin') {
         // User intended to log into admin portal
         if (user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved')) {
-            redirectUrl = `https://taxproject-stg.vercel.app/admin/dashboard?token=${token}`;
+            redirectUrl = `https://powerfiling.com/admin/dashboard?token=${token}`;
         } else if (user.adminStatus === 'pending') {
-            redirectUrl = `https://taxproject-stg.vercel.app/admin/request-status?token=${token}`;
+            redirectUrl = `https://powerfiling.com/admin/request-status?token=${token}`;
         } else if (user.adminStatus === 'rejected') {
-            redirectUrl = `https://taxproject-stg.vercel.app/admin/rejected?token=${token}`;
+            redirectUrl = `https://powerfiling.com/admin/rejected?token=${token}`;
         } else {
             // First time or 'none' status, needs to raise request
-            redirectUrl = `https://taxproject-stg.vercel.app/admin/request-access?token=${token}`;
+            redirectUrl = `https://powerfiling.com/admin/request-access?token=${token}`;
         }
     } else {
         // Regular user login
         if (user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved')) {
-            redirectUrl = `https://taxproject-stg.vercel.app/admin/dashboard?token=${token}`;
+            redirectUrl = `https://powerfiling.com/admin/dashboard?token=${token}`;
         } else {
-            redirectUrl = `https://taxproject-stg.vercel.app/login?token=${token}`;
+            redirectUrl = `https://powerfiling.com/login?token=${token}`;
         }
     }
 
@@ -366,7 +366,7 @@ export const sendMobileOTP = asyncHandler(async (req, res, next) => {
     try {
         await sendEmail({
             email: user.email,
-            subject: 'Mobile Verification Code - LedgerLine',
+            subject: 'Mobile Verification Code - Powerfilling',
             message: `Your mobile verification code is: ${otp}`,
             html: getVerificationTemplate(otp, 'Verification')
         });

@@ -1,4 +1,4 @@
-# Project – MERN Tax Filing Platform
+# Powerfilling – MERN Tax Filing Platform
 
  MERN-based web application for ITR & GST filing, built using React (Vite) for the frontend and Node.js + Express for the backend.
 
@@ -19,7 +19,7 @@ Deployment:
 
 ## Project Structure
 
-LedgerLine/
+Powerfilling/
 ├── client/              # Frontend (React + Vite)
 │   ├── src/
 │   ├── public/
@@ -101,4 +101,4 @@ git pull origin main
 
 ## Live Application
 
-https://taxproject-stg.vercel.app/
+https://powerfiling.com/

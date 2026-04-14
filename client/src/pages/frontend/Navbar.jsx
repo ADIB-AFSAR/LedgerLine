@@ -129,7 +129,7 @@ const Navbar = () => {
               <FileText className="text-white w-6 h-6" />
             </div>
             <span className="text-2xl font-bold text-blue-900 tracking-tight">
-              FirstFiling
+              Powerfilling
             </span>
           </Link>
 

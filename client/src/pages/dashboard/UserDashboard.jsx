@@ -229,8 +229,8 @@ const UserDashboard = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-blue-600" />
-              <a href="mailto:support@ledgerline.com" className="text-blue-600 hover:underline">
-                support@ledgerline.com
+              <a href="mailto:support@powerfiling.com" className="text-blue-600 hover:underline">
+                support@powerfiling.com
               </a>
             </div>
             <div className="flex items-center gap-3">

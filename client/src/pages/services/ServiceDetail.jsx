@@ -288,7 +288,7 @@ const ServiceDetail = () => {
           <div className="bg-[#2563eb] rounded-3xl p-10 text-center text-white shadow-xl shadow-blue-900/10">
             <h2 className="text-2xl font-bold mb-3">Ready to Get Started?</h2>
             <p className="text-xl mb-8 opacity-90">
-              Join thousands of satisfied customers who trust FirstFiling for their tax needs
+              Join thousands of satisfied customers who trust Powerfilling for their tax needs
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button

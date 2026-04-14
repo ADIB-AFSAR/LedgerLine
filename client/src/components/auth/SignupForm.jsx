@@ -46,7 +46,7 @@ const SignupForm = ({ onSwitchToLogin }) => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center mb-2">
-        <h2 className="text-xl font-bold text-slate-800">Join FirstFiling</h2>
+        <h2 className="text-xl font-bold text-slate-800">Join Powerfilling</h2>
         <p className="text-sm text-slate-500">Enter your details to create an account</p>
       </div>
 

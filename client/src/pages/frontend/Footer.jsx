@@ -11,7 +11,7 @@ const Footer = () => {
 
           <div className="border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-sm">
-              © 2026 FirstFiling. All rights reserved. Designed for Indian
+              © 2026 Powerfilling. All rights reserved. Designed for Indian
               Taxpayers.
             </p>
             <div className="flex gap-8 text-sm">

@@ -42,9 +42,7 @@ app.use(helmet({
 // Enable CORS - Place this at the very top of middleware stack
 const allowedOrigins = [
     'http://localhost:5173',
-    'https://taxproject-stg.vercel.app',
-    'https://taxproject-api.vercel.app',
-    'https://ledgerline.vercel.app'
+    'https://powerfiling.com'
 ];
 
 app.use((req, res, next) => {

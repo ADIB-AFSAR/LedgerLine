@@ -25,7 +25,7 @@ const LLPRegistration = () => {
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center gap-2 text-white mb-6">
                 <FileText className="w-6 h-6" />
-                <span className="text-2xl font-bold">FirstFiling</span>
+                <span className="text-2xl font-bold">Powerfilling</span>
               </div>
               <p className="text-sm leading-relaxed mb-6">
                 India's leading cloud-based tax filing and business compliance platform.
@@ -58,7 +58,7 @@ const LLPRegistration = () => {
             </div>
           </div>
           <div className="pt-12 border-t border-slate-800 text-center">
-            <p className="text-sm">© 2025 FirstFiling. All rights reserved.</p>
+            <p className="text-sm">© 2025 Powerfilling. All rights reserved.</p>
           </div>
         </div>
       </footer>

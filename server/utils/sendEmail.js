@@ -5,7 +5,7 @@ const sendEmail = async (options) => {
         console.log(`📡 Attempting to send email to: ${options.email} via Resend API...`);
         
         const response = await axios.post('https://api.resend.com/emails', {
-            from: 'LedgerLine <onboarding@resend.dev>',
+            from: 'Powerfilling <onboarding@resend.dev>',
             to: options.email,
             subject: options.subject,
             text: options.message,
