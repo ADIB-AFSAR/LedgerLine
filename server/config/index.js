@@ -28,6 +28,7 @@ export const connectDB = async () => {
         Admin = adminConn.model('Admin', adminSchema);
         
         console.log(`Admin Database Connected`);
+        return { Admin };
     } catch (error) {
         console.error(`Error: ${error.message}`);
         process.exit(1);

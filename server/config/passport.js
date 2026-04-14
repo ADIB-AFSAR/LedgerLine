@@ -14,12 +14,27 @@ passport.use(
         async (req, accessToken, refreshToken, profile, done) => {
             try {
                 const intent = req.query.state;
-                // Decide which model to use based on intent
-                const Model = intent === 'admin' ? Admin : User;
+
+                // Cold start protection: wait for models if they are not yet initialized
+                let currentAdmin = Admin;
+                let currentUser = User;
+
+                if (intent === 'admin' && !currentAdmin) {
+                    for (let i = 0; i < 20; i++) { // Wait up to 2 seconds
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        const { Admin: freshAdmin } = await import('../config/index.js');
+                        if (freshAdmin) {
+                            currentAdmin = freshAdmin;
+                            break;
+                        }
+                    }
+                }
+
+                const Model = intent === 'admin' ? currentAdmin : currentUser;
 
                 if (!Model) {
-                    console.error("Auth Error: Model not initialized", { intent, isAdminNull: !Admin, isUserNull: !User });
-                    return done(new Error("Authentication system not fully initialized. Please try again in a few seconds."), null);
+                    console.error("Auth Error: Model not initialized", { intent, isAdminNull: !currentAdmin, isUserNull: !currentUser });
+                    return done(new Error("Authentication system is warming up. Please refresh in 2 seconds."), null);
                 }
 
                 // Check if user already exists
