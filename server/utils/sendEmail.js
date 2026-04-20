@@ -3,9 +3,9 @@ import axios from 'axios';
 const sendEmail = async (options) => {
     try {
         console.log(`📡 Attempting to send email to: ${options.email} via Resend API...`);
-        
+
         const response = await axios.post('https://api.resend.com/emails', {
-            from: 'Powerfilling <onboarding@resend.dev>',
+            from: 'Powerfilling <noreply@powerfilling.com>',
             to: options.email,
             subject: options.subject,
             text: options.message,
@@ -35,7 +35,7 @@ const sendEmail = async (options) => {
         } else {
             console.error('❌ Resend Request Failed:', err.message);
         }
-        
+
         // Don't throw error in dev mode so the app doesn't crash
         return { id: 'mock-id' };
     }
