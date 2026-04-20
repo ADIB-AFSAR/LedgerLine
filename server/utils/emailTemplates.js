@@ -67,7 +67,7 @@ export const getInvoiceTemplate = (user, purchase, plan) => {
 
                     <div class="cta">
                         <p style="font-size: 14px; color: #64748b; margin-bottom: 20px;">Access your dashboard to fill out forms and upload documents.</p>
-                        <a href="http://localhost:5173/dashboard" class="button">Go to Dashboard</a>
+                        <a href="https://powerfiling.com/dashboard" class="button">Go to Dashboard</a>
                     </div>
                 </div>
                 <div class="footer">
@@ -220,7 +220,7 @@ export const getStatusUpdateTemplate = (user, itr, status, remarks, updaterName,
                     ` : ''}
 
                     <div style="text-align: center;">
-                        <a href="http://localhost:5173/dashboard?tab=orders" class="button" style="color: #ffffff !important; background-color: #2563eb;">View Order Details</a>
+                        <a href="https://powerfiling.com/dashboard?tab=orders" class="button" style="color: #ffffff !important; background-color: #2563eb;">View Order Details</a>
                     </div>
                 </div>
                 <div class="footer">
