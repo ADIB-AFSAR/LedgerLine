@@ -6,11 +6,11 @@ import Footer from "./Footer";
 
 const serviceOptions = [
   "Income Tax Filing",
-  "GST Registration / Filing",
-  "TDS/TCS Compliance",
+  "GST Registration and Filing",
+  "TDS and TCS Compliance",
   "Business Tax Consultancy",
-  "Tax Planning & Advisory",
-  "Tax Audit & Other",
+  "Tax Planning and Advisory",
+  "Tax Audit and Other",
 ];
 
 // Rate limiting config — max 3 submissions per 10 minutes (stored in localStorage)
