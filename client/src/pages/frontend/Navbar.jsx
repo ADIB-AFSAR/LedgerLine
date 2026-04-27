@@ -132,7 +132,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 cursor-pointer">
             <div className="bg-blue-600 p-2 rounded-lg">
-              <FileText className="text-white w-6 h-6" />
+              <img src="/favicon-32x32.png" alt="Powerfilling" className="w-6 h-6" />
             </div>
             <span className="text-2xl font-bold text-blue-900 tracking-tight">
               Powerfilling

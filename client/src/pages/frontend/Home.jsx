@@ -9,8 +9,6 @@ import {
   FileText,
   Calculator,
   MessageSquare,
-  Menu,
-  X,
   ArrowRight,
 } from "lucide-react";
 import Navbar from "./Navbar";
@@ -52,7 +50,7 @@ const Home = () => {
       <main className="flex-1">
 
       {/* Hero Section */}
-      <section className="relative pt-16 pb-24 lg:pt-24 lg:pb-36 overflow-hidden bg-white">
+      <section className="relative pt-16 pb-12 lg:pt-16 lg:overflow-hidden bg-white">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-1.5 rounded-full text-blue-700 text-sm font-semibold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -68,7 +66,7 @@ const Home = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
               <Link to="/services/individual" className="w-full sm:w-auto">
-                <button className="w-full bg-blue-600 text-white px-10 py-4 rounded-2xl text-lg font-bold hover:shadow-2xl hover:bg-blue-700 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-1">
+                <button className="animate-float w-full bg-blue-600 text-white px-10 py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 shadow-[0_8px_30px_rgba(37,99,235,0.5)] hover:shadow-[0_12px_40px_rgba(37,99,235,0.7)] hover:bg-blue-700 transition-all duration-300">
                   File ITR Now <ArrowRight size={20} />
                 </button>
               </Link>
@@ -99,7 +97,7 @@ const Home = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 bg-slate-50/50 backdrop-blur-sm border-y border-slate-100">
+      <section className="py-8 bg-slate-50/50 backdrop-blur-sm border-y border-slate-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <h2 className="text-4xl font-extrabold text-slate-900 mb-6">
@@ -145,7 +143,7 @@ const Home = () => {
       </section>
 
       {/* ITR Auto-Suggester Widget */}
-      <section className="py-24 bg-white">
+      <section className="py-8 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-slate-50/50 rounded-[2.5rem] shadow-2xl shadow-blue-100/50 overflow-hidden border border-slate-100">
             <div className="bg-blue-600 p-12 text-center text-white relative overflow-hidden">
@@ -177,7 +175,7 @@ const Home = () => {
               <button
                 onClick={handleSuggest}
                 disabled={selectedIncome.length === 0}
-                className="w-full bg-[#2563eb] text-white py-5 rounded-2xl font-bold text-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 mb-2"
+                className="w-full bg-[#2563eb] text-white py-5 rounded-2xl font-bold text-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
               >
                 Show My Correct ITR Form
               </button>
@@ -203,7 +201,7 @@ const Home = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-24 bg-slate-50 border-y border-slate-100">
+      <section className="py-12 bg-slate-50 border-y border-slate-100">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-24">
             <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-6">
@@ -354,7 +352,7 @@ const Home = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-24 bg-white">
+      <section className="py-12 bg-white">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-6">
@@ -365,7 +363,7 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-10">
+          <div className="grid md:grid-cols-3 gap-10 ">
             {[
               {
                 name: "Priya Sharma",
@@ -392,7 +390,7 @@ const Home = () => {
                 avatar: "AP"
               }
             ].map((testimonial, idx) => (
-              <div key={idx} className="bg-slate-50/50 rounded-[2rem] p-10 relative hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-slate-100">
+              <div key={idx} className="bg-slate-50/50 rounded-[2rem] p-10 relative hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-black">
                 <div className="flex items-center mb-8">
                   <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl mr-5 shadow-lg shadow-blue-100">
                     {testimonial.avatar}
@@ -435,7 +433,7 @@ const Home = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-24 bg-slate-50/50 backdrop-blur-sm">
+      <section className="py-12 bg-slate-50/50 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-extrabold text-center text-slate-900 mb-16">
             Frequently Asked Questions
