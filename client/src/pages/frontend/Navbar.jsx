@@ -110,6 +110,11 @@ const Navbar = () => {
               icon: <Shield size={14} />,
               path: "/services/pf-esic",
             },
+            {
+              name: "Test Production Plan",
+              icon: <Shield size={14} />,
+              path: "/services/test-production-plan",
+            },
           ],
         },
       ],

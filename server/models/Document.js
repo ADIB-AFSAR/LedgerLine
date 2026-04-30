@@ -28,6 +28,19 @@ const documentSchema = new mongoose.Schema({
     uploadedAt: {
         type: Date,
         default: Date.now
+    },
+    uploadedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    sharedWith: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    isShared: {
+        type: Boolean,
+        default: false
     }
 });
 

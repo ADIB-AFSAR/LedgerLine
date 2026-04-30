@@ -130,8 +130,8 @@ const AdminDashboard = () => {
                 clientName: purchase.userId?.name || 'Unknown',
                 clientEmail: purchase.userId?.email || 'Unknown',
                 clientId: purchase.userId?._id,
-                service: purchase.planId?.name || 'Tax Plan',
-                amount: `₹${purchase.planId?.price || 0}`,
+                service: purchase.planId?.name || purchase.planName || 'Tax Plan',
+                amount: `₹${purchase.planId?.price || purchase.planPrice || 0}`,
                 date: purchase.createdAt,
                 status: purchase.paymentStatus,
                 itrStatus: purchase.itrStatus || 'Pending Filing',
@@ -145,10 +145,10 @@ const AdminDashboard = () => {
                 clientName: itr.userId?.name || 'Unknown',
                 clientEmail: itr.userId?.email || 'Unknown',
                 clientId: itr.userId?._id,
-                service: itr.purchaseId?.planId?.name || 'ITR Filing',
+                service: itr.purchaseId?.planId?.name || itr.purchaseId?.planName || 'ITR Filing',
                 date: itr.submittedAt || itr.createdAt,
                 status: itr.status,
-                amount: itr.purchaseId?.planId?.price ? `₹${itr.purchaseId.planId.price}` : '-',
+                amount: (itr.purchaseId?.planId?.price || itr.purchaseId?.planPrice) ? `₹${itr.purchaseId.planId?.price || itr.purchaseId?.planPrice}` : '-',
                 assignedCA: itr.caAssigned?.name || 'Unassigned',
                 itrId: itr._id,
                 originalData: itr
@@ -166,7 +166,7 @@ const AdminDashboard = () => {
 
     const calculateStats = (usersList, filingsList, paymentsList) => {
         const totalRevenue = paymentsList.reduce((acc, payment) => {
-            const price = payment.planId?.price || 0;
+            const price = payment.planId?.price || payment.planPrice || 0;
             return acc + price;
         }, 0);
         const pendingCount = filingsList.filter(f =>
@@ -342,7 +342,7 @@ const AdminDashboard = () => {
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors">{filing.clientName}</p>
-                                                    <p className="text-[10px] text-zinc-500 font-mono">{filing.id.substring(0, 8)}</p>
+                                                    <p className="text-[10px] text-zinc-500 font-mono">#{filing.id}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -689,7 +689,7 @@ const AdminDashboard = () => {
                             <tbody className="divide-y divide-zinc-800/50">
                                 {filteredFilings.map((filing) => (
                                     <tr key={filing.id} className="hover:bg-zinc-800/30 transition-colors group">
-                                        <td className="px-6 py-5 text-sm font-mono text-zinc-500">#{filing.id.substring(0, 8)}</td>
+                                        <td className="px-6 py-5 text-sm font-mono text-zinc-500">#{filing.id}</td>
                                         <td className="px-6 py-5">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors">
@@ -709,7 +709,7 @@ const AdminDashboard = () => {
                                         <td className="px-6 py-5">{getStatusBadge(filing.status)}</td>
                                         <td className="px-6 py-5 text-right">
                                             <button
-                                                onClick={() => setSelectedOrder(filing)}
+                                                onClick={() => navigate(`/admin/order/${filing.originalData?.purchaseId?._id || filing.originalData?.purchaseId}`)}
                                                 className="inline-flex items-center gap-2 bg-blue-600/10 hover:bg-blue-600 text-blue-500 hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition-all"
                                             >
                                                 <Eye size={14} /> View
@@ -966,13 +966,7 @@ const AdminDashboard = () => {
                 </main>
             </div>
 
-            {/* Order Details Modal */}
-            {selectedOrder && (
-                <OrderDetails
-                    order={selectedOrder}
-                    onClose={() => setSelectedOrder(null)}
-                />
-            )}
+            {/* Order Details Modal Removed - Now renders inline */}
         </div>
     );
 };

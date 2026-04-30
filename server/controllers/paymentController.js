@@ -14,6 +14,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // @access    Private
 export const createPaymentIntent = asyncHandler(async (req, res, next) => {
     const { planId } = req.body;
+    console.log('Creating Intent for PlanId:', planId);
 
     const plan = await Plan.findById(planId);
 
@@ -56,7 +57,8 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
     }
 
     // --- TEMPORARY MOCK BYPASS FOR TESTING ---
-    if (paymentIntentId && paymentIntentId.startsWith('mock_')) {
+    // Only allow mock payments if NOT in production
+    if (process.env.NODE_ENV !== 'production' && paymentIntentId && paymentIntentId.startsWith('mock_')) {
         const existingPurchase = await Purchase.findOne({ paymentId: paymentIntentId });
         if (existingPurchase) {
             return res.status(200).json({
@@ -73,6 +75,8 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
         const purchase = await Purchase.create({
             userId: req.user.id,
             planId: planId,
+            planName: plan?.name || 'Tax Service',
+            planPrice: plan?.price || 0,
             paymentId: paymentIntentId,
             paymentStatus: 'Completed',
             formUnlocked: true
@@ -120,10 +124,14 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
                 });
             }
 
+            const plan = await Plan.findById(planId || paymentIntent.metadata.planId);
+
             // Create purchase record
             const purchase = await Purchase.create({
                 userId: req.user.id,
                 planId: planId || paymentIntent.metadata.planId, // Fallback to metadata
+                planName: plan?.name || 'Tax Service',
+                planPrice: plan?.price || 0,
                 paymentId: paymentIntentId,
                 paymentStatus: 'Completed',
                 formUnlocked: true
@@ -238,6 +246,7 @@ export const getMyOrders = asyncHandler(async (req, res, next) => {
 
         return {
             ...purchaseObj,
+            serviceName: purchase.planId?.name || purchase.planName || 'Tax Service',
             itrStatus,
             itrId,
             submittedAt,
@@ -291,5 +300,54 @@ export const getAllOrders = asyncHandler(async (req, res, next) => {
         success: true,
         count: ordersWithStatus.length,
         data: ordersWithStatus
+    });
+});
+
+// @desc      Get Order By ID
+// @route     GET /api/v1/payments/:id
+// @access    Private
+export const getOrderById = asyncHandler(async (req, res, next) => {
+    const purchase = await Purchase.findById(req.params.id)
+        .populate('userId', 'name email mobile')
+        .populate('planId');
+
+    if (!purchase) {
+        return next(new AppError('Order not found', 404));
+    }
+
+    // Authorization check: Admin/CA can see any, regular user only their own
+    const isAdminOrCA = req.user.role === 'admin' || (req.user.role === 'ca' && req.user.adminStatus === 'approved');
+    if (!isAdminOrCA && purchase.userId?._id.toString() !== req.user.id.toString()) {
+        return next(new AppError('Not authorized to view this order', 403));
+    }
+
+    // Get ITR status
+    let itrStatus = 'Pending Filing';
+    let itrId = null;
+    let submittedAt = null;
+    let itrUpdatedAt = null;
+
+    if (purchase.formUnlocked) {
+        const itr = await ITRForm.findOne({ purchaseId: purchase._id });
+        if (itr) {
+            itrStatus = itr.status || 'Submitted';
+            itrId = itr._id;
+            submittedAt = itr.submittedAt || itr.createdAt;
+            itrUpdatedAt = itr.updatedAt;
+        }
+    }
+
+    const purchaseObj = purchase.toObject();
+
+    res.status(200).json({
+        success: true,
+        data: {
+            ...purchaseObj,
+            serviceName: purchase.planId?.name || purchase.planName || 'Tax Service',
+            itrStatus,
+            itrId,
+            submittedAt,
+            itrUpdatedAt
+        }
     });
 });

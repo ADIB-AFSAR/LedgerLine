@@ -8,13 +8,16 @@ import { useAuth } from '../../context/AuthContext';
 import { planMapping } from '../../data/planMapping';
 import api from '../../api/axios';
 
+// Module-level cache for plans to avoid refetching on every navigation
+let cachedPlans = null;
+
 const ServiceDetail = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
 
-  const [loading, setLoading] = useState(false);
-  const [planError, setPlanError] = useState('');
+  const [loadingPlan, setLoadingPlan] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [hasActivePurchase, setHasActivePurchase] = useState(false);
   const [activePurchaseId, setActivePurchaseId] = useState(null);
@@ -31,41 +34,85 @@ const ServiceDetail = () => {
   useEffect(() => {
     const fetchPlanAndStatus = async () => {
       if (!serviceId) return;
-      setLoading(true);
-      try {
-        const mappedPlan = planMapping[serviceId];
-        if (!mappedPlan) { setLoading(false); return; }
+      
+      const mappedPlan = planMapping[serviceId];
+      if (!mappedPlan) return;
 
-        const { data } = await api.get('/plans');
-        let matchedPlan = null;
-        if (data.success) {
-          matchedPlan = data.data.find(p => p.name === mappedPlan.name);
-          if (matchedPlan) setSelectedPlan(matchedPlan);
+      // Step 1: Resolve Plan (use cache or fetch)
+      let currentPlan = selectedPlan;
+      
+      if (!currentPlan) {
+        if (cachedPlans) {
+          currentPlan = cachedPlans.find(p => p.name === mappedPlan.name);
+          if (currentPlan) setSelectedPlan(currentPlan);
         }
+      }
 
-        if (isLoggedIn && matchedPlan) {
-          try {
-            const statusRes = await api.get('/payments/check-status', { params: { planId: matchedPlan._id } });
-            if (statusRes.data.success && statusRes.data.hasActivePlan) {
-              setHasActivePurchase(true);
-              setActivePurchaseId(statusRes.data.purchaseId);
-            }
-          } catch (e) { /* silent */ }
+      if (!currentPlan) {
+        setLoadingPlan(true);
+        try {
+          const { data } = await api.get('/plans');
+          if (data.success) {
+            cachedPlans = data.data;
+            currentPlan = data.data.find(p => p.name === mappedPlan.name);
+            console.log('Resolved Plan:', currentPlan?.name, 'ID:', currentPlan?._id);
+            if (currentPlan) setSelectedPlan(currentPlan);
+          }
+        } catch (error) {
+          console.error("Plan loading error:", error);
+        } finally {
+          setLoadingPlan(false);
         }
-      } catch (error) {
-        setPlanError('Unable to load latest pricing. Using default rates.');
-      } finally {
-        setLoading(false);
+      }
+
+      // Step 2: Check Purchase Status (only if logged in and plan resolved)
+      if (isLoggedIn && currentPlan) {
+        setCheckingStatus(true);
+        try {
+          const statusRes = await api.get('/payments/check-status', { 
+            params: { planId: currentPlan._id } 
+          });
+          if (statusRes.data.success && statusRes.data.hasActivePlan) {
+            setHasActivePurchase(true);
+            setActivePurchaseId(statusRes.data.purchaseId);
+          }
+        } catch (e) {
+          console.error("Status check error:", e);
+        } finally {
+          setCheckingStatus(false);
+        }
       }
     };
+
+    // Reset status when serviceId changes
+    setHasActivePurchase(false);
+    setActivePurchaseId(null);
     fetchPlanAndStatus();
   }, [serviceId, isLoggedIn]);
 
   const handleStartFiling = () => {
     if (!isLoggedIn) { navigate('/login', { state: { from: `/services/${serviceId}` } }); return; }
     if (hasActivePurchase && activePurchaseId) { navigate(`/services/userform?service=${serviceId}&purchaseId=${activePurchaseId}`); return; }
-    if (!selectedPlan) { alert("Plan currently unavailable. Please contact support."); return; }
-    navigate('/payment', { state: { serviceId, planId: selectedPlan._id, amount: selectedPlan.price, planName: selectedPlan.name } });
+    if (!selectedPlan) { 
+      console.error("Plan not resolved for service:", serviceId);
+      alert("Plan currently unavailable. Please contact support."); 
+      return; 
+    }
+    
+    console.log('Navigating to payment with:', { 
+      planId: selectedPlan._id, 
+      amount: service.numericPrice || selectedPlan.price,
+      planName: service.title
+    });
+
+    navigate('/payment', { 
+      state: { 
+        serviceId, 
+        planId: selectedPlan._id, 
+        amount: service.numericPrice || selectedPlan.price || 0, 
+        planName: service.title 
+      } 
+    });
   };
 
   if (!service) {
@@ -80,7 +127,7 @@ const ServiceDetail = () => {
   }
 
   const ServiceIcon = service.icon;
-  const displayPrice = selectedPlan ? `₹${selectedPlan.price}` : service.price;
+  const displayPrice = service.price;
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans">
@@ -115,13 +162,6 @@ const ServiceDetail = () => {
                 <span className="text-blue-200 text-base font-medium">/ filing</span>
               </div>
 
-              {planError && (
-                <div className="mb-4 p-3 bg-amber-50 text-amber-700 rounded-xl flex items-center gap-2 border border-amber-100">
-                  <AlertCircle size={15} />
-                  <span className="text-sm font-medium">{planError}</span>
-                </div>
-              )}
-
               {hasActivePurchase && (
                 <div className="mb-5 p-4 bg-green-500/20 border border-green-400/30 rounded-2xl flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-300 mt-0.5 flex-shrink-0" />
@@ -135,10 +175,10 @@ const ServiceDetail = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleStartFiling}
-                  disabled={loading || (!selectedPlan && !hasActivePurchase)}
+                  disabled={loadingPlan || !selectedPlan}
                   className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-2xl font-extrabold text-base hover:bg-blue-50 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
-                  {loading ? 'Checking...' : hasActivePurchase ? 'Continue Filing' : 'Get Started Now'}
+                  {loadingPlan ? 'Checking...' : checkingStatus ? 'Verifying...' : hasActivePurchase ? 'Continue Filing' : 'Get Started Now'}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <a
@@ -202,10 +242,10 @@ const ServiceDetail = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={handleStartFiling}
-                disabled={loading || (!selectedPlan && !hasActivePurchase)}
+                disabled={loadingPlan || !selectedPlan}
                 className="bg-white text-blue-600 px-10 py-4 rounded-2xl font-extrabold hover:bg-blue-50 transition-colors disabled:opacity-75 disabled:cursor-not-allowed text-base"
               >
-                {loading ? 'Checking...' : hasActivePurchase ? 'Continue Filing' : `Get Started — ${displayPrice}`}
+                {loadingPlan ? 'Checking...' : checkingStatus ? 'Verifying...' : hasActivePurchase ? 'Continue Filing' : `Get Started — ${displayPrice}`}
               </button>
               <a
                 href="tel:+919876543210"

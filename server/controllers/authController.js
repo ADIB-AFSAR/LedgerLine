@@ -40,7 +40,9 @@ export const register = asyncHandler(async (req, res, next) => {
         const message = `Your verification code is: ${otp}\n\nThis code expires in 10 minutes.`;
 
         // Log OTP for Development (in case email fails)
-        console.log(`OTP sent to ${user.email}: ${otp}`);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`OTP sent to ${user.email}: ${otp}`);
+        }
 
         try {
             await sendEmail({
@@ -112,7 +114,9 @@ export const login = asyncHandler(async (req, res, next) => {
             user.mobileOtp = otp;
             user.mobileOtpExpires = Date.now() + 10 * 60 * 1000;
             await user.save({ validateBeforeSave: false });
-            console.log(`Login Mobile OTP: ${otp}`);
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(`Login Mobile OTP: ${otp}`);
+            }
             return res.status(200).json({
                 success: true,
                 requireVerification: true,
@@ -129,7 +133,9 @@ export const login = asyncHandler(async (req, res, next) => {
         await user.save({ validateBeforeSave: false });
 
         // Log OTP for Development
-        console.log(`Login OTP for ${user.email}: ${otp}`);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`Login OTP for ${user.email}: ${otp}`);
+        }
 
         try {
             await sendEmail({
@@ -197,7 +203,9 @@ export const resendOTP = asyncHandler(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // Log OTP for Development
-    console.log(`Resend OTP for ${user.email}: ${otp}`);
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`Resend OTP for ${user.email}: ${otp}`);
+    }
 
     try {
         await sendEmail({
@@ -258,27 +266,28 @@ export const googleCallback = asyncHandler(async (req, res, next) => {
 
     res.cookie('token', token, options);
 
-    // Default redirect
-    let redirectUrl = `https://powerfiling.com/login?token=${token}`;
+    // Dynamic redirect based on CLIENT_URL env variable
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    let redirectUrl = `${clientUrl}/login?token=${token}`;
 
     if (state === 'admin') {
         // User intended to log into admin portal
         if (user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved')) {
-            redirectUrl = `https://powerfiling.com/admin/dashboard?token=${token}`;
+            redirectUrl = `${clientUrl}/admin/dashboard?token=${token}`;
         } else if (user.adminStatus === 'pending') {
-            redirectUrl = `https://powerfiling.com/admin/request-status?token=${token}`;
+            redirectUrl = `${clientUrl}/admin/request-status?token=${token}`;
         } else if (user.adminStatus === 'rejected') {
-            redirectUrl = `https://powerfiling.com/admin/rejected?token=${token}`;
+            redirectUrl = `${clientUrl}/admin/rejected?token=${token}`;
         } else {
             // First time or 'none' status, needs to raise request
-            redirectUrl = `https://powerfiling.com/admin/request-access?token=${token}`;
+            redirectUrl = `${clientUrl}/admin/request-access?token=${token}`;
         }
     } else {
         // Regular user login
         if (user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved')) {
-            redirectUrl = `https://powerfiling.com/admin/dashboard?token=${token}`;
+            redirectUrl = `${clientUrl}/admin/dashboard?token=${token}`;
         } else {
-            redirectUrl = `https://powerfiling.com/login?token=${token}`;
+            redirectUrl = `${clientUrl}/login?token=${token}`;
         }
     }
 
@@ -358,7 +367,9 @@ export const sendMobileOTP = asyncHandler(async (req, res, next) => {
     user.mobileOtpExpires = Date.now() + 10 * 60 * 1000;
 
     // Log OTP for Dev
-    console.log(`Mobile OTP for ${user.mobile} (${user.email}): ${otp}`);
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`Mobile OTP for ${user.mobile} (${user.email}): ${otp}`);
+    }
 
     await user.save({ validateBeforeSave: false });
 

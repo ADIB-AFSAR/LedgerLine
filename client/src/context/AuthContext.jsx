@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }) => {
   }, [isLoggedIn]);
 
   const login = async (userData) => {
-    // Expecting userData to contain email and password
+    // Expecting userData to contain email and other details (password removed from registration)
     try {
       const { data } = await api.post('/auth/login', userData);
 

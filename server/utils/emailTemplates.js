@@ -196,11 +196,11 @@ export const getStatusUpdateTemplate = (user, itr, status, remarks, updaterName,
                         <table width="100%" cellpadding="0" cellspacing="0" border="0">
                             <tr>
                                 <td align="left" style="padding: 6px 0; color: #64748b; font-size: 14px; font-weight: 500;">Order ID</td>
-                                <td align="right" style="padding: 6px 0; color: #1e293b; font-size: 14px; font-weight: 700;">#${itr._id.toString().slice(-8).toUpperCase()}</td>
+                                <td align="right" style="padding: 6px 0; color: #1e293b; font-size: 14px; font-weight: 700;">#${(itr.purchaseId?._id || itr.purchaseId || '').toString()}</td>
                             </tr>
                             <tr>
                                 <td align="left" style="padding: 6px 0; color: #64748b; font-size: 14px; font-weight: 500;">Service Plan</td>
-                                <td align="right" style="padding: 6px 0; color: #1e293b; font-size: 14px; font-weight: 700;">${itr.purchaseId?.planId?.name || 'Tax Filing'}</td>
+                                <td align="right" style="padding: 6px 0; color: #1e293b; font-size: 14px; font-weight: 700;">${itr.purchaseId?.planId?.name || itr.purchaseId?.planName || 'Tax Filing'}</td>
                             </tr>
                             <tr>
                                 <td align="left" style="padding: 6px 0; color: #64748b; font-size: 14px; font-weight: 500;">Updated By</td>

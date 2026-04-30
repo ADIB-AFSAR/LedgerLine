@@ -27,7 +27,7 @@ const UserDashboard = () => {
         // Map API data to dashboard format
         const mappedOrders = data.data.map(order => ({
           id: order._id,
-          service: order.planId?.name || 'Tax Service',
+          service: order.serviceName || order.planId?.name || 'Tax Service',
           date: order.createdAt,
           status: order.itrStatus || 'Pending',
           amount: order.planId?.price ? `₹${order.planId.price}` : 'Paid',
@@ -161,7 +161,7 @@ const UserDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="font-bold text-slate-900 text-lg">{order.service}</h3>
-                  <p className="text-sm text-slate-600">Order ID: {order.id.substring(0, 8)}...</p>
+                  <p className="text-sm text-slate-600">Order ID: #{order.id}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-slate-900 text-lg">{order.amount}</p>

@@ -58,6 +58,10 @@ const itrFormSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Document'
         }]
+    }],
+    sharedDocuments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Document'
     }]
 }, {
     timestamps: true

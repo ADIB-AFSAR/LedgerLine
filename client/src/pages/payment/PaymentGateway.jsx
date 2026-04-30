@@ -19,8 +19,14 @@ const PaymentGateway = () => {
 
     useEffect(() => {
         if (!planId) {
+            console.error("Missing planId in state. Possible refresh or direct access.");
             navigate('/services/individual'); // Redirect if no plan selected
             return;
+        }
+        
+        // Ensure amount is set even if creation fails later
+        if (planPrice !== undefined) {
+            setAmount(planPrice);
         }
 
         const createPaymentIntent = async () => {
@@ -31,10 +37,10 @@ const PaymentGateway = () => {
                     amount: planPrice
                 });
                 setClientSecret(data.clientSecret);
-                setAmount(planPrice); // Use planPrice which is actually just for display/local, backend uses planId
             } catch (error) {
                 console.error("Payment intent error:", error);
-                alert("Failed to initialize payment. Please try again.");
+                const errorMessage = error.response?.data?.message || error.message || "Failed to initialize payment";
+                alert(`Payment Error: ${errorMessage}`);
             }
         };
 

@@ -24,6 +24,8 @@ import PaymentFailure from '../pages/payment/PaymentFailure';
 
 import PrivateRoute from './PrivateRoute';
 import OrderDetails from '../pages/dashboard/OrderDetails';
+import Navbar from '../pages/frontend/Navbar';
+import Footer from '../pages/frontend/Footer';
 
 export default function AppRoutes() {
   return (
@@ -73,11 +75,13 @@ export default function AppRoutes() {
         path="/order/:orderId"
         element={
           <PrivateRoute>
+            <Navbar />
             <OrderDetails />
+            <Footer />
           </PrivateRoute>
         }
       />
-      <Route path="/orderdetails/:id" element={<OrderDetails />} />
+      <Route path="/orderdetails/:id" element={<><Navbar /><OrderDetails /><Footer /></>} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
@@ -90,6 +94,14 @@ export default function AppRoutes() {
         element={
           <PrivateRoute adminOnly={true}>
             <AdminDashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/order/:orderId"
+        element={
+          <PrivateRoute adminOnly={true}>
+            <OrderDetails />
           </PrivateRoute>
         }
       />

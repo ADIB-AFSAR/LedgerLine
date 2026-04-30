@@ -11,6 +11,15 @@ const purchaseSchema = new mongoose.Schema({
         ref: 'Plan',
         required: true
     },
+    planName: {
+        type: String,
+        required: true
+    },
+    planPrice: {
+        type: Number,
+        required: true,
+        default: 0
+    },
     paymentId: {
         type: String,
         required: true

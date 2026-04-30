@@ -6,9 +6,6 @@ import {
   User,
   Phone,
   Mail,
-  Lock,
-  Eye,
-  EyeOff,
   ShieldCheck,
   UserCheck,
   Chrome,
@@ -22,12 +19,10 @@ import Navbar from '../frontend/Navbar';
 const Sign_up = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
-  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     mobile: '',
-    email: '',
-    password: ''
+    email: ''
   });
   const [error, setError] = useState('');
 
@@ -135,31 +130,7 @@ const Sign_up = () => {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="Create a strong password"
-                  required
-                  className="w-full pl-12 pr-12 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                />
-                <button
-                  type="button"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
+
 
             <button
               type="submit"
@@ -182,7 +153,7 @@ const Sign_up = () => {
             {/* Google Signup */}
             <button
               type="button"
-              onClick={() => window.location.href = 'http://localhost:5000/api/v1/auth/google'}
+              onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'}/auth/google`}
               className="w-full bg-white border border-slate-300 text-slate-700 py-3 px-6 rounded-xl font-semibold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all flex items-center justify-center gap-3 shadow-md border-opacity-60"
             >
               <Chrome className="w-5 h-5 text-blue-600" />

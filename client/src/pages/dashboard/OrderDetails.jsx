@@ -3,22 +3,27 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Eye, FileText, Upload, CheckCircle, Clock, AlertCircle, User, Activity, MessageSquare, Send, Paperclip, RefreshCw, ChevronDown, X } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
-import Navbar from '../frontend/Navbar';
-import Footer from '../frontend/Footer';
+// Navbar and Footer removed to prevent leakage into Admin Dashboard
+import { ShieldCheck, Share2 } from 'lucide-react';
 
-const OrderDetails = () => {
-  const { orderId } = useParams();
+const OrderDetails = ({ order: propOrder, onClose }) => {
+  const { orderId: paramOrderId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  // Detect if we are in "Modal Mode" (used in Admin Dashboard)
+  const isModal = !!propOrder;
+  const orderId = isModal ? propOrder.id : paramOrderId;
   const isAdminOrCA = user?.role === 'admin' || user?.role === 'ca';
 
   const [order, setOrder] = useState(null);
   const [loadingOrder, setLoadingOrder] = useState(true);
-  const [activeTab, setActiveTab] = useState('itr-details');
+  const [activeTab, setActiveTab] = useState('details');
   const [selectedDocs, setSelectedDocs] = useState([]);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [itrData, setItrData] = useState(null);
-  const [loadingItr, setLoadingItr] = useState(false);
+  const [standaloneSharedDocs, setStandaloneSharedDocs] = useState([]);
+  const [loadingItr, setLoadingItr] = useState(true);
   const [requestMessage, setRequestMessage] = useState('');
   const [requesting, setRequesting] = useState(false);
   const [uploadingRequestId, setUploadingRequestId] = useState(null);
@@ -55,24 +60,37 @@ const OrderDetails = () => {
 
   // Fetch the order from the API using orderId from URL
   useEffect(() => {
+    if (isModal) {
+      setOrder({
+        id: propOrder.id,
+        service: propOrder.service || 'Tax Service',
+        date: propOrder.date,
+        status: propOrder.status || 'Pending',
+        amount: propOrder.amount || 'Paid',
+        originalData: propOrder,
+        itrId: propOrder.itrId || propOrder.id,
+      });
+      setSelectedStatus(propOrder.status || 'Pending');
+      setLoadingOrder(false);
+      return;
+    }
+
     const fetchOrder = async () => {
       try {
         setLoadingOrder(true);
-        const { data } = await api.get('/payments/my-orders');
+        const { data } = await api.get(`/payments/${orderId}`);
         if (data.success) {
-          const found = data.data.find(o => o._id === orderId);
-          if (found) {
-            setOrder({
-              id: found._id,
-              service: found.planId?.name || 'Tax Service',
-              date: found.createdAt,
-              status: found.itrStatus || 'Pending',
-              amount: found.planId?.price ? `₹${found.planId.price}` : 'Paid',
-              originalData: found,
-              itrId: found.itrId,
-            });
-            setSelectedStatus(found.itrStatus || 'Pending');
-          }
+          const found = data.data;
+          setOrder({
+            id: found._id,
+            service: found.serviceName || found.planId?.name || 'Tax Service',
+            date: found.createdAt,
+            status: found.itrStatus || 'Pending',
+            amount: found.planId?.price ? `₹${found.planId.price}` : 'Paid',
+            originalData: found,
+            itrId: found.itrId,
+          });
+          setSelectedStatus(found.itrStatus || 'Pending');
         }
       } catch (error) {
         console.error('Error fetching order:', error);
@@ -80,12 +98,25 @@ const OrderDetails = () => {
         setLoadingOrder(false);
       }
     };
-    if (orderId) fetchOrder();
-  }, [orderId]);
+    if (orderId && !isModal) fetchOrder();
+  }, [orderId, isModal]);
 
   useEffect(() => {
     if (!order) return;
     const fetchItrDetails = async () => {
+      // Fetch standalone shared documents regardless of ITR status
+      try {
+        const targetUserId = order?.userId?._id || order?.userId || order?.originalData?.userId?._id || order?.originalData?.userId;
+        if (targetUserId) {
+          const { data: sharedRes } = await api.get(`/documents/shared/${targetUserId}`);
+          if (sharedRes.success) {
+            setStandaloneSharedDocs(sharedRes.data);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching shared docs:', err);
+      }
+
       // Only fetch if there's an actual ITR linked to this order
       const idToFetch = order.itrId || order.originalData?.itrId;
       if (!idToFetch) {
@@ -255,31 +286,68 @@ const OrderDetails = () => {
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file || !uploadingRequestId) return;
+    const isSharedUpload = uploadingRequestId === 'shared-by-admin';
 
-    const formData = new FormData();
-    formData.append('file', file);
+    // Resolve the user ID to share with
+    const targetUserId = (typeof itrData?.userId === 'object' ? itrData?.userId?._id : itrData?.userId) || 
+                         (typeof order?.userId === 'object' ? order?.userId?._id : order?.userId) || 
+                         order?.originalData?.userId?._id || 
+                         order?.originalData?.userId;
+
+    if (isSharedUpload && (!targetUserId || targetUserId === 'undefined')) {
+      alert('Could not identify the user for this order. Please wait for the page to load completely or refresh.');
+      return;
+    }
 
     try {
-      // 1. Upload the file
-      const uploadRes = await api.post('/documents', formData, {
+      setLoadingItr(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      if (isSharedUpload) {
+        formData.append('sharedWith', targetUserId);
+        formData.append('isShared', 'true');
+        if (itrData?._id) formData.append('formId', itrData._id);
+      } else {
+        formData.append('requestId', uploadingRequestId);
+      }
+
+      const { data } = await api.post('/documents', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      if (uploadRes.data.success) {
-        const documentId = uploadRes.data.data._id;
-
-        // 2. Link it to the request
-        const { data } = await api.put(`/itr/${itrData._id}/request/${uploadingRequestId}/fulfill`, {
-          documentId
-        });
-
-        if (data.success) {
-          setItrData(data.data);
+      if (data.success) {
+        if (isSharedUpload) {
+          // Force refresh data
+          const idToFetch = itrData?._id || order?.itrId || order?.originalData?.itrId;
+          if (idToFetch) {
+            const { data: freshData } = await api.get(`/itr/${idToFetch}`);
+            if (freshData.success) {
+              setItrData(freshData.data);
+            }
+          } else {
+             // If no ITR yet, we might need a different way to refresh or just show success
+             alert('Document shared successfully!');
+          }
           setUploadingRequestId(null);
+        } else {
+          const { data: updateRes } = await api.put(`/itr/${itrData._id}/request/${uploadingRequestId}/fulfill`, {
+            documentId: data.data._id
+          });
+
+          if (updateRes.success) {
+            setItrData(updateRes.data);
+            setUploadingRequestId(null);
+          }
         }
       }
     } catch (error) {
       console.error('Error uploading document:', error);
+      const errorMsg = error.response?.data?.message || 'Upload failed. Please try again.';
+      alert(errorMsg);
+    } finally {
+      setLoadingItr(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -290,52 +358,68 @@ const OrderDetails = () => {
 
   if (loadingOrder) {
     return (
-      <div className="flex flex-col min-h-screen bg-slate-50">
-        <Navbar />
+      <div className={`flex flex-col ${isModal ? 'h-[60vh]' : 'min-h-screen'} bg-slate-50`}>
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div className="flex flex-col min-h-screen bg-slate-50">
-        <Navbar />
-        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+      <div className={`flex flex-col ${isModal ? 'h-[60vh]' : 'min-h-screen'} bg-slate-50`}>
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-12 flex flex-col items-center gap-4">
             <FileText className="w-16 h-16 text-slate-300" />
             <p className="text-slate-600 font-medium text-lg">Order not found.</p>
-            <button
-              onClick={() => navigate('/dashboard?tab=orders')}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-700 transition-all"
-            >
-              <ArrowLeft size={16} />
-              Back to Orders
-            </button>
+            {isModal ? (
+              <button onClick={onClose} className="px-6 py-2 bg-slate-200 rounded-xl font-bold">Close</button>
+            ) : (
+              <button
+                onClick={() => navigate('/dashboard?tab=orders')}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-700 transition-all"
+              >
+                <ArrowLeft size={16} />
+                Back to Orders
+              </button>
+            )}
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
-  return (
-    <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-900">
-      <Navbar />
+  const handleBack = () => {
+    if (onClose) {
+      onClose();
+    } else if (isAdminOrCA) {
+      navigate('/admin/dashboard?tab=filings');
+    } else {
+      navigate('/dashboard?tab=orders');
+    }
+  };
 
+  const mainContent = (
+    <div className={`flex flex-col ${isModal ? '' : 'min-h-screen'} bg-slate-50 font-sans text-slate-900`}>
       {/* Hero Header */}
-      <section className="bg-blue-600 text-white py-14">
+      <section className={`${isModal ? 'py-8' : 'py-14'} bg-blue-600 text-white relative`}>
+        {(isModal || isAdminOrCA) && (
+          <button 
+            onClick={handleBack}
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all text-white z-20"
+          >
+            <X size={24} />
+          </button>
+        )}
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
           <div className="flex items-center gap-3 mb-6">
             <button
-              onClick={() => navigate('/dashboard?tab=orders')}
+              onClick={handleBack}
               className="flex items-center gap-2 text-blue-100 hover:text-white font-semibold transition-colors text-sm"
             >
               <ArrowLeft size={16} />
-              Back to Orders
+              Back to {isAdminOrCA ? 'Dashboard' : 'Orders'}
             </button>
           </div>
 
@@ -344,7 +428,7 @@ const OrderDetails = () => {
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-4xl font-extrabold tracking-tight">Order Details</h1>
                 <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 border border-white/20 uppercase tracking-widest">
-                  #{order.id.slice(-6).toUpperCase()}
+                  #{order.id}
                 </span>
               </div>
               <p className="text-blue-100 text-sm flex items-center gap-1.5">
@@ -441,33 +525,23 @@ const OrderDetails = () => {
           {/* Tabs Card */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
             <div className="flex items-center border-b border-slate-100 px-4 overflow-x-auto">
-              <button
-                onClick={() => setActiveTab('itr-details')}
-                className={`relative px-6 py-5 font-bold text-sm whitespace-nowrap transition-all duration-200 ${activeTab === 'itr-details' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                Filled Form Details
-                {activeTab === 'itr-details' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('ca-docs')}
-                className={`relative px-6 py-5 font-bold text-sm whitespace-nowrap transition-all duration-200 ${activeTab === 'ca-docs' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                {isAdminOrCA ? 'Request Document from User' : 'Requested Documents by CA'}
-                {activeTab === 'ca-docs' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('chat')}
-                className={`relative px-6 py-5 font-bold text-sm whitespace-nowrap transition-all duration-200 ${activeTab === 'chat' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                Chat
-                {activeTab === 'chat' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
-                )}
-              </button>
+              {[
+                { id: 'details', label: 'Filled Form Details' },
+                { id: 'requests', label: isAdminOrCA ? 'Request Document from User' : 'Requested Documents' },
+                { id: 'shared', label: 'Shared Documents' },
+                { id: 'chat', label: 'Chat' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative px-6 py-5 font-bold text-sm whitespace-nowrap transition-all duration-200 ${activeTab === tab.id ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+                >
+                  {tab.label}
+                  {activeTab === tab.id && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
+                  )}
+                </button>
+              ))}
               {isAdminOrCA && (
                 <button
                   onClick={handleRefresh}
@@ -486,8 +560,8 @@ const OrderDetails = () => {
             {/* Tab Content */}
             <div className="p-8">
 
-              {/* ── Filled Form Details Tab ── */}
-              {activeTab === 'itr-details' && (
+              {/* ── Details Tab ── */}
+              {activeTab === 'details' && (
                 <div className="space-y-8 animate-in fade-in duration-300">
                   {loadingItr ? (
                     <div className="flex flex-col items-center justify-center py-16 gap-4">
@@ -582,10 +656,17 @@ const OrderDetails = () => {
                 </div>
               )}
 
-              {/* ── Requested Documents Tab ── */}
-              {activeTab === 'ca-docs' && (
+              {/* ── Documents/Requests Tab ── */}
+              {activeTab === 'requests' && (
                 <div className="space-y-6 animate-in fade-in duration-300">
-                  {isAdminOrCA && (
+                  {loadingItr ? (
+                    <div className="flex flex-col items-center justify-center py-16 gap-4">
+                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                      <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Processing...</p>
+                    </div>
+                  ) : (
+                    <>
+                      {isAdminOrCA && (
                     <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6">
                       <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
                         <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -661,11 +742,103 @@ const OrderDetails = () => {
                       </div>
                     )}
                   </div>
+                </>
+              )}
+            </div>
+          )}
+
+              {/* ── Shared Documents Tab ── */}
+              {activeTab === 'shared' && (
+                <div className="space-y-8 animate-in fade-in duration-300">
+                  {loadingItr ? (
+                    <div className="flex flex-col items-center justify-center py-16 gap-4">
+                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                      <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Processing...</p>
+                    </div>
+                  ) : (
+                    <>
+                      {isAdminOrCA && (
+                        <div className="bg-blue-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-blue-200">
+                          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+                          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex-1 text-center md:text-left">
+                              <h4 className="text-2xl font-black mb-2 flex items-center gap-3 justify-center md:justify-start">
+                                <Share2 size={24} />
+                                Send Documents to User
+                              </h4>
+                              <p className="text-blue-100 text-sm font-medium">Upload final ITR copies, computation sheets, or payment receipts for the client.</p>
+                            </div>
+                            <button 
+                              onClick={() => triggerUpload('shared-by-admin')}
+                              className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg active:scale-95"
+                            >
+                              Upload & Share Now
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 gap-6">
+                        <div className="space-y-4">
+                          <h4 className="font-bold text-slate-900 flex items-center gap-2 px-1">
+                            <ShieldCheck size={18} className="text-blue-600" />
+                            Documents Shared by Expert
+                          </h4>
+                          <div className="grid gap-3">
+                            {(() => {
+                              const allShared = [
+                                ...(itrData?.sharedDocuments || []),
+                                ...standaloneSharedDocs
+                              ].filter((doc, index, self) => 
+                                index === self.findIndex((d) => d._id === doc._id)
+                              );
+
+                              return allShared.length > 0 ? (
+                                [...allShared].reverse().map((doc) => (
+                                  <div key={doc._id} className="bg-white border border-slate-100 rounded-2xl p-4 flex items-center justify-between hover:shadow-md hover:border-blue-100 transition-all group">
+                                    <div className="flex items-center gap-4">
+                                      <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-400 group-hover:text-blue-600 transition-colors">
+                                        <FileText size={24} />
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-bold text-slate-900 truncate max-w-[180px]">{doc.fileName}</p>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{formatDate(doc.uploadedAt)}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <a 
+                                        href={doc.fileUrl} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="p-3 bg-slate-50 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-xl transition-all"
+                                        title="View Document"
+                                      >
+                                        <Eye size={18} />
+                                      </a>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center flex flex-col items-center gap-3">
+                                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-200">
+                                    <FileText size={24} />
+                                  </div>
+                                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No shared documents yet</p>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
+
+
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
-              {/* ── Chat Tab ── */}
-              {activeTab === 'chat' && (
+            {/* ── Chat Tab ── */}
+            {activeTab === 'chat' && (
                 <div className="flex flex-col h-[420px] animate-in fade-in duration-300">
                   <div className="flex-1 bg-slate-50 rounded-2xl border border-slate-100 p-4 overflow-y-auto mb-4 flex items-center justify-center">
                     <div className="flex flex-col items-center gap-3 opacity-40">
@@ -691,16 +864,9 @@ const OrderDetails = () => {
           </div>
 
           {/* Footer Action Bar */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center justify-between">
-            <button
-              onClick={() => navigate('/dashboard?tab=orders')}
-              className="flex items-center gap-2 px-6 py-3 bg-slate-50 border border-slate-200 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-100 hover:border-slate-300 transition-all"
-            >
-              <ArrowLeft size={16} />
-              Back to Orders
-            </button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center justify-end">
             {itrData?.updatedAt && (
-              <p className="text-xs text-slate-400 hidden sm:block">
+              <p className="text-xs text-slate-400">
                 Last updated: {formatDate(itrData.updatedAt)}
               </p>
             )}
@@ -771,9 +937,11 @@ const OrderDetails = () => {
         </div>
       )}
 
-      <Footer />
+      {/* Footer removed to prevent leakage */}
     </div>
   );
+
+  return mainContent;
 };
 
 export default OrderDetails;

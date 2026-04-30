@@ -98,7 +98,8 @@ export const getMyITRs = asyncHandler(async (req, res, next) => {
             populate: {
                 path: 'planId'
             }
-        });
+        })
+        .sort({ createdAt: -1 });
 
     res.status(200).json({
         success: true,
@@ -113,6 +114,7 @@ export const getMyITRs = asyncHandler(async (req, res, next) => {
 export const getITRById = asyncHandler(async (req, res, next) => {
     const itr = await ITRForm.findById(req.params.id)
         .populate('uploadedDocs')
+        .populate('sharedDocuments')
         .populate({
             path: 'purchaseId',
             populate: {
@@ -125,7 +127,8 @@ export const getITRById = asyncHandler(async (req, res, next) => {
     }
 
     // Check ownership or role
-    if (itr.userId.toString() !== req.user.id.toString() && req.user.role === 'user') {
+    const isAdminOrCA = req.user.role === 'admin' || (req.user.role === 'ca' && req.user.adminStatus === 'approved');
+    if (itr.userId.toString() !== req.user.id.toString() && !isAdminOrCA) {
         return next(new AppError('Not authorized to access this ITR', 403));
     }
 
@@ -135,12 +138,15 @@ export const getITRById = asyncHandler(async (req, res, next) => {
         itrObj.uploadedDocs = await refreshDocumentUrls(itr.uploadedDocs);
     }
     
+    // Refresh shared documents
+    if (itrObj.sharedDocuments) {
+        itrObj.sharedDocuments = await refreshDocumentUrls(itr.sharedDocuments);
+    }
+
     // Also refresh docs in requests
     if (itrObj.documentRequests) {
         for (let req of itrObj.documentRequests) {
             if (req.responseDocs) {
-                // Populate responseDocs if not already populated (though usually it is)
-                // Assuming it's already populated as per the controller's logic
                 req.responseDocs = await refreshDocumentUrls(req.responseDocs);
             }
         }
@@ -172,7 +178,8 @@ export const getAllITRs = asyncHandler(async (req, res, next) => {
             populate: {
                 path: 'planId'
             }
-        });
+        })
+        .sort({ createdAt: -1 });
 
     res.status(200).json({
         success: true,
@@ -217,7 +224,7 @@ export const updateITRStatus = asyncHandler(async (req, res, next) => {
             await sendEmail({
                 email: fullItr.userId.email,
                 subject: `Powerfilling Update: Your ITR Status is now ${status}`,
-                message: `Your ITR filing status for ${fullItr.purchaseId?.planId?.name || 'Tax Filing'} has been updated to: ${status}.`,
+                message: `Your ITR filing status for ${fullItr.purchaseId?.planId?.name || fullItr.purchaseId?.planName || 'Tax Filing'} has been updated to: ${status}.`,
                 html: getStatusUpdateTemplate(fullItr.userId, fullItr, status, remarks, req.user.name, req.user.email)
             });
         }
