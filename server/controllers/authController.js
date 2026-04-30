@@ -266,7 +266,27 @@ export const googleCallback = asyncHandler(async (req, res, next) => {
     // Generate Token
     const user = req.user;
     const token = user.getSignedJwtToken();
-    const state = req.query.state; // 'admin' or undefined
+    let state = req.query.state; // This might be a base64 string now
+
+    let intent = undefined;
+    let clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+
+    // Decode state
+    if (state) {
+        try {
+            const decodedStateStr = Buffer.from(state, 'base64').toString('utf-8');
+            const decodedState = JSON.parse(decodedStateStr);
+            if (decodedState.intent) {
+                intent = decodedState.intent;
+            }
+            if (decodedState.clientUrl) {
+                clientUrl = decodedState.clientUrl;
+            }
+        } catch (error) {
+            // Fallback for legacy state (e.g., just the string 'admin' passed directly)
+            intent = state;
+        }
+    }
 
     // Set cookie
     const options = {
@@ -279,11 +299,10 @@ export const googleCallback = asyncHandler(async (req, res, next) => {
 
     res.cookie('token', token, options);
 
-    // Dynamic redirect based on CLIENT_URL env variable
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    // Dynamic redirect
     let redirectUrl = `${clientUrl}/login?token=${token}`;
 
-    if (state === 'admin') {
+    if (intent === 'admin') {
         // User intended to log into admin portal
         if (user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved')) {
             redirectUrl = `${clientUrl}/admin/dashboard?token=${token}`;

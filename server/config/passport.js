@@ -13,8 +13,21 @@ passport.use(
         },
         async (req, accessToken, refreshToken, profile, done) => {
             try {
-                const intent = req.query.state;
-
+                let rawState = req.query.state;
+                let intent = undefined;
+                
+                if (rawState) {
+                    try {
+                        const decodedStr = Buffer.from(rawState, 'base64').toString('utf-8');
+                        const decodedState = JSON.parse(decodedStr);
+                        if (decodedState.intent) {
+                            intent = decodedState.intent;
+                        }
+                    } catch (e) {
+                        // Fallback
+                        intent = rawState;
+                    }
+                }
                 // Cold start protection: wait for models if they are not yet initialized
                 let currentAdmin = Admin;
                 let currentUser = User;

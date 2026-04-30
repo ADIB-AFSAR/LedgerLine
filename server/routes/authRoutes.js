@@ -47,10 +47,28 @@ router.put('/admin-requests/:id', protect, authorize('admin'), handleAdminReques
 router.get(
     '/google',
     (req, res, next) => {
-        const { state } = req.query; // Capturing 'admin' or other intent
+        const intent = req.query.state || ''; // Capturing 'admin' or other intent
+        
+        // Capture the frontend URL from referer so we know where to redirect back to
+        const referer = req.headers.referer || req.headers.origin || '';
+        let clientUrl = '';
+        if (referer) {
+            try {
+                clientUrl = new URL(referer).origin;
+            } catch (e) {
+                clientUrl = '';
+            }
+        }
+
+        const stateObj = {
+            intent: intent,
+            clientUrl: clientUrl
+        };
+        const customState = Buffer.from(JSON.stringify(stateObj)).toString('base64');
+
         passport.authenticate('google', { 
             scope: ['profile', 'email'],
-            state: state 
+            state: customState 
         })(req, res, next);
     }
 );
