@@ -153,7 +153,13 @@ const Sign_up = () => {
             {/* Google Signup */}
             <button
               type="button"
-              onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'}/auth/google`}
+              onClick={() => {
+                const baseUrl = import.meta.env.VITE_API_BASE_URL || 
+                                (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                                 ? 'http://localhost:5000/api/v1'
+                                 : 'https://taxproject-api.vercel.app/api/v1');
+                window.location.href = `${baseUrl}/auth/google`;
+              }}
               className="w-full bg-white border border-slate-300 text-slate-700 py-3 px-6 rounded-xl font-semibold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all flex items-center justify-center gap-3 shadow-md border-opacity-60"
             >
               <Chrome className="w-5 h-5 text-blue-600" />
