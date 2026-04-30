@@ -12,7 +12,7 @@ export const connectDB = async () => {
     connectionPromise = (async () => {
         try {
             const mongoOptions = {
-                serverSelectionTimeoutMS: 5000,
+                serverSelectionTimeoutMS: 15000, // Increased timeout to 15s to handle Vercel cold starts to Atlas
                 socketTimeoutMS: 45000,
                 family: 4
             };
