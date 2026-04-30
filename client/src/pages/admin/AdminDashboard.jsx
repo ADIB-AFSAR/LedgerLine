@@ -70,9 +70,12 @@ const AdminDashboard = () => {
         { id: 'requests', label: 'Requests', icon: UserPlus, adminOnly: true },
         { id: 'orders', label: 'Orders', icon: ShoppingBag, adminOnly: true },
         { id: 'filings', label: 'Filings', icon: FileText },
-        // { id: 'documents', label: 'Documents', icon: FileText },
-        // { id: 'settings', label: 'Settings', icon: Settings },
-    ].filter(item => !item.adminOnly || user?.role === 'admin');
+    ].filter(item => {
+        if (user?.role === 'ca') {
+            return item.id === 'filings';
+        }
+        return !item.adminOnly || user?.role === 'admin';
+    });
 
     // Fetch Data
     const fetchData = async () => {
@@ -216,23 +219,24 @@ const AdminDashboard = () => {
         const tab = searchParams.get('tab');
         if (tab && menuItems.some(item => item.id === tab)) {
             setActiveTab(tab);
-        } else if (!tab && activeTab !== 'overview') {
-            setActiveTab('overview');
+        } else if (!tab) {
+            setActiveTab(user?.role === 'ca' ? 'filings' : 'overview');
         }
-    }, [searchParams]);
+    }, [searchParams, user?.role]);
 
     const handleTabChange = (tabId) => {
         setActiveTab(tabId);
         setSearchParams({ tab: tabId });
     };
 
-    // Redirect CA users away from restricted tabs if they are active
+    // Redirect restricted users away from unauthorized tabs
     useEffect(() => {
-        const adminOnlyTabs = ['users', 'requests', 'orders'];
+        const adminOnlyTabs = ['users', 'requests', 'orders', 'overview'];
         if (user?.role === 'ca' && adminOnlyTabs.includes(activeTab)) {
-            setActiveTab('overview');
+            setActiveTab('filings');
+            setSearchParams({ tab: 'filings' });
         }
-    }, [user, activeTab]);
+    }, [user?.role, activeTab]);
 
     const handleDeleteUser = async (userId, userName) => {
         setDeleteConfirmation({
@@ -915,17 +919,19 @@ const AdminDashboard = () => {
                         );
                     })}
 
-                    <div className="pt-8 opacity-40">
-                        <p className="px-4 text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4">Operations</p>
-                        <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm text-zinc-700 cursor-not-allowed">
-                            <Briefcase size={20} />
-                            <span>CA Partners</span>
-                        </button>
-                        <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm text-zinc-700 cursor-not-allowed">
-                            <TrendingUp size={20} />
-                            <span>Revenue</span>
-                        </button>
-                    </div>
+                    {user?.role === 'admin' && (
+                        <div className="pt-8 opacity-40">
+                            <p className="px-4 text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4">Operations</p>
+                            <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm text-zinc-700 cursor-not-allowed">
+                                <Briefcase size={20} />
+                                <span>CA Partners</span>
+                            </button>
+                            <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm text-zinc-700 cursor-not-allowed">
+                                <TrendingUp size={20} />
+                                <span>Revenue</span>
+                            </button>
+                        </div>
+                    )}
                 </nav>
 
                 <div className="p-4 border-t border-zinc-900">
