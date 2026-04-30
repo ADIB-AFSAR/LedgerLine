@@ -165,9 +165,9 @@ export const getAllITRs = asyncHandler(async (req, res, next) => {
     let query = {};
 
     // CA can only see assigned ITRs unless they are admin
-    if (req.user.role === 'ca') {
-        query.caAssigned = req.user.id;
-    }
+    // if (req.user.role === 'ca') {
+    //     query.caAssigned = req.user.id;
+    // }
 
     const itrs = await ITRForm.find(query)
         .populate('userId', 'name email mobile')

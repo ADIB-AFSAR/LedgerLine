@@ -84,7 +84,7 @@ const AdminDashboard = () => {
         setLoading(true);
         try {
             const isAdmin = user.role === 'admin';
-            const isCA = user.role === 'ca' && user.adminStatus === 'approved';
+            const isCA = user.role === 'ca';
 
             const requests = [];
             // Admin only requests
