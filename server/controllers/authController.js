@@ -94,13 +94,26 @@ export const login = asyncHandler(async (req, res, next) => {
 
     // Check for user
     const user = await User.findOne(query).select('+password');
+    console.log(`Login attempt for: ${email}, found user: ${!!user}`);
 
     if (!user) {
         return next(new ErrorResponse('You are a new user, please register yourself first.', 404));
     }
 
+    // Check if user has a password (might be a Google-only user)
+    if (!user.password && !user.googleId) {
+        // This is a weird state, user exists but has no password and no googleId.
+        // Maybe an old record or a failed registration.
+        return next(new ErrorResponse('Account configuration issue. Please use Forgot Password or contact support.', 400));
+    }
+
+    if (!user.password && user.googleId) {
+        return next(new ErrorResponse('This account uses Google Login. Please sign in with Google.', 401));
+    }
+
     // Check if password matches
     const isMatch = await user.matchPassword(password);
+    console.log(`Password match for ${email}: ${isMatch}`);
 
     if (!isMatch) {
         return next(new ErrorResponse('Invalid credentials', 401));

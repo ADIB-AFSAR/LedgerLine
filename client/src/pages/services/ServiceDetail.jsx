@@ -39,14 +39,7 @@ const ServiceDetail = () => {
       if (!mappedPlan) return;
 
       // Step 1: Resolve Plan (use cache or fetch)
-      let currentPlan = selectedPlan;
-      
-      if (!currentPlan) {
-        if (cachedPlans) {
-          currentPlan = cachedPlans.find(p => p.name === mappedPlan.name);
-          if (currentPlan) setSelectedPlan(currentPlan);
-        }
-      }
+      let currentPlan = cachedPlans ? cachedPlans.find(p => p.name === mappedPlan.name) : null;
 
       if (!currentPlan) {
         setLoadingPlan(true);
@@ -55,14 +48,16 @@ const ServiceDetail = () => {
           if (data.success) {
             cachedPlans = data.data;
             currentPlan = data.data.find(p => p.name === mappedPlan.name);
-            console.log('Resolved Plan:', currentPlan?.name, 'ID:', currentPlan?._id);
-            if (currentPlan) setSelectedPlan(currentPlan);
           }
         } catch (error) {
           console.error("Plan loading error:", error);
         } finally {
           setLoadingPlan(false);
         }
+      }
+
+      if (currentPlan) {
+        setSelectedPlan(currentPlan);
       }
 
       // Step 2: Check Purchase Status (only if logged in and plan resolved)

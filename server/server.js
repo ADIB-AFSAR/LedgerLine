@@ -39,6 +39,12 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
+// Disable FedCM/Digital Identity prompt which can be annoying/untrusted for users
+app.use((req, res, next) => {
+    res.setHeader('Permissions-Policy', 'identity-credentials-get=()');
+    next();
+});
+
 // Enable CORS - Place this at the very top of middleware stack
 const allowedOrigins = [
     'http://localhost:5173',
