@@ -30,7 +30,7 @@ const UnifiedVerification = () => {
     const [emailError, setEmailError] = useState('');
     const [emailMsg, setEmailMsg] = useState('');
     const [resendEmailTimer, setResendEmailTimer] = useState(0);
-    const [emailOtpSent, setEmailOtpSent] = useState(false);
+    const [emailOtpSent, setEmailOtpSent] = useState(true);
 
     // --- Mobile State ---
     const [mobileOtp, setMobileOtp] = useState('');
