@@ -143,26 +143,20 @@ const UnifiedVerification = () => {
 
     const setupRecaptcha = async () => {
         try {
-            // 1. Mandatory Cleanup
-            if (window.recaptchaVerifier) {
-                try { window.recaptchaVerifier.clear(); } catch(e){}
-                window.recaptchaVerifier = null;
+            if (!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-verify', {
+                    'size': 'invisible',
+                    'callback': () => { console.log("reCAPTCHA verified"); }
+                });
+                await window.recaptchaVerifier.render();
             }
-
-            const container = document.getElementById('recaptcha-container-verify');
-            if (container) container.innerHTML = '';
-
-            // 2. Official Global Initialization
-            // size: 'invisible' runs in the background
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-verify', {
-                'size': 'invisible',
-                'callback': () => { console.log("reCAPTCHA verified"); }
-            });
-
-            await window.recaptchaVerifier.render();
             return window.recaptchaVerifier;
         } catch (err) {
             console.error("reCAPTCHA init failed:", err);
+            // If initialization fails, wipe it so we can try again
+            window.recaptchaVerifier = null;
+            const container = document.getElementById('recaptcha-container-verify');
+            if (container) container.innerHTML = '';
             throw err;
         }
     };
@@ -357,6 +351,13 @@ const UnifiedVerification = () => {
                                     {/* reCAPTCHA Container - MUST be always present in DOM */}
                                     <div id="recaptcha-container-verify" className="flex justify-center my-2"></div>
 
+                                    {!isEmailVerified && (
+                                        <div className="text-amber-600 text-sm bg-amber-50 p-3 rounded-lg border border-amber-200 flex items-start gap-2">
+                                            <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+                                            <span>Please verify your email address first before proceeding with mobile verification.</span>
+                                        </div>
+                                    )}
+
                                     {mobileError && <div className="text-red-600 text-sm bg-red-50 p-2 rounded">{mobileError}</div>}
                                     {mobileMsg && <div className="text-green-600 text-sm bg-green-50 p-2 rounded">{mobileMsg}</div>}
 
@@ -366,14 +367,16 @@ const UnifiedVerification = () => {
                                             <div className="flex gap-2">
                                                 <input
                                                     type="tel"
-                                                    className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                                                    maxLength="10"
+                                                    disabled={!isEmailVerified}
+                                                    className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none disabled:bg-slate-100 disabled:text-slate-400"
                                                     placeholder="10 digit mobile"
                                                     value={mobileNumber}
-                                                    onChange={(e) => setMobileNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                                                    onChange={(e) => setMobileNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
                                                 />
                                                 <button
                                                     type="submit"
-                                                    disabled={mobileLoading}
+                                                    disabled={mobileLoading || !isEmailVerified}
                                                     className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-70 flex items-center justify-center"
                                                 >
                                                     {mobileLoading ? <Loader2 className="animate-spin" size={18} /> : 'Send'}
@@ -385,7 +388,7 @@ const UnifiedVerification = () => {
                                             {!mobileOtpSent ? (
                                                 <button
                                                     onClick={() => handleSendMobileOTP()}
-                                                    disabled={mobileLoading}
+                                                    disabled={mobileLoading || !isEmailVerified}
                                                     className="w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-70 flex justify-center items-center gap-2"
                                                 >
                                                     {mobileLoading ? <Loader2 className="animate-spin" size={18} /> : 'Send Mobile OTP'}

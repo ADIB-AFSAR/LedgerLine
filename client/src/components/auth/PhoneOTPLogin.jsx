@@ -54,10 +54,7 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
     } catch (err) {
       console.error("Error sending OTP:", err);
       setError(err.message || "Failed to send OTP. Please check the number.");
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
-      }
+      // Do NOT clear recaptchaVerifier here, otherwise retrying will throw "reCAPTCHA has already been rendered"
     } finally {
       setLoading(false);
     }
