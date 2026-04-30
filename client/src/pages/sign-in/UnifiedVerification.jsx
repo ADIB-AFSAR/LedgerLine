@@ -182,12 +182,32 @@ const UnifiedVerification = () => {
             const cleanNumber = finalMobile.replace(/\D/g, '').slice(-10);
             const formattedMobile = `+91${cleanNumber}`;
 
+            // 1. Check if number exists in DB and belongs to someone else
+            // If the user is logged in, we check if the cleanNumber is different from their current mobile
+            // and if it's already taken.
+            if (customMobile && cleanNumber !== user?.mobile?.replace(/\D/g, '').slice(-10)) {
+                try {
+                    const checkRes = await api.post('/auth/check-user', { identifier: cleanNumber });
+                    if (checkRes.data.success && checkRes.data.exists) {
+                        setMobileError("This mobile number is already registered with another account.");
+                        setMobileLoading(false);
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Check user failed:", e);
+                }
+            }
+
             // Build fresh verifier
             const verifier = await setupRecaptcha();
 
             const result = await signInWithPhoneNumber(auth, formattedMobile, verifier);
             setConfirmationResult(result);
             setMobileMsg('OTP sent to your mobile!');
+            
+            // Update the mobileNumber state to reflect the number used in UI
+            setMobileNumber(cleanNumber);
+            
             setMobileOtpSent(true);
             setNeedsMobileInput(false);
             setResendMobileTimer(60);
@@ -339,7 +359,7 @@ const UnifiedVerification = () => {
                                     <div>
                                         <h3 className="text-lg font-semibold text-slate-900">Mobile Verification</h3>
                                         <p className="text-sm text-slate-500">
-                                            {isMobileVerified ? (user?.mobile) : (needsMobileInput ? 'Enter number' : (user?.mobile || 'Pending...'))}
+                                            {isMobileVerified ? (user?.mobile) : (needsMobileInput ? 'Enter number' : (mobileOtpSent ? mobileNumber : (user?.mobile || 'Pending...')))}
                                         </p>
                                     </div>
                                 </div>
