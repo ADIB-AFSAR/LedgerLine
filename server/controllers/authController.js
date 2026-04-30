@@ -1,6 +1,6 @@
 import asyncHandler from '../middlewares/asyncHandler.js';
 import User from '../models/User.js';
-import { Admin } from '../config/index.js';
+import { getAdminModel } from '../config/index.js';
 import ErrorResponse from '../utils/AppError.js';
 import sendEmail from '../utils/sendEmail.js';
 import { getVerificationTemplate } from '../utils/emailTemplates.js';
@@ -248,7 +248,11 @@ export const resendOTP = asyncHandler(async (req, res, next) => {
 // @access    Private
 export const getMe = asyncHandler(async (req, res, next) => {
     // Check Admin DB first then User DB
-    let user = await Admin.findById(req.user.id);
+    const AdminModel = await getAdminModel();
+    let user = null;
+    if (AdminModel) {
+        user = await AdminModel.findById(req.user.id);
+    }
     if (!user) {
         user = await User.findById(req.user.id);
     }
@@ -331,7 +335,8 @@ export const googleCallback = asyncHandler(async (req, res, next) => {
 // @access    Private/Admin
 export const getUsers = asyncHandler(async (req, res, next) => {
     const regularUsers = await User.find();
-    const adminUsers = await Admin.find();
+    const AdminModel = await getAdminModel();
+    const adminUsers = AdminModel ? await AdminModel.find() : [];
 
     // Map admin users to ensure consistency and combine
     const allUsers = [...regularUsers, ...adminUsers];
@@ -348,7 +353,8 @@ export const getUsers = asyncHandler(async (req, res, next) => {
 // @access    Private/Admin
 export const deleteUser = asyncHandler(async (req, res, next) => {
     const user = await User.findById(req.params.id);
-    const adminUser = await Admin.findById(req.params.id);
+    const AdminModel = await getAdminModel();
+    const adminUser = AdminModel ? await AdminModel.findById(req.params.id) : null;
 
     if (!user && !adminUser) {
         return next(new ErrorResponse('User not found', 404));
@@ -453,7 +459,8 @@ export const verifyMobileOTP = asyncHandler(async (req, res, next) => {
 // @access    Private
 export const requestAdminAccess = asyncHandler(async (req, res, next) => {
     // Try finding in both DBs
-    let user = await Admin.findById(req.user.id);
+    const AdminModel = await getAdminModel();
+    let user = AdminModel ? await AdminModel.findById(req.user.id) : null;
     if (!user) user = await User.findById(req.user.id);
 
     if (!user) {
@@ -482,7 +489,8 @@ export const requestAdminAccess = asyncHandler(async (req, res, next) => {
 // @route     GET /api/v1/auth/admin-requests
 // @access    Private/Admin
 export const getAdminRequests = asyncHandler(async (req, res, next) => {
-    const adminReqs = await Admin.find({ adminStatus: 'pending' });
+    const AdminModel = await getAdminModel();
+    const adminReqs = AdminModel ? await AdminModel.find({ adminStatus: 'pending' }) : [];
     const userReqs = await User.find({ adminStatus: 'pending' });
     
     const allRequests = [...adminReqs, ...userReqs].sort((a,b) => b.adminRequestedAt - a.adminRequestedAt);
@@ -504,7 +512,8 @@ export const handleAdminRequest = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse('Invalid status provided', 400));
     }
 
-    let user = await Admin.findById(req.params.id);
+    const AdminModel = await getAdminModel();
+    let user = AdminModel ? await AdminModel.findById(req.params.id) : null;
     let isAdminDB = !!user;
     if (!user) user = await User.findById(req.params.id);
 
@@ -524,10 +533,10 @@ export const handleAdminRequest = asyncHandler(async (req, res, next) => {
             await user.save({ validateBeforeSave: false });
 
             // 2. Synchronize to Admin Database (Admin portal)
-            let adminUser = await Admin.findOne({ email: user.email });
-            if (!adminUser) {
+            let adminUser = AdminModel ? await AdminModel.findOne({ email: user.email }) : null;
+            if (!adminUser && AdminModel) {
                 // Create new record in admin database
-                adminUser = await Admin.create({
+                adminUser = await AdminModel.create({
                     name: user.name,
                     email: user.email,
                     password: user.password || 'managed-password-' + Date.now(),
@@ -539,7 +548,7 @@ export const handleAdminRequest = asyncHandler(async (req, res, next) => {
                     googleId: user.googleId,
                     firebaseUid: user.firebaseUid
                 });
-            } else {
+            } else if (adminUser) {
                 // Update existing record in admin database
                 adminUser.role = targetRole;
                 adminUser.adminStatus = 'approved';

@@ -1,14 +1,14 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import User from '../models/User.js';
-import { Admin } from '../config/index.js';
+import { getAdminModel } from '../config/index.js';
 
 passport.use(
     new GoogleStrategy(
         {
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: process.env.GOOGLE_CALLBACK_URL,
+            callbackURL: '/api/v1/auth/google/callback',
             passReqToCallback: true
         },
         async (req, accessToken, refreshToken, profile, done) => {
@@ -28,20 +28,9 @@ passport.use(
                         intent = rawState;
                     }
                 }
-                // Cold start protection: wait for models if they are not yet initialized
-                let currentAdmin = Admin;
+                // Cold start protection
+                let currentAdmin = await getAdminModel();
                 let currentUser = User;
-
-                if (intent === 'admin' && !currentAdmin) {
-                    for (let i = 0; i < 20; i++) { // Wait up to 2 seconds
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        const { Admin: freshAdmin } = await import('../config/index.js');
-                        if (freshAdmin) {
-                            currentAdmin = freshAdmin;
-                            break;
-                        }
-                    }
-                }
 
                 const Model = intent === 'admin' ? currentAdmin : currentUser;
 
@@ -96,11 +85,12 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
     try {
-        if (!Admin || !User) {
+        const AdminModel = await getAdminModel();
+        if (!AdminModel || !User) {
             return done(new Error("Database not initialized"), null);
         }
         // We try to find in Admin first, then User
-        let user = await Admin.findById(id);
+        let user = await AdminModel.findById(id);
         if (!user) {
             user = await User.findById(id);
         }

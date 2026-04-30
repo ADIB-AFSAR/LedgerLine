@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import { Admin } from '../config/index.js';
+import { getAdminModel } from '../config/index.js';
 import AppError from '../utils/AppError.js';
 
 export const protect = async (req, res, next) => {
@@ -17,10 +17,13 @@ export const protect = async (req, res, next) => {
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+            // Get Admin model safely
+            const AdminModel = await getAdminModel();
+
             // Get user from the token - check Admin DB first then User DB
             let user = null;
-            if (Admin) {
-                user = await Admin.findById(decoded.id).select('-password');
+            if (AdminModel) {
+                user = await AdminModel.findById(decoded.id).select('-password');
             }
             if (!user) {
                 user = await User.findById(decoded.id).select('-password');
