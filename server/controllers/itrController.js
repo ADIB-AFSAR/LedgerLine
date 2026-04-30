@@ -127,7 +127,7 @@ export const getITRById = asyncHandler(async (req, res, next) => {
     }
 
     // Check ownership or role
-    const isAdminOrCA = req.user.role === 'admin' || (req.user.role === 'ca' && req.user.adminStatus === 'approved');
+    const isAdminOrCA = req.user.role === 'admin' || req.user.role === 'ca';
     if (itr.userId.toString() !== req.user.id.toString() && !isAdminOrCA) {
         return next(new AppError('Not authorized to access this ITR', 403));
     }
@@ -201,9 +201,9 @@ export const updateITRStatus = asyncHandler(async (req, res, next) => {
     }
 
     // Check authorization for CA
-    if (req.user.role === 'ca' && itr.caAssigned?.toString() !== req.user.id.toString()) {
-        return next(new AppError('Not authorized to update this ITR', 403));
-    }
+    // if (req.user.role === 'ca' && itr.caAssigned?.toString() !== req.user.id.toString()) {
+    //     return next(new AppError('Not authorized to update this ITR', 403));
+    // }
 
     itr.status = status;
     // itr.remarks = remarks; // Add remarks field to schema if needed
