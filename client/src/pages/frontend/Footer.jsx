@@ -6,11 +6,11 @@ const Footer = () => {
     <footer className="bg-slate-900 text-slate-400">
 
       {/* Main Footer Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
 
           {/* Brand Column */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2">
               <img src="/favicon-32x32.png" alt="Powerfilling" className="w-8 h-8 rounded-lg" />
               <span className="text-xl font-bold text-white tracking-tight">Powerfilling</span>
@@ -61,7 +61,6 @@ const Footer = () => {
                 { label: "Business ITR Filing", to: "/services/business" },
                 { label: "LLP Registration", to: "/services/llp-registration" },
                 { label: "TDS Filing", to: "/services/tds-filing" },
-                { label: "PF & ESIC", to: "/services/pf-esic" },
               ].map((item) => (
                 <li key={item.label}>
                   <Link to={item.to} className="hover:text-white transition-colors">
@@ -78,11 +77,9 @@ const Footer = () => {
             <ul className="space-y-2.5 text-sm">
               {[
                 { label: "Privacy Policy", to: "/privacy-policy" },
-                { label: "Refund Policy", to: "/refund-policy" },
-                { label: "Terms & Conditions", to: "/terms" },
+                { label: "Refund Policy", to: "/refund" },
                 { label: "Disclaimer", to: "/disclaimer" },
-                { label: "Cookie Policy", to: "/cookie-policy" },
-                { label: "Grievance Redressal", to: "/grievance" },
+                { label: "Security", to: "/security" },
               ].map((item) => (
                 <li key={item.label}>
                   <Link to={item.to} className="hover:text-white transition-colors">
@@ -144,8 +141,8 @@ const Footer = () => {
           <p>© 2026 Powerfilling Technologies Pvt. Ltd. All rights reserved. Designed for Indian Taxpayers.</p>
           <div className="flex items-center gap-4">
             <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
-            <Link to="/refund-policy" className="hover:text-white transition-colors">Refunds</Link>
+            <Link to="/disclaimer" className="hover:text-white transition-colors">Terms</Link>
+            <Link to="/refund" className="hover:text-white transition-colors">Refunds</Link>
             <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
