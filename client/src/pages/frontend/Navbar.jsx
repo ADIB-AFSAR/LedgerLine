@@ -137,10 +137,10 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 cursor-pointer">
             <div className="p-2 rounded-lg">
-              <img src="/android-chrome-192x192.png" alt="Powerfilling" className="w-6 h-6" />
+              <img src="/android-chrome-192x192.png" alt="Powerfiling" className="w-6 h-6" />
             </div>
             <span className="text-2xl font-bold text-blue-900 tracking-tight">
-              Powerfilling
+              Powerfiling
             </span>
           </Link>
 

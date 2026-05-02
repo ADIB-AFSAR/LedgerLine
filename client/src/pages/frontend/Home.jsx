@@ -392,7 +392,7 @@ const Home = () => {
               What Clients Say
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Join thousands of satisfied taxpayers who trust Powerfilling for their tax needs
+              Join thousands of satisfied taxpayers who trust Powerfiling for their tax needs
             </p>
           </div>
 
@@ -403,7 +403,7 @@ const Home = () => {
                 role: "Software Engineer",
                 company: "Tech Innovations Pvt Ltd",
                 rating: 5,
-                text: "Powerfilling made my tax filing incredibly simple! The CA support was exceptional, and I got my refund processed faster than ever. Their platform is user-friendly and the step-by-step guidance helped me understand every aspect of my tax filing.",
+                text: "Powerfiling made my tax filing incredibly simple! The CA support was exceptional, and I got my refund processed faster than ever. Their platform is user-friendly and the step-by-step guidance helped me understand every aspect of my tax filing.",
                 avatar: "PS"
               },
               {
@@ -411,7 +411,7 @@ const Home = () => {
                 role: "Business Owner",
                 company: "Kumar Enterprises",
                 rating: 5,
-                text: "As a business owner with multiple income sources, I was worried about filing my ITR correctly. Powerfilling's premium plan covered everything - from my business income to capital gains. The dedicated CA assigned to me was knowledgeable and always available for queries.",
+                text: "As a business owner with multiple income sources, I was worried about filing my ITR correctly. Powerfiling's premium plan covered everything - from my business income to capital gains. The dedicated CA assigned to me was knowledgeable and always available for queries.",
                 avatar: "RK"
               },
               {
@@ -419,7 +419,7 @@ const Home = () => {
                 role: "Freelance Designer",
                 company: "Creative Solutions",
                 rating: 5,
-                text: "The presumptive taxation support for my freelancing income was exactly what I needed. Powerfilling's team understood my unique situation and filed my ITR perfectly. The pricing is transparent and the service is top-notch. Highly recommended!",
+                text: "The presumptive taxation support for my freelancing income was exactly what I needed. Powerfiling's team understood my unique situation and filed my ITR perfectly. The pricing is transparent and the service is top-notch. Highly recommended!",
                 avatar: "AP"
               }
             ].map((testimonial, idx) => (

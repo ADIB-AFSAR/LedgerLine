@@ -47,7 +47,7 @@ export const register = asyncHandler(async (req, res, next) => {
         try {
             await sendEmail({
                 email: user.email,
-                subject: 'Email Verification - Powerfilling',
+                subject: 'Email Verification - Powerfiling',
                 message: `Your verification code is: ${otp}`,
                 html: getVerificationTemplate(otp, 'Verification')
             });
@@ -153,7 +153,7 @@ export const login = asyncHandler(async (req, res, next) => {
         try {
             await sendEmail({
                 email: user.email,
-                subject: 'Login Verification - Powerfilling',
+                subject: 'Login Verification - Powerfiling',
                 message: `Your verification code is: ${otp}`,
                 html: getVerificationTemplate(otp, 'Login')
             });
@@ -223,7 +223,7 @@ export const resendOTP = asyncHandler(async (req, res, next) => {
     try {
         await sendEmail({
             email: user.email,
-            subject: 'New Verification Code - Powerfilling',
+            subject: 'New Verification Code - Powerfiling',
             message: `Your new verification code is: ${otp}`,
             html: getVerificationTemplate(otp, 'Verification')
         });
@@ -415,7 +415,7 @@ export const sendMobileOTP = asyncHandler(async (req, res, next) => {
     try {
         await sendEmail({
             email: user.email,
-            subject: 'Mobile Verification Code - Powerfilling',
+            subject: 'Mobile Verification Code - Powerfiling',
             message: `Your mobile verification code is: ${otp}`,
             html: getVerificationTemplate(otp, 'Verification')
         });
