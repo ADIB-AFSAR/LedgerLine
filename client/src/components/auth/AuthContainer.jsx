@@ -22,7 +22,7 @@ const AuthContainer = ({ onAuthSuccess, externalError }) => {
         <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
           <ShieldCheck className="w-10 h-10 text-white" />
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">Powerfilling</h1>
+        <h1 className="text-3xl font-bold text-white mb-2">Powerfiling</h1>
         <p className="text-blue-200">The safest way to manage your taxes</p>
       </div>
 

@@ -890,7 +890,7 @@ const AdminDashboard = () => {
                             <Shield className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-lg font-black tracking-tighter text-white uppercase italic">Powerfilling</h1>
+                            <h1 className="text-lg font-black tracking-tighter text-white uppercase italic">Powerfiling</h1>
                             <div className="flex items-center gap-1.5 h-3">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Live Admin</span>

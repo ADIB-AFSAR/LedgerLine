@@ -179,7 +179,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-slate-800">Email</p>
-                    <p className="text-slate-600 text-sm">support@powerfilling.com</p>
+                    <p className="text-slate-600 text-sm">support@powerfiling.com</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">

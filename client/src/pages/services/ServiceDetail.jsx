@@ -232,7 +232,7 @@ const ServiceDetail = () => {
           <div className="bg-blue-600 rounded-3xl p-10 text-center text-white shadow-xl shadow-blue-900/10">
             <h2 className="text-2xl font-extrabold mb-2">Ready to Get Started?</h2>
             <p className="text-blue-100 mb-8 text-base">
-              Join thousands of satisfied customers who trust Powerfilling for their compliance needs.
+              Join thousands of satisfied customers who trust Powerfiling for their compliance needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button

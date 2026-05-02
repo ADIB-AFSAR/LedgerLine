@@ -35,7 +35,7 @@ export const getInvoiceTemplate = (user, purchase, plan) => {
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                     </div>
-                    <h1>Powerfilling</h1>
+                    <h1>Powerfiling</h1>
                     <p style="margin: 8px 0 0; opacity: 0.9;">Payment Successful</p>
                 </div>
                 <div class="body">
@@ -71,7 +71,7 @@ export const getInvoiceTemplate = (user, purchase, plan) => {
                     </div>
                 </div>
                 <div class="footer">
-                    <p>&copy; ${new Date().getFullYear()} Powerfilling. All rights reserved.</p>
+                    <p>&copy; ${new Date().getFullYear()} Powerfiling. All rights reserved.</p>
                     <p>Questions? Contact <a href="mailto:support@powerfiling.com">support@powerfiling.com</a></p>
                 </div>
             </div>
@@ -111,7 +111,7 @@ export const getVerificationTemplate = (otp, type = 'Verification') => {
         <div class="wrapper">
             <div class="content">
                 <div class="header">
-                    <h1 style="margin:0; font-size: 24px; font-weight: 800;">Powerfilling</h1>
+                    <h1 style="margin:0; font-size: 24px; font-weight: 800;">Powerfiling</h1>
                 </div>
                 <div class="body">
                     <h2 style="color: #0f172a; margin-top: 0;">${title}</h2>
@@ -125,7 +125,7 @@ export const getVerificationTemplate = (otp, type = 'Verification') => {
                     <p style="color: #94a3b8; font-size: 13px; margin-top: 32px;">If you didn't request this, you can safely ignore this email.</p>
                 </div>
                 <div class="footer">
-                    <p>&copy; ${new Date().getFullYear()} Powerfilling. All rights reserved.</p>
+                    <p>&copy; ${new Date().getFullYear()} Powerfiling. All rights reserved.</p>
                 </div>
             </div>
         </div>
@@ -180,7 +180,7 @@ export const getStatusUpdateTemplate = (user, itr, status, remarks, updaterName,
         <div class="wrapper">
             <div class="content">
                 <div class="header">
-                    <h1 style="margin:0; font-size: 24px; font-weight: 800;">Powerfilling</h1>
+                    <h1 style="margin:0; font-size: 24px; font-weight: 800;">Powerfiling</h1>
                     <p style="margin: 8px 0 0; opacity: 0.9;">ITR Filing Progress Update</p>
                 </div>
                 <div class="body">
@@ -224,7 +224,7 @@ export const getStatusUpdateTemplate = (user, itr, status, remarks, updaterName,
                     </div>
                 </div>
                 <div class="footer">
-                    <p>&copy; ${new Date().getFullYear()} Powerfilling. All rights reserved.</p>
+                    <p>&copy; ${new Date().getFullYear()} Powerfiling. All rights reserved.</p>
                     <p>This is an automated notification. Please do not reply to this email.</p>
                 </div>
             </div>

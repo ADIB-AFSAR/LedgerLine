@@ -223,7 +223,7 @@ export const updateITRStatus = asyncHandler(async (req, res, next) => {
         if (fullItr && fullItr.userId) {
             await sendEmail({
                 email: fullItr.userId.email,
-                subject: `Powerfilling Update: Your ITR Status is now ${status}`,
+                subject: `Powerfiling Update: Your ITR Status is now ${status}`,
                 message: `Your ITR filing status for ${fullItr.purchaseId?.planId?.name || fullItr.purchaseId?.planName || 'Tax Filing'} has been updated to: ${status}.`,
                 html: getStatusUpdateTemplate(fullItr.userId, fullItr, status, remarks, req.user.name, req.user.email)
             });

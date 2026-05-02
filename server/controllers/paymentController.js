@@ -91,7 +91,7 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
             if (plan) {
                 await sendEmail({
                     email: req.user.email,
-                    subject: 'Payment Successful - Powerfilling Receipt',
+                    subject: 'Payment Successful - Powerfiling Receipt',
                     message: `You have successfully purchased ${plan.name}. Transaction ID: ${paymentIntentId}`,
                     html: getInvoiceTemplate(req.user, purchase, plan)
                 });
@@ -147,7 +147,7 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
                 if (plan) {
                     await sendEmail({
                         email: req.user.email,
-                        subject: 'Payment Successful - Powerfilling Receipt',
+                        subject: 'Payment Successful - Powerfiling Receipt',
                         message: `You have successfully purchased ${plan.name}. Transaction ID: ${paymentIntentId}`,
                         html: getInvoiceTemplate(req.user, purchase, plan)
                     });

@@ -99,7 +99,7 @@ const Login = () => {
           <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
             <ShieldCheck className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Powerfilling</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Powerfiling</h1>
           <p className="text-blue-200">Sign in to your account to continue filing your taxes</p>
         </div>
 
@@ -213,7 +213,7 @@ const Login = () => {
           {/* Sign Up Link */}
           <div className="mt-8 text-center">
             <p className="text-sm text-slate-600 font-medium">
-              New to Powerfilling?{' '}
+              New to Powerfiling?{' '}
               <Link to="/sign_up" className="text-blue-600 hover:text-blue-500 font-bold transition-colors">
                 Create an account
               </Link>

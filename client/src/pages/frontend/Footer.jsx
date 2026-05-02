@@ -12,8 +12,8 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2">
-              <img src="/favicon-32x32.png" alt="Powerfilling" className="w-8 h-8 rounded-lg" />
-              <span className="text-xl font-bold text-white tracking-tight">Powerfilling</span>
+              <img src="/favicon-32x32.png" alt="Powerfiling" className="w-8 h-8 rounded-lg" />
+              <span className="text-xl font-bold text-white tracking-tight">Powerfiling</span>
             </div>
             <p className="text-sm leading-relaxed text-slate-400 max-w-xs">
               India's trusted platform for ITR filing, GST registration, company incorporation, and compliance — backed by expert CAs.
@@ -95,9 +95,9 @@ const Footer = () => {
             <h4 className="text-white font-bold text-sm uppercase tracking-wider">Contact Us</h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="mailto:support@powerfilling.com" className="flex items-start gap-2.5 hover:text-white transition-colors">
+                <a href="mailto:support@powerfiling.com" className="flex items-start gap-2.5 hover:text-white transition-colors">
                   <Mail size={14} className="mt-0.5 flex-shrink-0 text-blue-400" />
-                  support@powerfilling.com
+                  support@powerfiling.com
                 </a>
               </li>
               <li>
@@ -138,7 +138,7 @@ const Footer = () => {
       {/* Bottom Bar */}
       <div className="border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500">
-          <p>© 2026 Powerfilling Technologies Pvt. Ltd. All rights reserved. Designed for Indian Taxpayers.</p>
+          <p>© 2026 Powerfiling Technologies Pvt. Ltd. All rights reserved. Designed for Indian Taxpayers.</p>
           <div className="flex items-center gap-4">
             <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
             <Link to="/disclaimer" className="hover:text-white transition-colors">Terms</Link>
