@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { User, ShoppingBag, LogOut, HelpCircle, ChevronRight, Mail, Phone, Edit2, Package, Clock, CheckCircle, ArrowRight } from 'lucide-react';
+import { User, ShoppingBag, LogOut, HelpCircle, ChevronRight, Mail, Phone, Edit2, Package, Clock, CheckCircle, ArrowRight, Handshake } from 'lucide-react';
 import Navbar from '../frontend/Navbar';
 import Footer from '../frontend/Footer';
 import { useAuth } from '../../context/AuthContext';
@@ -64,6 +64,7 @@ const UserDashboard = () => {
   const menuItems = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'orders', label: 'My Orders', icon: ShoppingBag },
+     {id: 'Refer', label: 'Refer a Friend', icon: Handshake},
     { id: 'help', label: 'Need Help', icon: HelpCircle },
     { id: 'logout', label: 'Log Out', icon: LogOut }
   ];
@@ -133,6 +134,163 @@ const UserDashboard = () => {
       </div>
     </div>
   );
+
+const renderRefer = () => {
+  const referralLink = "https://yourapp.com/ref/ABCD1234";
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      alert("Referral link copied!");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg p-8">
+      
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">
+            Refer a Friend
+          </h2>
+          <p className="text-slate-600 mt-1">
+            Invite friends and earn reward credits
+          </p>
+        </div>
+
+        {/* Credit Badge */}
+        <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold text-sm">
+          ⭐ 1250 Credits
+        </div>
+      </div>
+
+      <div className="space-y-6">
+
+        {/* Referral Card */}
+        <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/10">
+          <h3 className="text-xl font-bold mb-2">
+            Earn rewards by referring your friends 🎉
+          </h3>
+
+          <p className="text-blue-100 mb-5">
+            Share your referral link and get 
+            <span className="font-semibold text-white">
+              {" "}200 credits
+            </span>{" "}
+            for every successful signup.
+          </p>
+
+          {/* Referral URL Box */}
+          <div className="bg-white/10 border border-white/20 rounded-xl p-4">
+            <p className="text-sm text-blue-100 mb-2">
+              Referral URL
+            </p>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 bg-white rounded-lg px-4 py-3 text-slate-700 text-sm font-medium truncate">
+                {referralLink}
+              </div>
+
+              <button
+                onClick={handleCopy}
+                className="bg-white text-blue-600 px-5 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid md:grid-cols-3 gap-4">
+          
+          <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+            <p className="text-sm text-slate-500 mb-1">
+              Total Referrals
+            </p>
+            <h4 className="text-2xl font-bold text-slate-900">
+              12
+            </h4>
+          </div>
+
+          <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+            <p className="text-sm text-slate-500 mb-1">
+              Credits Earned
+            </p>
+            <h4 className="text-2xl font-bold text-blue-600">
+              2400
+            </h4>
+          </div>
+
+          <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+            <p className="text-sm text-slate-500 mb-1">
+              Available Credits
+            </p>
+            <h4 className="text-2xl font-bold text-green-600">
+              1250
+            </h4>
+          </div>
+        </div>
+
+        {/* How It Works */}
+        <div className="pt-6 border-t border-slate-200">
+          <h4 className="font-bold text-slate-900 mb-4">
+            How it Works
+          </h4>
+
+          <div className="grid md:grid-cols-3 gap-4">
+
+            <div className="bg-slate-50 rounded-xl p-4">
+              <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
+                1
+              </div>
+
+              <h5 className="font-semibold text-slate-900 mb-1">
+                Share Link
+              </h5>
+
+              <p className="text-sm text-slate-600">
+                Send your referral link to friends.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-4">
+              <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
+                2
+              </div>
+
+              <h5 className="font-semibold text-slate-900 mb-1">
+                Friend Joins
+              </h5>
+
+              <p className="text-sm text-slate-600">
+                Your friend signs up using your link.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-4">
+              <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
+                3
+              </div>
+
+              <h5 className="font-semibold text-slate-900 mb-1">
+                Earn Credits
+              </h5>
+
+              <p className="text-sm text-slate-600">
+                Receive instant reward credits.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   const renderOrders = () => (
     <div className="bg-white rounded-2xl shadow-lg p-8">
@@ -277,7 +435,8 @@ const UserDashboard = () => {
         return renderProfile();
       case 'orders':
         return renderOrders();
-
+      case 'Refer':
+        return renderRefer();
       case 'help':
         return renderHelp();
       default:
