@@ -26,6 +26,13 @@ import PaymentGateway from '../pages/payment/PaymentGateway';
 import PaymentSuccess from '../pages/payment/PaymentSuccess';
 import PaymentFailure from '../pages/payment/PaymentFailure';
 
+import CalculatorHub from '../pages/calculators/CalculatorHub';
+import IncomeTaxCalculator from '../pages/calculators/IncomeTaxCalculator';
+import HomeLoanEMICalculator from '../pages/calculators/HomeLoanEMICalculator';
+import CarLoanEMICalculator from '../pages/calculators/CarLoanEMICalculator';
+import PersonalLoanEMICalculator from '../pages/calculators/PersonalLoanEMICalculator';
+import BlogList from '../pages/blog/BlogList';
+import BlogDetail from '../pages/blog/BlogDetail';
 import PrivateRoute from './PrivateRoute';
 import OrderDetails from '../pages/dashboard/OrderDetails';
 import Navbar from '../pages/frontend/Navbar';
@@ -52,6 +59,20 @@ export default function AppRoutes() {
           </PrivateRoute>
         }
       />
+
+      <Route path="/calculators" element={<CalculatorHub />} />
+      <Route path="/calculators/income-tax" element={<IncomeTaxCalculator />} />
+      <Route path="/calculators/old-new-regime" element={<IncomeTaxCalculator />} />
+      <Route path="/calculators/salary-tax" element={<IncomeTaxCalculator />} />
+      <Route path="/calculators/capital-gain-tax" element={<IncomeTaxCalculator />} />
+      <Route path="/calculators/hra-calculator" element={<IncomeTaxCalculator />} />
+      <Route path="/calculators/tds-calculator" element={<IncomeTaxCalculator />} />
+      <Route path="/calculators/home-loan-emi" element={<HomeLoanEMICalculator />} />
+      <Route path="/calculators/car-loan-emi" element={<CarLoanEMICalculator />} />
+      <Route path="/calculators/personal-loan-emi" element={<PersonalLoanEMICalculator />} />
+
+      <Route path="/blog" element={<BlogList />} />
+      <Route path="/blog/:id" element={<BlogDetail />} />
 
       {/* ITR Category Routes - Keep existing pages */}
       <Route path="/services/individual" element={<IndividualITR />} />

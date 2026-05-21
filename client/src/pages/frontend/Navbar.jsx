@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  FileText,
   ChevronDown,
   Menu,
   X,
@@ -16,6 +15,7 @@ import {
   Users,
   LogOut,
   LayoutDashboard,
+  BookOpen,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -60,8 +60,7 @@ const Navbar = () => {
       icon: <FileCheck size={16} />,
       sections: [
         {
-          // title: "Business Registration",
-          // icon: <Building size={14} />,
+          title: "Business Registration",
           items: [
             {
               name: "GST Registration",
@@ -85,15 +84,8 @@ const Navbar = () => {
             },
           ],
         },
-      ],
-    },
-    {
-      title: "Other Filings",
-      icon: <FileText size={16} />,
-      sections: [
         {
-          // title: "Compliance Filings",
-          // icon: <Shield size={14} />,
+          title: "Other Filings",
           items: [
             {
               name: "GST Filing",
@@ -120,9 +112,19 @@ const Navbar = () => {
       ],
     },
     {
+      title: "Blog",
+      icon: <BookOpen size={16} />,
+      path: "/blog",
+    },
+    {
+      title: "Calculators",
+      icon: <Calculator size={16} />,
+      path: "/calculators",
+    },
+    {
       title: "Contact Us",
       icon: <CreditCard size={14} />,
-      path:"/contact",
+      path: "/contact",
     }
   ];
 
@@ -135,13 +137,14 @@ const Navbar = () => {
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 cursor-pointer">
-            <div className="p-2 rounded-lg">
-              <img src="/android-chrome-192x192.png" alt="Powerfiling" className="w-6 h-6" />
+          <Link to="/" className="flex items-center cursor-pointer lg: gap-1">
+            <div className=" rounded-lg">
+              <img src="/android-chrome-192x192.png" alt="Powerfiling" className="w-8" />
             </div>
-            <span className="text-2xl font-bold text-blue-900 tracking-tight">
-              Powerfiling
-            </span>
+            <h2 className="text-2xl font-bold ">Power<span className="text-2xl font-bold text-blue-900 tracking-tight">
+             Filing
+            </span></h2>
+           
           </Link>
 
           {/* Desktop Navigation */}
@@ -294,116 +297,137 @@ const Navbar = () => {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation */}
+      {/* Mobile Drawer Overlay */}
+      {isMenuOpen && (
         <div
-          className={`lg:hidden transition-all duration-300 ${
-            isMenuOpen
-              ? "max-h-screen opacity-100"
-              : "max-h-0 opacity-0 overflow-hidden"
-          }`}
-        >
-          <div className="py-4 space-y-2">
-            {navigationItems.map((item, index) => (
-              <div key={index} className="border-b border-slate-100 pb-4 mb-4">
-                {/* Plain link item (no dropdown) */}
-                {!item.sections ? (
-                  <Link
-                    to={item.path}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-2 p-3 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
-                  >
-                    {item.icon}
-                    <span>{item.title}</span>
-                  </Link>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => handleDropdownToggle(index)}
-                      className="w-full flex items-center justify-between p-3 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        {item.icon}
-                        <span className="font-medium">{item.title}</span>
-                      </div>
-                      <ChevronDown
-                        size={16}
-                        className={`transition-transform ${
-                          activeDropdown === index ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
+          className="lg:hidden fixed inset-0 bg-black/40 z-40"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
 
-                    {activeDropdown === index && (
-                      <div className="mt-2 ml-4 space-y-3">
-                        {item.sections.map((section, sectionIndex) => (
-                          <div key={sectionIndex}>
-                            <h4 className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide flex items-center gap-2">
-                              {section.icon}
-                              {section.title}
-                            </h4>
-                            <div className="space-y-1 ml-4">
-                              {section.items.map((subItem, subIndex) => (
-                                <Link
-                                  key={subIndex}
-                                  to={subItem.path}
-                                  className="flex items-center gap-2 p-2 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                >
-                                  {subItem.icon}
-                                  {subItem.name}
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            ))}
+      {/* Mobile Drawer — slides in from right */}
+      <div
+        className={`lg:hidden fixed top-0 right-0 h-full w-[80vw] max-w-sm bg-white z-50 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+          isMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <Link to="/" className="flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+            <img src="/android-chrome-192x192.png" alt="Powerfiling" className="w-6 h-6" />
+            <span className="text-lg font-bold text-blue-900 tracking-tight">Powerfiling</span>
+          </Link>
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="p-2 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+          >
+            <X size={22} />
+          </button>
+        </div>
 
-            <div className="space-y-2 pt-4">
-              {!isLoggedIn ? (
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto py-4 px-4 space-y-1">
+          {navigationItems.map((item, index) => (
+            <div key={index} className="border-b border-slate-100 pb-3 mb-1">
+              {!item.sections ? (
                 <Link
-                  to="/login"
-                  className="block p-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors text-center"
+                  to={item.path}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-2 p-3 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
                 >
-                  Login
+                  {item.icon}
+                  <span>{item.title}</span>
                 </Link>
               ) : (
-                <div className="bg-slate-50 rounded-2xl p-4 space-y-4">
-                  <div className="flex items-center gap-3 pb-3 border-b border-slate-200">
-                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white">
-                      <User size={24} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account</p>
-                      <p className="text-sm font-bold text-slate-800">{user?.name || "User"}</p>
-                    </div>
-                  </div>
-                  <Link
-                    to="/dashboard"
-                    className="flex items-center gap-3 p-3 text-slate-700 hover:bg-white rounded-xl transition-all font-semibold shadow-sm"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <LayoutDashboard size={20} className="text-blue-600" />
-                    Dashboard
-                  </Link>
+                <>
                   <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      handleLogout();
-                    }}
-                    className="w-full flex items-center gap-3 p-3 text-red-600 hover:bg-white rounded-xl transition-all font-semibold shadow-sm"
+                    onClick={() => handleDropdownToggle(index)}
+                    className="w-full flex items-center justify-between p-3 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                   >
-                    <LogOut size={20} />
-                    Logout
+                    <div className="flex items-center gap-2">
+                      {item.icon}
+                      <span className="font-medium">{item.title}</span>
+                    </div>
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform duration-200 ${
+                        activeDropdown === index ? "rotate-180" : ""
+                      }`}
+                    />
                   </button>
-                </div>
+
+                  {activeDropdown === index && (
+                    <div className="mt-1 ml-3 space-y-3">
+                      {item.sections.map((section, sectionIndex) => (
+                        <div key={sectionIndex}>
+                          {section.title && (
+                            <h4 className="text-xs font-semibold text-slate-400 mb-2 px-2 uppercase tracking-wider">
+                              {section.title}
+                            </h4>
+                          )}
+                          <div className="space-y-0.5 ml-2">
+                            {section.items.map((subItem, subIndex) => (
+                              <Link
+                                key={subIndex}
+                                to={subItem.path}
+                                onClick={() => setIsMenuOpen(false)}
+                                className="flex items-center gap-2 p-2.5 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              >
+                                {subItem.icon}
+                                {subItem.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
-          </div>
+          ))}
+        </div>
+
+        {/* Drawer Footer — Auth */}
+        <div className="px-4 py-4 border-t border-slate-100">
+          {!isLoggedIn ? (
+            <Link
+              to="/login"
+              onClick={() => setIsMenuOpen(false)}
+              className="block w-full p-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors text-center"
+            >
+              Login
+            </Link>
+          ) : (
+            <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-200">
+                <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                  <User size={20} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account</p>
+                  <p className="text-sm font-bold text-slate-800">{user?.name || "User"}</p>
+                </div>
+              </div>
+              <Link
+                to="/dashboard"
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center gap-3 p-2.5 text-slate-700 hover:bg-white rounded-xl transition-all font-semibold"
+              >
+                <LayoutDashboard size={18} className="text-blue-600" />
+                Dashboard
+              </Link>
+              <button
+                onClick={() => { setIsMenuOpen(false); handleLogout(); }}
+                className="w-full flex items-center gap-3 p-2.5 text-red-600 hover:bg-white rounded-xl transition-all font-semibold"
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </nav>

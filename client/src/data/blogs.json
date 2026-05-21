@@ -1,0 +1,68 @@
+[
+  {
+    "id": "understanding-itr-filing",
+    "title": "Understanding ITR Filing: A Complete Guide for Individuals",
+    "category": "Income Tax",
+    "date": "May 10, 2025",
+    "author": "Shubham Sharma",
+    "readTime": "6 min read",
+    "excerpt": "Filing your Income Tax Return (ITR) can seem daunting, but with the right guidance it becomes straightforward. This guide walks you through every step.",
+    "content": "Income Tax Return (ITR) filing is a mandatory process for individuals whose income exceeds the basic exemption limit. It is not just a legal obligation but also a financial record that helps in loan approvals, visa applications, and more.\n\n**Who needs to file ITR?**\nAny individual with a gross total income exceeding ₹2.5 lakh (₹3 lakh for senior citizens, ₹5 lakh for super senior citizens) in a financial year must file an ITR. Even if your income is below the threshold, filing voluntarily is beneficial.\n\n**Types of ITR Forms**\n- ITR-1 (Sahaj): For salaried individuals with income up to ₹50 lakh\n- ITR-2: For individuals with capital gains or foreign income\n- ITR-3: For individuals with business or professional income\n- ITR-4 (Sugam): For those opting for presumptive taxation\n\n**Key Documents Required**\n- Form 16 from your employer\n- Bank account statements\n- Investment proofs (80C, 80D, etc.)\n- Capital gains statements\n- Aadhaar and PAN card\n\n**Deadlines**\nThe standard deadline for filing ITR is July 31st of the assessment year. Late filing attracts a penalty of up to ₹5,000 under Section 234F.\n\n**Benefits of Timely Filing**\nFiling on time helps you carry forward losses, claim refunds faster, and avoid interest under Sections 234A, 234B, and 234C.",
+    "tags": ["ITR", "Income Tax", "Filing", "Individuals"]
+  },
+  {
+    "id": "gst-registration-guide",
+    "title": "GST Registration: Who Needs It and How to Apply",
+    "category": "GST",
+    "date": "April 28, 2025",
+    "author": "CA Priya Mehta",
+    "readTime": "5 min read",
+    "excerpt": "GST registration is mandatory for businesses crossing the threshold limit. Learn who needs to register, the documents required, and the step-by-step process.",
+    "content": "Goods and Services Tax (GST) is a unified indirect tax levied on the supply of goods and services across India. GST registration is the process by which a business gets a unique GSTIN (GST Identification Number).\n\n**Who Must Register for GST?**\n- Businesses with aggregate turnover exceeding ₹40 lakh (₹20 lakh for special category states) for goods\n- Service providers with turnover exceeding ₹20 lakh (₹10 lakh for special category states)\n- Inter-state suppliers regardless of turnover\n- E-commerce operators and their suppliers\n- Casual taxable persons and non-resident taxable persons\n\n**Documents Required**\n- PAN card of the business/proprietor\n- Aadhaar card\n- Proof of business registration\n- Address proof of business premises\n- Bank account details\n- Digital signature\n\n**Step-by-Step Registration Process**\n- Visit the GST portal (www.gst.gov.in)\n- Click on 'New Registration' under the Services tab\n- Fill in Part A with basic details and verify via OTP\n- Fill in Part B with business details and upload documents\n- Submit the application and note the ARN (Application Reference Number)\n- GSTIN is issued within 3–7 working days\n\n**Voluntary Registration**\nEven if your turnover is below the threshold, voluntary GST registration can be beneficial — it allows you to claim input tax credit and enhances business credibility.",
+    "tags": ["GST", "Registration", "Business", "Compliance"]
+  },
+  {
+    "id": "llp-vs-pvt-ltd",
+    "title": "LLP vs Private Limited Company: Which is Right for Your Business?",
+    "category": "Business Registration",
+    "date": "April 15, 2025",
+    "author": "CS Ankit Joshi",
+    "readTime": "7 min read",
+    "excerpt": "Choosing the right business structure is one of the most important decisions for any entrepreneur. Here's a detailed comparison of LLP and Private Limited Company.",
+    "content": "When starting a business in India, two of the most popular structures are Limited Liability Partnership (LLP) and Private Limited Company (Pvt Ltd). Each has its own advantages and is suited for different types of businesses.\n\n**Limited Liability Partnership (LLP)**\nAn LLP combines the flexibility of a partnership with the limited liability protection of a company. It is governed by the LLP Act, 2008.\n\n**Key features of LLP**\n- Minimum 2 partners, no maximum limit\n- No minimum capital requirement\n- Partners have limited liability\n- Less compliance burden compared to Pvt Ltd\n- Profits taxed at partner level (no dividend distribution tax)\n- Not suitable for raising equity funding\n\n**Private Limited Company**\nA Pvt Ltd company is a separate legal entity governed by the Companies Act, 2013. It is the preferred structure for startups seeking investment.\n\n**Key features of Pvt Ltd**\n- Minimum 2 directors and 2 shareholders\n- Minimum paid-up capital of ₹1 lakh\n- Shareholders have limited liability\n- Can raise equity funding from investors\n- Higher compliance requirements (annual filings, board meetings, etc.)\n- Subject to dividend distribution tax\n\n**Which Should You Choose?**\nChoose LLP if you are a professional services firm, want lower compliance costs, or don't plan to raise external funding. Choose Pvt Ltd if you plan to raise venture capital, want to issue ESOPs, or are building a scalable startup.",
+    "tags": ["LLP", "Private Limited", "Business Structure", "Registration"]
+  },
+  {
+    "id": "tds-filing-basics",
+    "title": "TDS Filing Basics: What Every Business Owner Should Know",
+    "category": "TDS",
+    "date": "March 30, 2025",
+    "author": "Shubham Sharma",
+    "readTime": "5 min read",
+    "excerpt": "Tax Deducted at Source (TDS) is a mechanism to collect tax at the point of income generation. Here's everything you need to know about TDS filing obligations.",
+    "content": "Tax Deducted at Source (TDS) is a system introduced by the Income Tax Department where the payer deducts tax at the time of making certain payments and deposits it with the government on behalf of the payee.\n\n**Who is Required to Deduct TDS?**\nAny person (individual, HUF, company, firm) making specified payments such as salary, rent, professional fees, contractor payments, etc., is required to deduct TDS if the payment exceeds the prescribed threshold.\n\n**Common TDS Sections**\n- Section 192: TDS on salary\n- Section 194A: TDS on interest (other than securities)\n- Section 194C: TDS on payments to contractors\n- Section 194H: TDS on commission or brokerage\n- Section 194I: TDS on rent\n- Section 194J: TDS on professional or technical fees\n\n**TDS Filing Process**\n- Obtain TAN (Tax Deduction and Collection Account Number)\n- Deduct TDS at the applicable rate at the time of payment\n- Deposit TDS with the government by the 7th of the following month\n- File quarterly TDS returns (Form 24Q for salary, 26Q for others)\n- Issue TDS certificates (Form 16/16A) to deductees\n\n**Penalties for Non-Compliance**\n- Failure to deduct TDS: Interest at 1% per month\n- Failure to deposit TDS: Interest at 1.5% per month\n- Late filing of TDS return: ₹200 per day (up to the amount of TDS)\n- Non-filing: Penalty of ₹10,000 to ₹1,00,000",
+    "tags": ["TDS", "Tax", "Compliance", "Business"]
+  },
+  {
+    "id": "huf-tax-benefits",
+    "title": "HUF: How Hindu Undivided Family Can Help You Save Tax",
+    "category": "Tax Planning",
+    "date": "March 12, 2025",
+    "author": "CA Priya Mehta",
+    "readTime": "6 min read",
+    "excerpt": "A Hindu Undivided Family (HUF) is a unique tax entity under Indian law that can help families significantly reduce their overall tax burden through smart planning.",
+    "content": "A Hindu Undivided Family (HUF) is a separate tax entity recognized under the Income Tax Act, 1961. It consists of all persons lineally descended from a common ancestor and includes their wives and unmarried daughters.\n\n**Why Create an HUF?**\nAn HUF gets its own PAN and can earn income independently. This means the family effectively gets an additional set of tax deductions and exemptions, reducing the overall tax liability.\n\n**Tax Benefits of HUF**\n- Separate basic exemption limit of ₹2.5 lakh\n- Separate deductions under Section 80C (up to ₹1.5 lakh)\n- Separate deductions under Section 80D for health insurance\n- Income from HUF property is taxed in the hands of HUF, not individual members\n\n**How to Create an HUF**\n- The HUF comes into existence automatically upon marriage for Hindus, Buddhists, Jains, and Sikhs\n- Obtain a PAN for the HUF\n- Open a separate bank account in the name of the HUF\n- Transfer ancestral property or receive gifts to build the HUF corpus\n\n**Income That Can Be Shown Under HUF**\n- Rental income from ancestral property\n- Income from investments made from HUF funds\n- Business income (if HUF runs a business)\n- Agricultural income\n\n**Important Considerations**\nSalary income of a member cannot be transferred to HUF. Gifts from members to HUF are clubbed back to the member. Proper documentation and separate accounting are essential.",
+    "tags": ["HUF", "Tax Planning", "Tax Saving", "Family"]
+  },
+  {
+    "id": "pf-esic-compliance",
+    "title": "PF & ESIC Compliance: A Guide for Employers",
+    "category": "Compliance",
+    "date": "February 20, 2025",
+    "author": "CS Ankit Joshi",
+    "readTime": "5 min read",
+    "excerpt": "Provident Fund (PF) and ESIC are mandatory social security contributions for employers. Non-compliance can lead to heavy penalties. Here's what you need to know.",
+    "content": "Provident Fund (PF) and Employee State Insurance Corporation (ESIC) are two of the most important social security schemes for employees in India. Employers are legally required to comply with these regulations.\n\n**Provident Fund (PF)**\nGoverned by the Employees' Provident Funds and Miscellaneous Provisions Act, 1952, PF is applicable to establishments with 20 or more employees.\n\n**PF Contribution Rates**\n- Employee contribution: 12% of basic salary + DA\n- Employer contribution: 12% of basic salary + DA (split between EPF and EPS)\n\n**PF Filing Requirements**\n- Monthly ECR (Electronic Challan cum Return) filing\n- Annual PF return (Form 3A and 6A)\n- UAN (Universal Account Number) generation for new employees\n\n**ESIC (Employee State Insurance)**\nGoverned by the ESI Act, 1948, ESIC is applicable to establishments with 10 or more employees where employees earn up to ₹21,000 per month.\n\n**ESIC Contribution Rates**\n- Employee contribution: 0.75% of gross wages\n- Employer contribution: 3.25% of gross wages\n\n**ESIC Filing Requirements**\n- Monthly ESIC contribution payment by the 15th of the following month\n- Half-yearly returns (April–September and October–March)\n- Registration of new employees within 10 days of joining\n\n**Penalties for Non-Compliance**\n- PF: Damages up to 25% of arrears + interest at 12% per annum\n- ESIC: Imprisonment up to 2 years and/or fine up to ₹5,000",
+    "tags": ["PF", "ESIC", "Compliance", "Employer", "Social Security"]
+  }
+]

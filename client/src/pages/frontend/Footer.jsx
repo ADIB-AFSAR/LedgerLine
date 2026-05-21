@@ -1,4 +1,4 @@
-import { ShieldCheck, Lock, Mail, Phone, MapPin, Twitter, Linkedin, Instagram, Facebook, Youtube } from "lucide-react";
+import { ShieldCheck, Lock, Mail, Phone, MapPin, X, Linkedin, Instagram, Facebook, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -35,7 +35,7 @@ const Footer = () => {
             {/* Social Links */}
             <div className="flex items-center gap-3 pt-1">
               <a href="#" aria-label="Twitter" className="w-9 h-9 bg-slate-800 hover:bg-blue-600 rounded-xl flex items-center justify-center transition-colors">
-                <Twitter size={15} />
+                <X size={15} />
               </a>
               <a href="#" aria-label="LinkedIn" className="w-9 h-9 bg-slate-800 hover:bg-blue-600 rounded-xl flex items-center justify-center transition-colors">
                 <Linkedin size={15} />
@@ -108,7 +108,13 @@ const Footer = () => {
               </li>
               <li className="flex items-start gap-2.5">
                 <MapPin size={14} className="mt-0.5 flex-shrink-0 text-blue-400" />
-                <span>123, Finance Street,<br />New Delhi – 110001, India</span>
+                <div>
+                    <p className="font-semibold text-slate-800">Address</p>
+                    <p className="text-slate-600 text-sm">
+                      Jtm Mall, FF25, Jagatpura Rd, near Jagatpura Flyover, Model Town,
+                      Malviya Nagar, Jaipur, Rajasthan 302017
+                    </p>
+                  </div>
               </li>
             </ul>
 
