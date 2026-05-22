@@ -1,76 +1,89 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { User, ShoppingBag, LogOut, HelpCircle, ChevronRight, Mail, Phone, Edit2, Package, Clock, CheckCircle, ArrowRight, Handshake } from 'lucide-react';
-import Navbar from '../frontend/Navbar';
-import Footer from '../frontend/Footer';
-import { useAuth } from '../../context/AuthContext';
-import api from '../../api/axios';
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  User,
+  ShoppingBag,
+  LogOut,
+  HelpCircle,
+  ChevronRight,
+  Mail,
+  Phone,
+  Edit2,
+  Package,
+  Clock,
+  CheckCircle,
+  ArrowRight,
+  Handshake,
+} from "lucide-react";
+import Navbar from "../frontend/Navbar";
+import Footer from "../frontend/Footer";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../api/axios";
 
 const UserDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
+  const [activeTab, setActiveTab] = useState(
+    searchParams.get("tab") || "profile",
+  );
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
-      const { data } = await api.get('/payments/my-orders');
+      const { data } = await api.get("/payments/my-orders");
       if (data.success) {
         // Map API data to dashboard format
-        const mappedOrders = data.data.map(order => ({
+        const mappedOrders = data.data.map((order) => ({
           id: order._id,
-          service: order.serviceName || order.planId?.name || 'Tax Service',
+          service: order.serviceName || order.planId?.name || "Tax Service",
           date: order.createdAt,
-          status: order.itrStatus || 'Pending',
-          amount: order.planId?.price ? `₹${order.planId.price}` : 'Paid',
+          status: order.itrStatus || "Pending",
+          amount: order.planId?.price ? `₹${order.planId.price}` : "Paid",
           originalData: order,
           statusDate: order.itrUpdatedAt || order.updatedAt,
-          canFile: order.itrStatus === 'Pending Filing',
-          serviceSlug: order.planId?.slug || 'salary-basic-itr' // Fallback or handle error
+          canFile: order.itrStatus === "Pending Filing",
+          serviceSlug: order.planId?.slug || "salary-basic-itr", // Fallback or handle error
         }));
         setOrders(mappedOrders);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error("Error fetching orders:", error);
     } finally {
       setLoadingOrders(false);
     }
   };
 
   useEffect(() => {
-    if (activeTab === 'orders') {
+    if (activeTab === "orders") {
       fetchOrders();
     }
   }, [activeTab]);
 
   useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab && ['profile', 'orders', 'help'].includes(tab)) {
+    const tab = searchParams.get("tab");
+    if (tab && ["profile", "orders", "help"].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
 
-
-
-
   const menuItems = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'orders', label: 'My Orders', icon: ShoppingBag },
-     {id: 'Refer', label: 'Refer a Friend', icon: Handshake},
-    { id: 'help', label: 'Need Help', icon: HelpCircle },
-    { id: 'logout', label: 'Log Out', icon: LogOut }
+    { id: "profile", label: "Profile", icon: User },
+    { id: "orders", label: "My Orders", icon: ShoppingBag },
+    { id: "Refer", label: "Refer a Friend", icon: Handshake },
+    { id: "help", label: "Need Help", icon: HelpCircle },
+    { id: "logout", label: "Log Out", icon: LogOut },
   ];
 
   const handleMenuClick = (id) => {
-    if (id === 'logout') {
+    if (id === "logout") {
       handleLogout();
     } else {
       setActiveTab(id);
@@ -80,7 +93,9 @@ const UserDashboard = () => {
   const renderProfile = () => (
     <div className="bg-white rounded-2xl shadow-lg p-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">Profile Information</h2>
+        <h2 className="text-2xl font-bold text-slate-900">
+          Profile Information
+        </h2>
         <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold">
           <Edit2 size={18} />
           Edit Profile
@@ -90,11 +105,15 @@ const UserDashboard = () => {
       <div className="space-y-6">
         <div className="flex items-center gap-4 pb-6 border-b border-slate-200">
           <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold font-['Outfit']">
-            {user?.name?.charAt(0) || 'U'}
+            {user?.name?.charAt(0) || "U"}
           </div>
           <div>
-            <h3 className="text-xl font-bold text-slate-900">{user?.name || 'User Name'}</h3>
-            <p className="text-slate-600">{user?.email || 'user@example.com'}</p>
+            <h3 className="text-xl font-bold text-slate-900">
+              {user?.name || "User Name"}
+            </h3>
+            <p className="text-slate-600">
+              {user?.email || "user@example.com"}
+            </p>
           </div>
         </div>
 
@@ -103,7 +122,9 @@ const UserDashboard = () => {
             <Mail className="w-5 h-5 text-blue-600 mt-1" />
             <div>
               <p className="text-sm text-slate-600 mb-1">Email Address</p>
-              <p className="font-semibold text-slate-900">{user?.email || 'user@example.com'}</p>
+              <p className="font-semibold text-slate-900">
+                {user?.email || "user@example.com"}
+              </p>
             </div>
           </div>
 
@@ -111,11 +132,11 @@ const UserDashboard = () => {
             <Phone className="w-5 h-5 text-blue-600 mt-1" />
             <div>
               <p className="text-sm text-slate-600 mb-1">Phone Number</p>
-              <p className="font-semibold text-slate-900">{user?.mobile || 'Not provided'}</p>
+              <p className="font-semibold text-slate-900">
+                {user?.mobile || "Not provided"}
+              </p>
             </div>
           </div>
-
-
         </div>
 
         <div className="pt-6 border-t border-slate-200">
@@ -123,11 +144,15 @@ const UserDashboard = () => {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-slate-50 rounded-xl p-4">
               <p className="text-sm text-slate-600 mb-1">PAN Number</p>
-              <p className="font-semibold text-slate-900">{user?.pan || 'Not provided'}</p>
+              <p className="font-semibold text-slate-900">
+                {user?.pan || "Not provided"}
+              </p>
             </div>
             <div className="bg-slate-50 rounded-xl p-4">
               <p className="text-sm text-slate-600 mb-1">Role</p>
-              <p className="font-semibold text-slate-900 capitalize">{user?.role || 'User'}</p>
+              <p className="font-semibold text-slate-900 capitalize">
+                {user?.role || "User"}
+              </p>
             </div>
           </div>
         </div>
@@ -135,162 +160,151 @@ const UserDashboard = () => {
     </div>
   );
 
-const renderRefer = () => {
-  const referralLink = "https://yourapp.com/ref/ABCD1234";
+  const renderRefer = () => {
+    const referralLink = "https://yourapp.com/ref/ABCD1234";
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(referralLink);
-      alert("Referral link copied!");
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
+    const handleCopy = async () => {
+      try {
+        await navigator.clipboard.writeText(referralLink);
+        alert("Referral link copied!");
+      } catch (err) {
+        console.error("Failed to copy:", err);
+      }
+    };
+
+    return (
+      <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+              Refer a Friend
+            </h2>
+
+            <p className="text-sm sm:text-base text-slate-600 mt-1">
+              Invite friends and earn reward credits
+            </p>
+          </div>
+
+          {/* Credit Badge */}
+          <div className="self-start sm:self-auto bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold text-sm">
+            ⭐ 1250 Credits
+          </div>
+        </div>
+
+        <div className="space-y-5 sm:space-y-6">
+          {/* Referral Card */}
+          <div className="bg-blue-600 rounded-2xl p-4 sm:p-6 text-white shadow-lg shadow-blue-500/10">
+            <h3 className="text-lg sm:text-xl font-bold mb-2">
+              Earn rewards by referring your friends 🎉
+            </h3>
+
+            <p className="text-sm sm:text-base text-blue-100 mb-5 leading-relaxed">
+              Share your referral link and get
+              <span className="font-semibold text-white"> 200 credits</span> for
+              every successful signup.
+            </p>
+
+            {/* Referral URL Box */}
+            <div className="bg-white/10 border border-white/20 rounded-xl p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-blue-100 mb-2">
+                Referral URL
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 bg-white rounded-lg px-3 sm:px-4 py-3 text-slate-700 text-xs sm:text-sm font-medium truncate">
+                  {referralLink}
+                </div>
+
+                <button
+                  onClick={handleCopy}
+                  className="w-full sm:w-auto bg-white text-blue-600 px-5 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <p className="text-sm text-slate-500 mb-1">Total Referrals</p>
+
+              <h4 className="text-xl sm:text-2xl font-bold text-slate-900">
+                12
+              </h4>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <p className="text-sm text-slate-500 mb-1">Credits Earned</p>
+
+              <h4 className="text-xl sm:text-2xl font-bold text-blue-600">
+                2400
+              </h4>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <p className="text-sm text-slate-500 mb-1">Available Credits</p>
+
+              <h4 className="text-xl sm:text-2xl font-bold text-green-600">
+                1250
+              </h4>
+            </div>
+          </div>
+
+          {/* How It Works */}
+          <div className="pt-5 sm:pt-6 border-t border-slate-200">
+            <h4 className="font-bold text-slate-900 mb-4">How it Works</h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-slate-50 rounded-xl p-4">
+                <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
+                  1
+                </div>
+
+                <h5 className="font-semibold text-slate-900 mb-1">
+                  Share Link
+                </h5>
+
+                <p className="text-sm text-slate-600">
+                  Send your referral link to friends.
+                </p>
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-4">
+                <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
+                  2
+                </div>
+
+                <h5 className="font-semibold text-slate-900 mb-1">
+                  Friend Joins
+                </h5>
+
+                <p className="text-sm text-slate-600">
+                  Your friend signs up using your link.
+                </p>
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-4">
+                <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
+                  3
+                </div>
+
+                <h5 className="font-semibold text-slate-900 mb-1">
+                  Earn Credits
+                </h5>
+
+                <p className="text-sm text-slate-600">
+                  Receive instant reward credits.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
-
-  return (
-    <div className="bg-white rounded-2xl shadow-lg p-8">
-      
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">
-            Refer a Friend
-          </h2>
-          <p className="text-slate-600 mt-1">
-            Invite friends and earn reward credits
-          </p>
-        </div>
-
-        {/* Credit Badge */}
-        <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold text-sm">
-          ⭐ 1250 Credits
-        </div>
-      </div>
-
-      <div className="space-y-6">
-
-        {/* Referral Card */}
-        <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/10">
-          <h3 className="text-xl font-bold mb-2">
-            Earn rewards by referring your friends 🎉
-          </h3>
-
-          <p className="text-blue-100 mb-5">
-            Share your referral link and get 
-            <span className="font-semibold text-white">
-              {" "}200 credits
-            </span>{" "}
-            for every successful signup.
-          </p>
-
-          {/* Referral URL Box */}
-          <div className="bg-white/10 border border-white/20 rounded-xl p-4">
-            <p className="text-sm text-blue-100 mb-2">
-              Referral URL
-            </p>
-
-            <div className="flex items-center gap-3">
-              <div className="flex-1 bg-white rounded-lg px-4 py-3 text-slate-700 text-sm font-medium truncate">
-                {referralLink}
-              </div>
-
-              <button
-                onClick={handleCopy}
-                className="bg-white text-blue-600 px-5 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors whitespace-nowrap"
-              >
-                Copy
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-4">
-          
-          <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-            <p className="text-sm text-slate-500 mb-1">
-              Total Referrals
-            </p>
-            <h4 className="text-2xl font-bold text-slate-900">
-              12
-            </h4>
-          </div>
-
-          <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-            <p className="text-sm text-slate-500 mb-1">
-              Credits Earned
-            </p>
-            <h4 className="text-2xl font-bold text-blue-600">
-              2400
-            </h4>
-          </div>
-
-          <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-            <p className="text-sm text-slate-500 mb-1">
-              Available Credits
-            </p>
-            <h4 className="text-2xl font-bold text-green-600">
-              1250
-            </h4>
-          </div>
-        </div>
-
-        {/* How It Works */}
-        <div className="pt-6 border-t border-slate-200">
-          <h4 className="font-bold text-slate-900 mb-4">
-            How it Works
-          </h4>
-
-          <div className="grid md:grid-cols-3 gap-4">
-
-            <div className="bg-slate-50 rounded-xl p-4">
-              <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
-                1
-              </div>
-
-              <h5 className="font-semibold text-slate-900 mb-1">
-                Share Link
-              </h5>
-
-              <p className="text-sm text-slate-600">
-                Send your referral link to friends.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-xl p-4">
-              <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
-                2
-              </div>
-
-              <h5 className="font-semibold text-slate-900 mb-1">
-                Friend Joins
-              </h5>
-
-              <p className="text-sm text-slate-600">
-                Your friend signs up using your link.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-xl p-4">
-              <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
-                3
-              </div>
-
-              <h5 className="font-semibold text-slate-900 mb-1">
-                Earn Credits
-              </h5>
-
-              <p className="text-sm text-slate-600">
-                Receive instant reward credits.
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
   const renderOrders = () => (
     <div className="bg-white rounded-2xl shadow-lg p-8">
@@ -306,7 +320,7 @@ const renderRefer = () => {
           <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-600 mb-4">No orders yet</p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
             className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all"
           >
             Browse Services
@@ -315,42 +329,68 @@ const renderRefer = () => {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (
-            <div key={order.id} className="border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+            <div
+              key={order.id}
+              className="border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">{order.service}</h3>
-                  <p className="text-sm text-slate-600">Order ID: #{order.id}</p>
+                  <h3 className="font-bold text-slate-900 text-lg">
+                    {order.service}
+                  </h3>
+                  <p className="text-sm text-slate-600">
+                    Order ID: #{order.id}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-slate-900 text-lg">{order.amount}</p>
-                  <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${['completed', 'submitted'].includes(order.status.toLowerCase())
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                    {['completed', 'submitted'].includes(order.status.toLowerCase()) ? <CheckCircle size={14} /> : <Clock size={14} />}
+                  <p className="font-bold text-slate-900 text-lg">
+                    {order.amount}
+                  </p>
+                  <div
+                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${
+                      ["completed", "submitted"].includes(
+                        order.status.toLowerCase(),
+                      )
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {["completed", "submitted"].includes(
+                      order.status.toLowerCase(),
+                    ) ? (
+                      <CheckCircle size={14} />
+                    ) : (
+                      <Clock size={14} />
+                    )}
                     <span className="capitalize">{order.status}</span>
                   </div>
                   {order.statusDate && (
                     <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-end gap-1">
                       <Clock size={10} />
-                      {new Date(order.statusDate).toLocaleString('en-IN', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
+                      {new Date(order.statusDate).toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
                       })}
                     </p>
                   )}
                 </div>
               </div>
               <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-                <p className="text-sm text-slate-600">Order Date: {new Date(order.date).toLocaleDateString()}</p>
+                <p className="text-sm text-slate-600">
+                  Order Date: {new Date(order.date).toLocaleDateString()}
+                </p>
                 <div className="flex gap-3">
                   {order.canFile && (
                     <button
-                      onClick={() => navigate(`/services/userform?service=${order.serviceSlug}&purchaseId=${order.id}`)}
+                      onClick={() =>
+                        navigate(
+                          `/services/userform?service=${order.serviceSlug}&purchaseId=${order.id}`,
+                        )
+                      }
                       className="flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
                     >
                       Complete Filing
@@ -373,8 +413,6 @@ const renderRefer = () => {
     </div>
   );
 
-
-
   const renderHelp = () => (
     <div className="bg-white rounded-2xl shadow-lg p-8">
       <h2 className="text-2xl font-bold text-slate-900 mb-6">Need Help?</h2>
@@ -385,13 +423,19 @@ const renderRefer = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-blue-600" />
-              <a href="mailto:support@powerfiling.com" className="text-blue-600 hover:underline">
+              <a
+                href="mailto:support@powerfiling.com"
+                className="text-blue-600 hover:underline"
+              >
                 support@powerfiling.com
               </a>
             </div>
             <div className="flex items-center gap-3">
               <Phone className="w-5 h-5 text-blue-600" />
-              <a href="tel:+911234567890" className="text-blue-600 hover:underline">
+              <a
+                href="tel:+911234567890"
+                className="text-blue-600 hover:underline"
+              >
                 +91 123 456 7890
               </a>
             </div>
@@ -399,13 +443,15 @@ const renderRefer = () => {
         </div>
 
         <div>
-          <h3 className="font-bold text-slate-900 mb-4">Frequently Asked Questions</h3>
+          <h3 className="font-bold text-slate-900 mb-4">
+            Frequently Asked Questions
+          </h3>
           <div className="space-y-3">
             {[
-              'How do I track my order?',
-              'What documents do I need for ITR filing?',
-              'How long does the filing process take?',
-              'Can I get a refund?'
+              "How do I track my order?",
+              "What documents do I need for ITR filing?",
+              "How long does the filing process take?",
+              "Can I get a refund?",
             ].map((question, index) => (
               <button
                 key={index}
@@ -431,13 +477,13 @@ const renderRefer = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'profile':
+      case "profile":
         return renderProfile();
-      case 'orders':
+      case "orders":
         return renderOrders();
-      case 'Refer':
+      case "Refer":
         return renderRefer();
-      case 'help':
+      case "help":
         return renderHelp();
       default:
         return renderProfile();
@@ -451,8 +497,12 @@ const renderRefer = () => {
       <main className="py-12 flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">My Dashboard</h1>
-            <p className="text-slate-600">Manage your account and track your services</p>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">
+              My Dashboard
+            </h1>
+            <p className="text-slate-600">
+              Manage your account and track your services
+            </p>
           </div>
 
           <div className="grid lg:grid-cols-4 gap-8">
@@ -463,18 +513,19 @@ const renderRefer = () => {
                   {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.id;
-                    const isLogout = item.id === 'logout';
+                    const isLogout = item.id === "logout";
 
                     return (
                       <button
                         key={item.id}
                         onClick={() => handleMenuClick(item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all ${isLogout
-                          ? 'text-red-600 hover:bg-red-50'
-                          : isActive
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                            : 'text-slate-700 hover:bg-slate-50'
-                          }`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all ${
+                          isLogout
+                            ? "text-red-600 hover:bg-red-50"
+                            : isActive
+                              ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                              : "text-slate-700 hover:bg-slate-50"
+                        }`}
                       >
                         <Icon size={20} />
                         <span>{item.label}</span>
@@ -486,9 +537,7 @@ const renderRefer = () => {
             </div>
 
             {/* Main Content */}
-            <div className="lg:col-span-3">
-              {renderContent()}
-            </div>
+            <div className="lg:col-span-3">{renderContent()}</div>
           </div>
         </div>
       </main>
