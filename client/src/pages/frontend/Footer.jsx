@@ -1,4 +1,4 @@
-import { ShieldCheck, Lock, Mail, Phone, MapPin, X, Linkedin, Instagram, Facebook, Youtube } from "lucide-react";
+import { Mail, Phone, MapPin, X, Linkedin, Instagram, Facebook, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -80,6 +80,7 @@ const Footer = () => {
                 { label: "Refund Policy", to: "/refund" },
                 { label: "Disclaimer", to: "/disclaimer" },
                 { label: "Security", to: "/security" },
+                { label: "Terms & Conditions", to: "/terms-and-conditions"}
               ].map((item) => (
                 <li key={item.label}>
                   <Link to={item.to} className="hover:text-white transition-colors">
@@ -144,12 +145,13 @@ const Footer = () => {
       {/* Bottom Bar */}
       <div className="border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500">
-          <p>© 2026 Powerfiling Technologies Pvt. Ltd. All rights reserved. Designed for Indian Taxpayers.</p>
+          <p>© 2026 Powerfiling Pvt. Ltd. All rights reserved. Designed for Indian Taxpayers.</p>
           <div className="flex items-center gap-4">
             <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
             <Link to="/disclaimer" className="hover:text-white transition-colors">Terms</Link>
             <Link to="/refund" className="hover:text-white transition-colors">Refunds</Link>
             <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
+            
           </div>
         </div>
       </div>

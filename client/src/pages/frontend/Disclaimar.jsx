@@ -3,52 +3,69 @@ import Footer from './Footer'
 
 const sections = [
   {
-    title: "Limitation of Warranties",
+    title: "1. General Disclaimer",
+    body: "The Information And Services Provided By Powerfiling Are Intended For General Informational And Compliance Purposes Only. While We Strive To Keep All Information Accurate And Up To Date, We Make No Representations Or Warranties Of Any Kind Regarding Completeness, Accuracy, Reliability, Or Suitability.\n\nUsers Are Advised To Seek Professional Advice Before Making Any Financial, Legal, Or Tax-Related Decisions.",
+  },
+  {
+    title: "2. No Professional Guarantee",
     items: [
-      "Nothing in these terms shall exclude or limit Powerfiling warranty or liability for losses which may not be lawfully excluded or limited by applicable law. Some jurisdictions do not allow the exclusion of certain warranties or conditions or the limitation or exclusion of liability for loss or damage caused by negligence, breach of contract or breach of implied terms, or incidental or consequential damages. Accordingly, only the limitations which are lawful in your jurisdiction will apply to you and our liability will be limited to the maximum extent permitted by law.",
-      "You expressly understand and agree that your use of the services is at your sole risk and that the services are provided \"as is\" and \"as available.\"",
-      {
-        text: "In particular, Powerfiling, its subsidiaries and affiliates, and its licensors do not represent or warrant to you that:",
-        sub: [
-          "Your use of the services will meet your requirements,",
-          "Your use of the services will be uninterrupted, timely, secure or free from error,",
-          "Any information obtained by you as a result of your use of the services will be accurate or reliable, and",
-          "That defects in the operation or functionality of any software provided to you as part of the services will be corrected.",
-        ],
-      },
-      "Any material downloaded or otherwise obtained through the use of the services is done at your own discretion and risk and that you will be solely responsible for any damage to your computer system or other device or loss of data that results from the download of any such material.",
-      "No advice or information, whether oral or written, obtained by you from Powerfiling or through or from the services shall create any warranty not expressly stated in the terms.",
-      "Powerfiling further expressly disclaims all warranties and conditions of any kind, whether express or implied, including, but not limited to the implied warranties and conditions of merchantability, fitness for a particular purpose and non-infringement.",
+      "We Do Not Guarantee Approval Of Any Registration (GST, Company, LLP, Etc.)",
+      "We Do Not Guarantee Acceptance Of Filings By Government Authorities",
+      "We Do Not Guarantee Specific Tax Refunds Or Financial Outcomes",
+      "All Services Are Subject To Applicable Laws, Rules, And Approvals By Respective Authorities.",
     ],
   },
   {
-    title: "Limitation of Liabilities",
+    title: "3. Limitation Of Warranties",
+    intro: "All Services Provided By Powerfiling Are On An \"As Is\" And \"As Available\" Basis.\n\nWe Do Not Warrant That:",
     items: [
-      {
-        text: "Subject to overall provision in paragraph above, you expressly understand and agree that Powerfiling, its subsidiaries and affiliates, and its licensors shall not be liable to you for:",
-        sub: [
-          "Any direct, indirect, incidental, special consequential or exemplary damages which may be incurred by you, however caused and under any theory of liability. This shall include, but not be limited to, any loss of profit (whether incurred directly or indirectly), any loss of goodwill or business reputation, any loss of data suffered, cost of procurement of substitute goods or services, or other intangible loss.",
-          "Any loss or damage which may be incurred by you, including but not limited to loss or damage as a result of: (i) any reliance placed by you on the completeness, accuracy or existence of any advertising, or as a result of any relationship or transaction between you and any advertiser or sponsor whose advertising appears on the services; (ii) any changes which Powerfiling may make to the services, or for any permanent or temporary cessation in the provision of the services; (iii) the deletion of, corruption of, or failure to store, any content and other communications data maintained or transmitted by or through your use of the services; (iv) your failure to provide Powerfiling with accurate account information; (v) your failure to keep your password or account details secure and confidential.",
-        ],
-      },
-      "The limitations on Powerfiling liability above shall apply whether or not Powerfiling has been advised of or should have been aware of the possibility of any such losses arising.",
+      "Services Will Be Uninterrupted, Timely, Or Error-Free",
+      "Results Obtained Will Be Accurate Or Reliable",
+      "Defects Or Technical Issues Will Be Corrected",
+    ],
+    extra: "We Expressly Disclaim All Warranties, Including But Not Limited To:\n- Merchantability\n- Fitness For A Particular Purpose\n- Non-Infringement",
+  },
+  {
+    title: "4. Limitation Of Liability",
+    intro: "To The Maximum Extent Permitted By Law, Powerfiling Shall Not Be Liable For:",
+    items: [
+      "Any Direct, Indirect, Incidental, Or Consequential Damages",
+      "Loss Of Profits, Business, Goodwill, Or Data",
+      "Delays Or Errors Caused By Third-Party Systems (Including Government Portals)",
+      "Any Reliance Placed On Information Or Services Provided",
+    ],
+    note: "Users Are Responsible For Providing Accurate Information And Maintaining The Confidentiality Of Their Login Credentials.",
+  },
+  {
+    title: "5. Third-Party Dependencies",
+    intro: "Many Of Our Services Depend On External Platforms Such As Government Portals. We Are Not Responsible For:",
+    items: [
+      "Portal Downtime Or Technical Issues",
+      "Delays From Government Authorities",
+      "Changes In Laws, Rules, Or Regulations",
+      "Rejections Due To Incorrect Or Incomplete Information Provided By Users",
     ],
   },
   {
-    title: "Copyrights & Trademarks",
-    body: "All content and materials available on www.Powerfiling.com, including but not limited to text, graphics, website name, code, images and logos are the intellectual property of BMS Tax Consultancy Services, and are protected by applicable copyright and trademark law. Any inappropriate use, including but not limited to the reproduction, distribution, display or transmission of any content on this site is strictly prohibited, unless specifically authorized by BMS Tax Consultancy Services.",
+    title: "6. Intellectual Property Rights",
+    body: "All Content On This Website, Including But Not Limited To Text, Graphics, Logos, Design, And Layout, Is The Property Of Powerfiling Private Limited And Is Protected Under Applicable Intellectual Property Laws.\n\nUnauthorized Use, Reproduction, Or Distribution Is Strictly Prohibited.",
   },
   {
-    title: "Termination of Uses",
-    body: "You agree that we may, at our sole discretion, suspend or terminate your access to all or part of our website and Resources with or without notice and for any reason, including, without limitation, breach of this User Agreement. Any suspected illegal, fraudulent or abusive activity may be grounds for terminating your relationship and may be referred to appropriate law enforcement authorities. Upon suspension or termination, your right to use the Resources we provide will immediately cease, and we reserve the right to remove or delete any information that you may have on file with us, including any account or login information.",
+    title: "7. Termination Of Use",
+    intro: "We Reserve The Right To Suspend Or Terminate Access To Our Services Without Prior Notice If:",
+    items: [
+      "There Is A Violation Of Terms",
+      "Fraudulent, Illegal, Or Abusive Activity Is Suspected",
+    ],
+    note: "Upon Termination, Your Access To Services And Related Data May Be Restricted Or Removed.",
   },
   {
-    title: "Governing Law",
-    body: "This website is controlled by BMS Tax Consultancy Services from our offices located in the state of Rajasthan, India. It can be accessed by most countries around the world. As each country has laws that may differ from those of Rajasthan, India, by accessing our website, you agree that the statutes and laws of Rajasthan, India without regard to the conflict of laws, will apply to all matters relating to the use of this website and the purchase of any products or services through this site. Furthermore, any action to enforce this User Agreement shall be brought in the federal or state courts located in Rajasthan, India. You hereby agree to personal jurisdiction by such courts, and waive any jurisdictional, venue, or inconvenient forum objections to such courts.",
+    title: "8. Governing Law & Jurisdiction",
+    body: "This Website Is Operated From Rajasthan, India. All Disputes Arising Out Of Or Related To The Use Of This Website Shall Be Governed By The Laws Of India.\n\nJurisdiction Shall Lie Exclusively With The Courts Located In Rajasthan.",
   },
   {
-    title: "Guarantee",
-    body: "Unless otherwise expressed, www.Powerfiling.com expressly disclaims all warranties and conditions of any kind, whether express or implied, including, but not limited to the implied warranties and conditions of merchantability, fitness for a particular purpose and non-infringement.",
+    title: "9. No Guarantee Clause",
+    body: "Unless Explicitly Stated In Writing, Powerfiling Does Not Provide Any Guarantees Or Warranties Regarding The Outcome Of Services.",
   },
 ]
 
@@ -66,7 +83,7 @@ const Disclaimar = () => {
               Legal
             </span>
             <h1 className="text-3xl sm:text-4xl font-bold mb-3">Disclaimer</h1>
-            {/* <p className="text-slate-300 text-sm">Last Updated: January 1, 2025</p> */}
+            <p className="text-slate-300 text-sm">Last Updated: January 1, 2025</p>
           </div>
         </div>
 
@@ -78,31 +95,46 @@ const Disclaimar = () => {
                 {section.title}
               </h2>
 
+              {/* Body text */}
               {section.body && (
-                <p className="text-slate-700 text-sm leading-relaxed">{section.body}</p>
+                <div className="text-slate-700 text-sm leading-relaxed space-y-3 whitespace-pre-line">
+                  {section.body.split('\n\n').map((para, i) => (
+                    <p key={i}>{para}</p>
+                  ))}
+                </div>
               )}
 
+              {/* Intro text */}
+              {section.intro && (
+                <p className="text-slate-700 text-sm leading-relaxed mb-4">
+                  {section.intro}
+                </p>
+              )}
+
+              {/* Bullet items */}
               {section.items && (
-                <ol className="space-y-4 list-decimal list-outside pl-5">
-                  {section.items.map((item, i) =>
-                    typeof item === 'string' ? (
-                      <li key={i} className="text-slate-700 text-sm leading-relaxed pl-1">
-                        {item}
-                      </li>
-                    ) : (
-                      <li key={i} className="text-slate-700 text-sm leading-relaxed pl-1">
-                        <span>{item.text}</span>
-                        <ul className="mt-3 space-y-2 list-[lower-alpha] list-outside pl-5">
-                          {item.sub.map((s, j) => (
-                            <li key={j} className="text-slate-600 text-sm leading-relaxed pl-1">
-                              {s}
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                    )
-                  )}
-                </ol>
+                <ul className="space-y-2.5 mt-4">
+                  {section.items.map((item, i) => (
+                    <li key={i} className="flex gap-3 text-slate-700 text-sm leading-relaxed">
+                      <span className="mt-1.5 w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Extra content */}
+              {section.extra && (
+                <div className="mt-4 text-slate-700 text-sm leading-relaxed whitespace-pre-line">
+                  {section.extra}
+                </div>
+              )}
+
+              {/* Note */}
+              {section.note && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                  <p className="text-sm text-blue-900">{section.note}</p>
+                </div>
               )}
             </div>
           ))}
