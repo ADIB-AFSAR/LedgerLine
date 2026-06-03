@@ -5,6 +5,7 @@ import Disclaimar from '../pages/frontend/Disclaimar';
 import Privacypolicy from '../pages/frontend/Privacypolicy';
 import Refund from '../pages/frontend/Refund';
 import Security from '../pages/frontend/Security';
+import TermsAndConditions from '../pages/frontend/TermsAndConditions';
 import Login from '../pages/Login';
 import Sign_up from '../pages/sign-in/Sign_up';
 import UnifiedVerification from '../pages/sign-in/UnifiedVerification';
@@ -48,6 +49,7 @@ export default function AppRoutes() {
       <Route path="/disclaimer" element={<Disclaimar />} />
       <Route path="/refund" element={<Refund />} />
       <Route path="/security" element={<Security />} />
+      <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
       <Route path='/sign_up' element={<Sign_up />} />
       <Route path="/verification" element={<UnifiedVerification />} />
       <Route path="/verify-otp" element={<UnifiedVerification />} />
