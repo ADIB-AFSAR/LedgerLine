@@ -38,6 +38,8 @@ import PrivateRoute from './PrivateRoute';
 import OrderDetails from '../pages/dashboard/OrderDetails';
 import Navbar from '../pages/frontend/Navbar';
 import Footer from '../pages/frontend/Footer';
+import WithdrawalPanel from '../pages/admin/WithdrawalPanel';
+import ReferralDashboard from '../pages/ReferralDashboard/ReferralDashboard';
 
 export default function AppRoutes() {
   return (
@@ -101,7 +103,12 @@ export default function AppRoutes() {
             <UserDashboard />
           </PrivateRoute>
         }
+
+        
+        
       />
+
+      <Route path='/dashboard/referrals' element={<ReferralDashboard/>}/>
       <Route
         path="/order/:orderId"
         element={
@@ -120,6 +127,7 @@ export default function AppRoutes() {
       <Route path="/admin/request-access" element={<AdminRequestAccess />} />
       <Route path="/admin/request-status" element={<AdminRequestStatus />} />
       <Route path="/admin/rejected" element={<AdminAccessRejected />} />
+      <Route path="/admin/withdrawals" element={<WithdrawalPanel />} />
       <Route
         path="/admin/dashboard"
         element={

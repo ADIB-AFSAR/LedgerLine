@@ -17,6 +17,9 @@ import itrRoutes from './routes/itrRoutes.js';
 // Passport config
 import './config/passport.js';
 
+
+import referralRoutes from './routes/referral.js';
+console.log('Starting connectDB()...');
 // Connect to database
 connectDB();
 
@@ -96,6 +99,8 @@ const limiter = rateLimit({
     validate: { xForwardedForHeader: false }
 });
 app.use(limiter);
+
+app.use('/api/v1/referral', referralRoutes);
 
 // Mount routers
 app.use('/api/v1/auth', authRoutes);

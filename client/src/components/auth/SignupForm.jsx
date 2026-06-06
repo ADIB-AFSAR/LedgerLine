@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { User, Mail, Phone, Loader2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { captureReferralFromURL, getReferralCode } from '../../utils/referral/referral';
 
 const SignupForm = ({ onSwitchToLogin }) => {
   const { register } = useAuth();
@@ -13,6 +14,15 @@ const SignupForm = ({ onSwitchToLogin }) => {
     email: '',
     mobile: ''
   });
+
+  // useEffect(() => {
+  //       captureReferralFromURL();
+  //       const code = getReferralCode();
+  //       if (code) {
+  //           setFormData(prev => ({ ...prev, referralCode: code }));
+  //           setReferrerApplied(true);
+  //       }
+  //   }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -104,8 +114,37 @@ const SignupForm = ({ onSwitchToLogin }) => {
             </div>
           </div>
 
-
+          {/* Referral Code (optional)
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                            Referral Code <span className="text-slate-400 font-normal normal-case">(optional)</span>
+                        </label>
+                        <div className="relative">
+                            <input
+                                name="referralCode"
+                                type="text"
+                                value={formData.referralCode}
+                                onChange={handleChange}
+                                placeholder="Paste referral code"
+                                className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all ${
+                                    referrerApplied
+                                        ? 'border-green-400 bg-green-50'
+                                        : 'border-slate-200'
+                                }`}
+                            />
+                            {referrerApplied && (
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600 text-xs font-semibold">
+                                    ✓ Applied
+                                </span>
+                            )}
+                        </div>
+                        {referrerApplied && (
+                            <p className="text-xs text-green-600 mt-1 ml-1">Referral code auto-applied from your invite link.</p>
+                        )}
+                    </div> */}
         </div>
+
+        
 
         <button
           type="submit"
