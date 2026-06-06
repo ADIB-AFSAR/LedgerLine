@@ -2,6 +2,30 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+const withdrawalRequestSchema = new mongoose.Schema({
+    requestedAt: { type: Date, default: Date.now },
+    coinsRedeemed: { type: Number, required: true },
+    upiId: { type: String },
+    amount: { type: Number, required: true },
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    processedAt: { type: Date },
+    adminNote: { type: String }
+});
+ 
+const referralHistorySchema = new mongoose.Schema({
+    referredUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    referredUserName: { type: String },
+    planName: { type: String },
+    coinsEarned: { type: Number },
+    bonusCoins: { type: Number, default: 0 },
+    isBonus: { type: Boolean, default: false }, 
+    earnedAt: { type: Date, default: Date.now }
+});
+
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -74,7 +98,38 @@ const userSchema = new mongoose.Schema({
     isEmailVerified: {
         type: Boolean,
         default: false
-    }
+    },// ── REFERRAL FIELDS ──────────────────────────────
+    referredBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    referralRewardCredited: {
+        // Ensures the referrer is credited only once per referred user's first purchase
+        type: Boolean,
+        default: false
+    },
+    coins: {
+        type: Number,
+        default: 0
+    },
+    totalCoinsEarned: {
+        // Lifetime total (never decreases — for milestone tracking)
+        type: Number,
+        default: 0
+    },
+    totalReferrals: {
+        type: Number,
+        default: 0
+    },
+    referralTier: {
+        // Unlocked at 25 referrals
+        type: String,
+        enum: ['standard', 'premium_partner'],
+        default: 'standard'
+    },
+    referralHistory: [referralHistorySchema],
+    withdrawalRequests: [withdrawalRequestSchema]
 });
 
 // Encrypt password using bcrypt

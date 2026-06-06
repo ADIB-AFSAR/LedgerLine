@@ -42,6 +42,8 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
                     return <Navigate to="/admin/rejected" replace />;
                 } else if (location.pathname !== '/admin/request-access') {
                     return <Navigate to="/admin/request-access" replace />;
+                } else if (location.pathname !== '/admin/withdrawals') {
+                    return <Navigate to="/admin/withdrawals" replace />;
                 }
             }
             // Redirect non-admins to user dashboard if not trying to access admin request flow

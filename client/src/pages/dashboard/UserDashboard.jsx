@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Handshake,
 } from "lucide-react";
+import { Copy, Check, Coins, Gift, Users, ArrowDownToLine, CheckCircle2, XCircle } from 'lucide-react';
 import Navbar from "../frontend/Navbar";
 import Footer from "../frontend/Footer";
 import { useAuth } from "../../context/AuthContext";
@@ -29,6 +30,13 @@ const UserDashboard = () => {
   );
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+
+  const [referralData, setReferralData] = useState(null);
+  const [referralLoading, setReferralLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [upiId, setUpiId] = useState('');
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawMsg, setWithdrawMsg] = useState({ text: '', type: '' });
 
   const handleLogout = () => {
     logout();
@@ -61,11 +69,27 @@ const UserDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    if (activeTab === "orders") {
-      fetchOrders();
+  const fetchReferral = async () => {
+    // console.log('[Referral] called, activeTab:', activeTab);
+    // console.log('[Referral] api baseURL:', api.defaults.baseURL);
+    try {
+        setReferralLoading(true);
+        const { data } = await api.get(`/referral/me`);
+        // console.log('[Referral] response:', data);
+        if (data.success) setReferralData(data.data);
+    } catch (err) {
+        console.error('[Referral] fetch error:', err.response?.data || err.message);
+        console.error('Referral fetch error:', err);
+        setReferralLoading(false)
+    } finally {
+        setReferralLoading(false);
     }
-  }, [activeTab]);
+};
+
+  useEffect(() => {
+    if (activeTab === 'orders') fetchOrders();
+    if (activeTab === 'Refer') fetchReferral(); // ← is this line there?
+}, [activeTab]);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -87,6 +111,7 @@ const UserDashboard = () => {
       handleLogout();
     } else {
       setActiveTab(id);
+      if (id === 'Refer') fetchReferral();
     }
   };
 
@@ -161,150 +186,301 @@ const UserDashboard = () => {
   );
 
   const renderRefer = () => {
-    const referralLink = "https://yourapp.com/ref/ABCD1234";
+    const hasPendingWithdrawal = referralData?.withdrawalRequests?.some(r => r.status === 'pending');
 
-    const handleCopy = async () => {
-      try {
-        await navigator.clipboard.writeText(referralLink);
-        alert("Referral link copied!");
-      } catch (err) {
-        console.error("Failed to copy:", err);
-      }
+    const handleCopy = () => {
+        if (!referralData?.referralLink) return;
+        navigator.clipboard.writeText(referralData.referralLink);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
-    return (
-      <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-              Refer a Friend
-            </h2>
+    const handleWithdraw = async () => {
+      if (!upiId.trim()) {
+        setWithdrawMsg({ text: 'Please enter your UPI ID before withdrawing.', type: 'error' });
+        return;
+    }
+    if (!upiId.includes('@')) {
+        setWithdrawMsg({ text: 'Please enter a valid UPI ID (e.g. name@upi)', type: 'error' });
+        return;
+    }
+        if (!upiId.includes('@')) return;
+        if (!referralData || referralData.coins < 50) return;
+        setWithdrawing(true);
+        setWithdrawMsg({ text: '', type: '' });
+        try {
+            const { data } = await api.post('/referral/withdraw',{upiId});
+            if (data.success) {
+                setWithdrawMsg({ text: data.message, type: 'success' });
+                fetchReferral();
+            } else {
+                setWithdrawMsg({ text: data.error || 'Withdrawal failed', type: 'error' });
+            }
+        } catch (err) {
+            setWithdrawMsg({ text: err.response?.data?.error || 'Request failed', type: 'error' });
+        } finally {
+            setWithdrawing(false);
+        }
+    };
 
-            <p className="text-sm sm:text-base text-slate-600 mt-1">
-              Invite friends and earn reward credits
-            </p>
-          </div>
-
-          {/* Credit Badge */}
-          <div className="self-start sm:self-auto bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold text-sm">
-            ⭐ 1250 Credits
-          </div>
+    if (referralLoading) return (
+        <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-slate-600">Loading referral data...</p>
         </div>
-
-        <div className="space-y-5 sm:space-y-6">
-          {/* Referral Card */}
-          <div className="bg-blue-600 rounded-2xl p-4 sm:p-6 text-white shadow-lg shadow-blue-500/10">
-            <h3 className="text-lg sm:text-xl font-bold mb-2">
-              Earn rewards by referring your friends 🎉
-            </h3>
-
-            <p className="text-sm sm:text-base text-blue-100 mb-5 leading-relaxed">
-              Share your referral link and get
-              <span className="font-semibold text-white"> 200 credits</span> for
-              every successful signup.
-            </p>
-
-            {/* Referral URL Box */}
-            <div className="bg-white/10 border border-white/20 rounded-xl p-3 sm:p-4">
-              <p className="text-xs sm:text-sm text-blue-100 mb-2">
-                Referral URL
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1 bg-white rounded-lg px-3 sm:px-4 py-3 text-slate-700 text-xs sm:text-sm font-medium truncate">
-                  {referralLink}
-                </div>
-
-                <button
-                  onClick={handleCopy}
-                  className="w-full sm:w-auto bg-white text-blue-600 px-5 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-              <p className="text-sm text-slate-500 mb-1">Total Referrals</p>
-
-              <h4 className="text-xl sm:text-2xl font-bold text-slate-900">
-                12
-              </h4>
-            </div>
-
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-              <p className="text-sm text-slate-500 mb-1">Credits Earned</p>
-
-              <h4 className="text-xl sm:text-2xl font-bold text-blue-600">
-                2400
-              </h4>
-            </div>
-
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-              <p className="text-sm text-slate-500 mb-1">Available Credits</p>
-
-              <h4 className="text-xl sm:text-2xl font-bold text-green-600">
-                1250
-              </h4>
-            </div>
-          </div>
-
-          {/* How It Works */}
-          <div className="pt-5 sm:pt-6 border-t border-slate-200">
-            <h4 className="font-bold text-slate-900 mb-4">How it Works</h4>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-slate-50 rounded-xl p-4">
-                <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
-                  1
-                </div>
-
-                <h5 className="font-semibold text-slate-900 mb-1">
-                  Share Link
-                </h5>
-
-                <p className="text-sm text-slate-600">
-                  Send your referral link to friends.
-                </p>
-              </div>
-
-              <div className="bg-slate-50 rounded-xl p-4">
-                <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
-                  2
-                </div>
-
-                <h5 className="font-semibold text-slate-900 mb-1">
-                  Friend Joins
-                </h5>
-
-                <p className="text-sm text-slate-600">
-                  Your friend signs up using your link.
-                </p>
-              </div>
-
-              <div className="bg-slate-50 rounded-xl p-4">
-                <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
-                  3
-                </div>
-
-                <h5 className="font-semibold text-slate-900 mb-1">
-                  Earn Credits
-                </h5>
-
-                <p className="text-sm text-slate-600">
-                  Receive instant reward credits.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     );
-  };
+
+    return (
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Refer a Friend</h2>
+                    <p className="text-sm sm:text-base text-slate-600 mt-1">Invite friends and earn coins · 1 coin = ₹1</p>
+                </div>
+                <div className="self-start sm:self-auto bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2">
+                    <Coins size={16} />
+                    {referralData?.coins ?? 0} Coins
+                </div>
+            </div>
+
+            <div className="space-y-5 sm:space-y-6">
+                {/* Referral Card */}
+                <div className="bg-blue-600 rounded-2xl p-4 sm:p-6 text-white shadow-lg shadow-blue-500/10">
+                    <h3 className="text-lg sm:text-xl font-bold mb-2">Earn rewards by referring your friends 🎉</h3>
+                    <p className="text-sm sm:text-base text-blue-100 mb-5 leading-relaxed">
+                        Share your referral link. When your friend makes their first purchase, you earn coins instantly.
+                    </p>
+                    <div className="bg-white/10 border border-white/20 rounded-xl p-3 sm:p-4">
+                        <p className="text-xs sm:text-sm text-blue-100 mb-2">Your Referral Link</p>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <div className="flex-1 bg-white rounded-lg px-3 sm:px-4 py-3 text-slate-700 text-xs sm:text-sm font-medium truncate">
+                                {referralData?.referralLink || 'Loading...'}
+                            </div>
+                            <button
+                                onClick={handleCopy}
+                                className="w-full sm:w-auto bg-white text-blue-600 px-5 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+                            >
+                                {copied ? <><Check size={16} /> Copied!</> : <><Copy size={16} /> Copy</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                        <p className="text-sm text-slate-500 mb-1">Total Referrals</p>
+                        <h4 className="text-xl sm:text-2xl font-bold text-slate-900">{referralData?.totalReferrals ?? 0}</h4>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                        <p className="text-sm text-slate-500 mb-1">Coins Earned</p>
+                        <h4 className="text-xl sm:text-2xl font-bold text-blue-600">{referralData?.coins ?? 0}</h4>
+                    </div>
+                    <div className={`rounded-xl p-4 border ${
+                        referralData?.referralTier === 'partner' ? 'bg-purple-50 border-purple-200' :
+                        referralData?.referralTier === 'gold'    ? 'bg-yellow-50 border-yellow-200' :
+                        referralData?.referralTier === 'silver'  ? 'bg-gray-100 border-gray-300' :
+                                                                  'bg-slate-50 border-slate-200'
+                    }`}>
+                        <p className="text-sm text-slate-500 mb-1">Tier</p>
+                        <h4 className={`text-xl sm:text-2xl font-bold capitalize ${
+                            referralData?.referralTier === 'partner' ? 'text-purple-600' :
+                            referralData?.referralTier === 'gold'    ? 'text-yellow-600' :
+                            referralData?.referralTier === 'silver'  ? 'text-gray-600' :
+                                                                      'text-slate-600'
+                        }`}>
+                            {referralData?.referralTier === 'partner' ? '💎 Premium Partner' :
+                            referralData?.referralTier === 'gold'    ? '🥇 Gold' :
+                            referralData?.referralTier === 'silver'  ? '🥈 Silver' : '⭐ Standard'}
+                        </h4>
+                    </div>
+                </div>
+
+                {/* Milestones */}
+                <div className="border border-slate-200 rounded-xl p-4">
+                    <h4 className="font-bold text-slate-900 mb-3">Milestone Rewards</h4>
+                    <div className="space-y-2">
+                        {[
+                            { count: 5,  bonus: '₹500 bonus',    tier: 'silver'  },
+                            { count: 10, bonus: '₹1,500 bonus',  tier: 'gold'    },
+                            { count: 25, bonus: 'Partner status', tier: 'partner' }
+                        ].map(m => {
+                            const reached = (referralData?.totalReferrals ?? 0) >= m.count;
+                            return (
+                                <div key={m.count} className={`flex items-center justify-between p-3 rounded-xl ${reached ? 'bg-green-50 border border-green-200' : 'bg-slate-50'}`}>
+                                    <div className="flex items-center gap-2">
+                                        {reached
+                                            ? <CheckCircle2 size={16} className="text-green-500" />
+                                            : <div className="w-4 h-4 rounded-full border-2 border-slate-300" />
+                                        }
+                                        <span className="text-sm text-slate-700">{m.count} referrals</span>
+                                    </div>
+                                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                                          reached && m.tier === 'partner' ? 'bg-purple-100 text-purple-700' :
+                                          reached && m.tier === 'gold'    ? 'bg-yellow-100 text-yellow-700' :
+                                          reached && m.tier === 'silver'  ? 'bg-gray-200 text-gray-700' :
+                                                                            'bg-slate-200 text-slate-500'
+                                      }`}>
+                                          {m.bonus}
+                                      </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Withdraw */}
+                <div className="border border-slate-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <div>
+                            <p className="font-semibold text-slate-800">Withdraw Coins</p>
+                            <p className="text-xs text-slate-400 mt-0.5">Min 50 coins · Processed within 24 hours</p>
+                        </div>
+                        <span className="text-lg font-bold text-slate-800">₹{referralData?.coins ?? 0}</span>
+                    </div>
+
+                    {hasPendingWithdrawal && (
+                        <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl mb-3">
+                            <Clock size={14} className="text-amber-600" />
+                            <p className="text-xs text-amber-700 font-medium">Pending withdrawal request — processing within 24 hours.</p>
+                        </div>
+                    )}
+
+                    {withdrawMsg.text && (
+                        <div className={`p-3 rounded-xl mb-3 text-xs font-medium ${withdrawMsg.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-600'}`}>
+                            {withdrawMsg.text}
+                        </div>
+                    )}
+                    <div className="mb-3">
+    <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+        UPI ID <span className="text-red-400">*</span>
+    </label>
+    <input
+        type="text"
+        value={upiId}
+        disabled={withdrawing || (referralData?.coins ?? 0) < 50 || hasPendingWithdrawal}
+        onChange={e => setUpiId(e.target.value)}
+        placeholder="yourname@upi / yourname@okaxis"
+        className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <p className="text-xs text-slate-400 mt-1">Payment will be sent to this UPI ID within 24 hours</p>
+</div>
+
+                    <button
+                        onClick={handleWithdraw}
+                        disabled={withdrawing || (referralData?.coins ?? 0) < 50 || hasPendingWithdrawal}
+                        className="w-full flex items-center justify-center gap-2 py-3 bg-slate-800 text-white font-semibold rounded-xl hover:bg-slate-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-sm"
+                    >
+                        <ArrowDownToLine size={16} />
+                        {withdrawing ? 'Submitting...' : `Withdraw ₹${referralData?.coins ?? 0}`}
+                    </button>
+                    {(referralData?.coins ?? 0) < 50 && !hasPendingWithdrawal && (
+                        <p className="text-xs text-slate-400 text-center mt-2">{50 - (referralData?.coins ?? 0)} more coins needed to withdraw</p>
+                    )}
+                </div>
+
+                {/* Withdrawal History */}
+{referralData?.withdrawalRequests?.length > 0 && (
+    <div className="border border-slate-200 rounded-xl p-4">
+        <h4 className="font-bold text-slate-900 mb-3">Withdrawal History</h4>
+        <div className="space-y-2">
+            {referralData.withdrawalRequests.map((r, i) => (
+                <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                        {r.status === 'approved' && <CheckCircle2 size={15} className="text-green-500" />}
+                        {r.status === 'pending'  && <Clock size={15} className="text-amber-500" />}
+                        {r.status === 'rejected' && <XCircle size={15} className="text-red-400" />}
+                        <div>
+                            <p className="text-sm font-semibold text-slate-700">₹{r.amount}</p>
+                            <p className="text-xs text-slate-400">UPI: {r.upiId}</p>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                            r.status === 'approved' ? 'bg-green-100 text-green-700' :
+                            r.status === 'pending'  ? 'bg-amber-100 text-amber-700' :
+                                                       'bg-red-100 text-red-600'
+                        }`}>
+                            {r.status === 'approved' ? '✓ Paid' :
+                             r.status === 'pending'  ? '⏳ Processing' : '✗ Rejected'}
+                        </span>
+                        <p className="text-xs text-slate-400 mt-1">
+                            {new Date(r.requestedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </p>
+                        {r.adminNote && (
+                            <p className="text-xs text-slate-400 mt-0.5">Note: {r.adminNote}</p>
+                        )}
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+)}
+
+                {/* Earning History */}
+                {referralData?.referralHistory?.length > 0 && (
+                    <div className="border border-slate-200 rounded-xl p-4">
+                        <h4 className="font-bold text-slate-900 mb-3">Earning History</h4>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="text-xs text-slate-400 uppercase border-b border-slate-100">
+                                        <th className="text-left pb-2 font-semibold">Friend</th>
+                                        <th className="text-left pb-2 font-semibold">Plan</th>
+                                        <th className="text-right pb-2 font-semibold">Coins</th>
+                                        <th className="text-right pb-2 font-semibold">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {referralData.referralHistory.map((item, i) => (
+                                        <tr key={i}>
+                                            <td className="py-2.5 text-slate-700 font-medium">
+                                                {item.isBonus ? <span className="text-purple-600">🎁 Milestone Bonus</span> : item.referredUserName || 'Friend'}
+                                            </td>
+                                            <td className="py-2.5 text-slate-500 text-xs">{item.planName}</td>
+                                            <td className="py-2.5 text-right font-bold text-green-600">+{item.coinsEarned}</td>
+                                            <td className="py-2.5 text-right text-xs text-slate-400">
+                                                {new Date(item.earnedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* How It Works */}
+                <div className="pt-5 sm:pt-6 border-t border-slate-200">
+                    <h4 className="font-bold text-slate-900 mb-4">How it Works</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {[
+                            { step: 1, title: 'Share Link', desc: 'Send your referral link to friends.' },
+                            { step: 2, title: 'Friend Joins', desc: 'Your friend signs up and makes their first purchase.' },
+                            { step: 3, title: 'Earn Coins', desc: 'Coins are credited to your account instantly.' }
+                        ].map(s => (
+                            <div key={s.step} className="bg-slate-50 rounded-xl p-4">
+                                <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">{s.step}</div>
+                                <h5 className="font-semibold text-slate-900 mb-1">{s.title}</h5>
+                                <p className="text-sm text-slate-600">{s.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Terms */}
+                <div className="text-xs text-slate-400 space-y-1 pt-2 border-t border-slate-100">
+                    <p className="font-semibold text-slate-500">Terms & Conditions</p>
+                    <p>• Reward applicable only after successful payment and service completion.</p>
+                    <p>• Self-referrals are not allowed. First purchase only.</p>
+                    <p>• Cancelled or refunded orders do not qualify.</p>
+                    <p>• Powerfiling reserves the right to modify this program at any time.</p>
+                </div>
+            </div>
+        </div>
+    );
+};
 
   const renderOrders = () => (
     <div className="bg-white rounded-2xl shadow-lg p-8">

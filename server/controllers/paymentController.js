@@ -6,6 +6,7 @@ import ITRForm from '../models/ITRForm.js';
 import AppError from '../utils/AppError.js';
 import sendEmail from '../utils/sendEmail.js';
 import { getInvoiceTemplate } from '../utils/emailTemplates.js';
+import { creditReferralCoins } from './referralController.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -50,12 +51,12 @@ export const createPaymentIntent = asyncHandler(async (req, res, next) => {
 // @route     POST /api/v1/payments/confirm
 // @access    Private
 export const confirmPayment = asyncHandler(async (req, res, next) => {
-    const { paymentIntentId, planId } = req.body;
+    const { paymentIntentId, planId, referralCode } = req.body;
 
     if (!paymentIntentId) {
         return next(new AppError('Payment Intent ID is required', 400));
     }
-
+    
     // --- TEMPORARY MOCK BYPASS FOR TESTING ---
     // Only allow mock payments if NOT in production
     if (process.env.NODE_ENV !== 'production' && paymentIntentId && paymentIntentId.startsWith('mock_')) {
@@ -72,6 +73,8 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
             return next(new AppError('Plan ID is required for mock payment', 400));
         }
 
+        const plan = await Plan.findById(planId);
+
         const purchase = await Purchase.create({
             userId: req.user.id,
             planId: planId,
@@ -85,9 +88,30 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
         req.user.purchasedPlans.push(purchase._id);
         await req.user.save();
 
+               // ── REFERRAL: Apply code if passed and not yet set ────────────────
+        if (referralCode && !req.user.referredBy && !req.user.referralRewardCredited) {
+            try {
+                const decodedId = Buffer.from(referralCode, 'base64').toString('utf-8');
+                if (/^[a-f\d]{24}$/i.test(decodedId) && decodedId !== req.user.id.toString()) {
+                    const buyer = await User.findById(req.user.id);
+                    buyer.referredBy = decodedId;
+                    await buyer.save({ validateBeforeSave: false });
+                }
+            } catch (e) {
+                console.warn('[Referral] Could not apply referral code at checkout:', e);
+            }
+        }
+        // Credit coins to referrer (mock)
+        await creditReferralCoins({
+            buyerUserId: req.user.id,
+            planName: plan?.name || ''
+        });
+        // ─────────────────────────────────────────────────────────────────
+ 
+
         // Send confirmation email (Mock)
         try {
-            const plan = await Plan.findById(planId);
+            
             if (plan) {
                 await sendEmail({
                     email: req.user.email,
@@ -141,15 +165,35 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
             req.user.purchasedPlans.push(purchase._id);
             await req.user.save();
 
+            // ── REFERRAL: Apply code if passed at checkout ────────────────
+            if (referralCode && !req.user.referredBy && !req.user.referralRewardCredited) {
+                try {
+                    const decodedId = Buffer.from(referralCode, 'base64').toString('utf-8');
+                    if (/^[a-f\d]{24}$/i.test(decodedId) && decodedId !== req.user.id.toString()) {
+                        const buyer = await User.findById(req.user.id);
+                        buyer.referredBy = decodedId;
+                        await buyer.save({ validateBeforeSave: false });
+                    }
+                } catch (e) {
+                    console.warn('[Referral] Could not apply referral code at checkout:', e);
+                }
+            }
+            // Credit coins to referrer
+            await creditReferralCoins({
+                buyerUserId: req.user.id,
+                planName: plan?.name || ''
+            });
+            // ─────────────────────────────────────────────────────────────
+
             // Send confirmation email
             try {
-                const plan = await Plan.findById(purchase.planId);
-                if (plan) {
+                const planForEmail = await Plan.findById(purchase.planId);
+                if (planForEmail) {
                     await sendEmail({
                         email: req.user.email,
                         subject: 'Payment Successful - Powerfiling Receipt',
-                        message: `You have successfully purchased ${plan.name}. Transaction ID: ${paymentIntentId}`,
-                        html: getInvoiceTemplate(req.user, purchase, plan)
+                        message: `You have successfully purchased ${planForEmail.name}. Transaction ID: ${paymentIntentId}`,
+                        html: getInvoiceTemplate(req.user, purchase, planForEmail)
                     });
                 }
             } catch (err) {

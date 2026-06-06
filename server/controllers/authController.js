@@ -10,14 +10,37 @@ import admin from 'firebase-admin';
 // @route     POST /api/v1/auth/register
 // @access    Public
 export const register = asyncHandler(async (req, res, next) => {
-    const { name, email, password, mobile, role } = req.body;
-
+    const { name, email, password, mobile, role, referralCode } = req.body;
+ 
     // Check if user exists
     let user = await User.findOne({ email });
     if (user) {
         return next(new ErrorResponse('Email already registered', 400));
     }
-
+ 
+    // ── Validate referral code before creating user ──────────────────────────
+    let referredByUserId = null;
+ 
+    if (referralCode) {
+        try {
+            const decodedId = Buffer.from(referralCode, 'base64').toString('utf-8');
+ 
+            // Basic ObjectId format check
+            if (/^[a-f\d]{24}$/i.test(decodedId)) {
+                const referrer = await User.findById(decodedId).select('_id');
+ 
+                // Referrer must exist and not be the registering email
+                if (referrer) {
+                    referredByUserId = referrer._id;
+                }
+            }
+        } catch (err) {
+            // Invalid code — silently ignore, don't block registration
+            console.warn('[Referral] Invalid referral code during register:', referralCode);
+        }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+ 
     // Create user
     user = await User.create({
         name,
@@ -26,24 +49,22 @@ export const register = asyncHandler(async (req, res, next) => {
         mobile,
         role,
         isEmailVerified: role === 'admin' || role === 'ca',
-        isMobileVerified: role === 'admin' || role === 'ca'
+        isMobileVerified: role === 'admin' || role === 'ca',
+        // ── referral ──
+        referredBy: referredByUserId
     });
-
+ 
     if (user.role === 'user') {
         // Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         user.otp = otp;
-        user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+        user.otpExpires = Date.now() + 10 * 60 * 1000;
         await user.save({ validateBeforeSave: false });
-
-        // Send Verify Email
-        const message = `Your verification code is: ${otp}\n\nThis code expires in 10 minutes.`;
-
-        // Log OTP for Development (in case email fails)
+ 
         if (process.env.NODE_ENV !== 'production') {
             console.log(`OTP sent to ${user.email}: ${otp}`);
         }
-
+ 
         try {
             await sendEmail({
                 email: user.email,
@@ -54,7 +75,7 @@ export const register = asyncHandler(async (req, res, next) => {
         } catch (err) {
             console.error(err);
         }
-
+ 
         return res.status(200).json({
             success: true,
             requireVerification: true,
@@ -62,7 +83,7 @@ export const register = asyncHandler(async (req, res, next) => {
             message: 'Registration successful. Please check your email for verification code.'
         });
     }
-
+ 
     res.status(200).json({
         success: true,
         requireVerification: false,
