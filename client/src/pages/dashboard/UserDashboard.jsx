@@ -6,6 +6,8 @@ import {
   LogOut,
   HelpCircle,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Mail,
   Phone,
   Edit2,
@@ -37,6 +39,7 @@ const UserDashboard = () => {
   const [upiId, setUpiId] = useState('');
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawMsg, setWithdrawMsg] = useState({ text: '', type: '' });
+  const [showRewardTable, setShowRewardTable] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -468,6 +471,73 @@ const UserDashboard = () => {
                         ))}
                     </div>
                 </div>
+
+{/* Reward Table - Collapsible */}
+<div className="border border-slate-200 rounded-xl overflow-hidden">
+    <button
+        onClick={() => setShowRewardTable(!showRewardTable)}
+        className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+    >
+        <div className="flex items-center gap-2">
+            <h4 className="font-bold text-slate-900">Reward Structure</h4>
+            <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-semibold">16 plans</span>
+        </div>
+        {showRewardTable
+            ? <ChevronUp size={18} className="text-slate-400" />
+            : <ChevronDown size={18} className="text-slate-400" />
+        }
+    </button>
+
+    {showRewardTable && (
+        <div className="px-4 pb-4 border-t border-slate-100">
+            <p className="text-xs text-slate-400 my-3">Coins earned when your friend makes their first purchase:</p>
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead>
+                        <tr className="bg-slate-50 text-xs text-slate-500 uppercase">
+                            <th className="text-left px-3 py-2 rounded-l-lg font-semibold">Service</th>
+                            <th className="text-right px-3 py-2 rounded-r-lg font-semibold">You Earn</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                        {[
+                            { service: 'Salary ITR (Basic)',       amount: 50   },
+                            { service: 'Salary ITR (Premium)',     amount: 100  },
+                            { service: 'Capital Gain',             amount: 200  },
+                            { service: 'Foreign / NRI Income',     amount: 300  },
+                            { service: 'F&O Trading',              amount: 300  },
+                            { service: 'Crypto Trading',           amount: 300  },
+                            { service: 'Business & Profession',    amount: 200  },
+                            { service: 'House Property',           amount: 100  },
+                            { service: 'GST Registration',         amount: 200  },
+                            { service: 'GST Filing',               amount: 100  },
+                            { service: 'HUF Filing',               amount: 150  },
+                            { service: 'HUF Registration',         amount: 200  },
+                            { service: 'LLP Registration',         amount: 500  },
+                            { service: 'Company Registration',     amount: 1000 },
+                            { service: 'TDS Filing',               amount: 150  },
+                            { service: 'PF & ESIC',                amount: 150  },
+                        ].map((row, i) => (
+                            <tr key={i} className="hover:bg-slate-50 transition-colors">
+                                <td className="px-3 py-2.5 text-slate-700">{row.service}</td>
+                                <td className="px-3 py-2.5 text-right">
+                                    <span className={`font-bold ${
+                                        row.amount >= 500 ? 'text-green-600' :
+                                        row.amount >= 200 ? 'text-blue-600' :
+                                                            'text-slate-600'
+                                    }`}>
+                                        +{row.amount} coins
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <p className="text-xs text-slate-400 mt-3">1 coin = ₹1 · Minimum withdrawal: 50 coins</p>
+        </div>
+    )}
+</div>
 
                 {/* Terms */}
                 <div className="text-xs text-slate-400 space-y-1 pt-2 border-t border-slate-100">
