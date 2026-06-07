@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getReferralCode, clearReferralCode } from '../../utils/referral/referral';
 import api from '../../api/axios';
+import { useEffect } from 'react';
 
 export default function CheckoutForm({ serviceId, planId, planName }) {
     const stripe = useStripe();
@@ -26,22 +27,14 @@ export default function CheckoutForm({ serviceId, planId, planName }) {
     setReferralValidating(true);
     setReferralMsg({ text: '', type: '' });
     try {
-        const res = await fetch('/api/v1/referral/validate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // use your auth token from context
-            },
-            body: JSON.stringify({ referralCode })
-        });
-        const data = await res.json();
+        const { data } = await api.post('/referral/validate', { referralCode }); // ← use api
         if (data.success) {
             setReferralMsg({ text: data.message, type: 'success' });
         } else {
             setReferralMsg({ text: data.error || 'Invalid referral code', type: 'error' });
         }
-    } catch {
-        setReferralMsg({ text: 'Could not validate code. Try again.', type: 'error' });
+    } catch (err) {
+        setReferralMsg({ text: err.response?.data?.error || 'Could not validate code.', type: 'error' });
     } finally {
         setReferralValidating(false);
     }
@@ -85,6 +78,7 @@ export default function CheckoutForm({ serviceId, planId, planName }) {
                 if (data.success && data.purchaseId) {
                     // Navigate to Payment Success Page instead of directly form
                     // Use replace: true so the user can't go back to the payment form
+                    clearReferralCode();
                     navigate('/payment-success', {
                         replace: true,
                         state: {
@@ -116,56 +110,22 @@ export default function CheckoutForm({ serviceId, planId, planName }) {
     };
 
     const ReferralCouponBox = () => (
-    <div className="mt-4">
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-            Referral / Coupon Code <span className="text-slate-400 font-normal normal-case">(optional)</span>
-        </label>
-        <div className="flex gap-2">
-            <input
-                type="text"
-                value={referralCode}
-                onChange={(e) => {
-                    setReferralCode(e.target.value);
-                    setReferralMsg({ text: '', type: '' });
-                }}
-                placeholder="Enter referral code"
-                className={`flex-1 px-4 py-2.5 bg-slate-50 border rounded-xl text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:bg-white ${
-                    referralMsg.type === 'success'
-                        ? 'border-green-400 bg-green-50'
-                        : referralMsg.type === 'error'
-                        ? 'border-red-300'
-                        : 'border-slate-200'
-                }`}
-            />
-            <button
-                type="button"
-                onClick={handleValidateReferral}
-                disabled={referralValidating || !referralCode.trim()}
-                className="px-4 py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-all disabled:opacity-50 whitespace-nowrap"
-            >
-                {referralValidating ? 'Checking...' : 'Apply'}
-            </button>
+    referralCode ? (
+        <div className="mt-4 flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-300 rounded-xl">
+            <span className="text-green-600 font-bold text-sm">✓ Referral Code Applied</span>
         </div>
-        {referralMsg.text && (
-            <p className={`text-xs mt-1.5 ml-1 font-medium ${
-                referralMsg.type === 'success' ? 'text-green-600' : 'text-red-500'
-            }`}>
-                {referralMsg.type === 'success' ? '✓ ' : '✗ '}{referralMsg.text}
-            </p>
-        )}
-        <p className="text-xs text-slate-400 mt-1 ml-1">Referral rewards are credited to your referrer after payment.</p>
-    </div>
+    ) : null
 );
 
     return (
         <form id="payment-form" onSubmit={handleSubmit} className="mt-6 space-y-6">
             <PaymentElement id="payment-element" options={paymentElementOptions} />
+            <ReferralCouponBox/>
             <button
                 disabled={isLoading || !stripe || !elements}
                 id="submit"
                 className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-75 disabled:cursor-not-allowed transition-colors"
             >
-            <ReferralCouponBox/>
                 <span id="button-text">
                     {isLoading ? <div className="spinner" id="spinner">Processing...</div> : "Pay Now & Continue"}
                 </span>

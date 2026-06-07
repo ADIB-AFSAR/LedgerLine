@@ -3,26 +3,29 @@ import { useAuth } from '../../context/AuthContext';
 import { User, Mail, Phone, Loader2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { captureReferralFromURL, getReferralCode } from '../../utils/referral/referral';
+import { useEffect } from 'react';
 
 const SignupForm = ({ onSwitchToLogin }) => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [referrerApplied, setReferrerApplied] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    mobile: ''
+    mobile: '',
+    referralCode: ''
   });
 
-  // useEffect(() => {
-  //       captureReferralFromURL();
-  //       const code = getReferralCode();
-  //       if (code) {
-  //           setFormData(prev => ({ ...prev, referralCode: code }));
-  //           setReferrerApplied(true);
-  //       }
-  //   }, []);
+  useEffect(() => {
+        captureReferralFromURL();
+        const code = getReferralCode();
+        if (code) {
+            setFormData(prev => ({ ...prev, referralCode: code }));
+            setReferrerApplied(true);
+        }
+    }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -114,7 +117,7 @@ const SignupForm = ({ onSwitchToLogin }) => {
             </div>
           </div>
 
-          {/* Referral Code (optional)
+          {/* Referral Code (optional) */}
                     <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
                             Referral Code <span className="text-slate-400 font-normal normal-case">(optional)</span>
@@ -141,7 +144,7 @@ const SignupForm = ({ onSwitchToLogin }) => {
                         {referrerApplied && (
                             <p className="text-xs text-green-600 mt-1 ml-1">Referral code auto-applied from your invite link.</p>
                         )}
-                    </div> */}
+                    </div>
         </div>
 
         
