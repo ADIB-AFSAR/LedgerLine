@@ -27,6 +27,16 @@ const Sign_up = () => {
   const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
+
+     const { name, value } = e.target;
+
+  if (name === "mobile") {
+    setFormData((prev) => ({
+      ...prev,
+      mobile: value.replace(/\D/g, "").slice(0, 10),
+    }));
+    return;
+  }
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -106,6 +116,9 @@ const Sign_up = () => {
                   onChange={handleInputChange}
                   placeholder="Enter your mobile number"
                   required
+                  inputMode="numeric"
+                  pattern="[0-9]{10}"
+                  maxLength={10}
                   className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                 />
               </div>
