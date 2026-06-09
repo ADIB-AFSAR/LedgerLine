@@ -124,10 +124,10 @@ const UserDashboard = () => {
         <h2 className="text-2xl font-bold text-slate-900">
           Profile Information
         </h2>
-        <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold">
+        {/* <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold">
           <Edit2 size={18} />
           Edit Profile
-        </button>
+        </button> */}
       </div>
 
       <div className="space-y-6">
