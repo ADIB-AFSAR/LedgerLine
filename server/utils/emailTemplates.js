@@ -59,10 +59,78 @@ export const getInvoiceTemplate = (user, purchase, plan) => {
                                 <td align="right" style="padding: 10px 0; color: #1e293b; font-size: 14px; font-weight: 600;">${new Date(purchase.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 16px 0 0; color: #2563eb; font-size: 18px; font-weight: 800; border-top: 2px solid #cbd5e1;">Amount Paid</td>
-                                <td align="right" style="padding: 16px 0 0; color: #2563eb; font-size: 18px; font-weight: 800; border-top: 2px solid #cbd5e1;">₹${plan.price}.00</td>
+                                <td style="padding: 10px 0; color: #64748b; font-size: 14px; font-weight: 500;">Plan Price</td>
+                                <td align="right" style="padding: 10px 0; color: #1e293b; font-size: 14px; font-weight: 600;">
+                                    ₹${purchase.planPrice?.toFixed(2) || plan.price.toFixed(2)}
+                                </td>
+                            </tr>
+
+                            ${purchase.coinDiscountApplied > 0 ? `
+                            <tr>
+                                <td style="padding: 10px 0; color: #059669; font-size: 14px; font-weight: 600;">
+                                    Coin Discount
+                                </td>
+                                <td align="right" style="padding: 10px 0; color: #059669; font-size: 14px; font-weight: 700;">
+                                    -₹${purchase.coinDiscountApplied.toFixed(2)}
+                                </td>
+                            </tr>
+
+                            ${purchase.referralCoinsUsed > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0 10px 20px; color: #64748b; font-size: 12px;">
+                                    Referral Coins Used
+                                </td>
+                                <td align="right" style="padding: 4px 0 10px; color: #64748b; font-size: 12px;">
+                                    ${purchase.referralCoinsUsed} coins
+                                </td>
+                            </tr>
+                            ` : ''}
+
+                            ${purchase.cashbackCoinsUsed > 0 ? `
+                            <tr>
+                                <td style="padding: 4px 0 10px 20px; color: #64748b; font-size: 12px;">
+                                    Cashback Coins Used
+                                </td>
+                                <td align="right" style="padding: 4px 0 10px; color: #64748b; font-size: 12px;">
+                                    ${purchase.cashbackCoinsUsed} coins
+                                </td>
+                            </tr>
+                            ` : ''}
+                            ` : ''}
+                            ${purchase.couponCode ? `
+                            <tr>
+                                <td style="padding: 10px 0; color: #7c3aed; font-size: 14px; font-weight: 600;">
+                                    Coupon Discount
+                                </td>
+                                <td align="right" style="padding: 10px 0; color: #7c3aed; font-size: 14px; font-weight: 700;">
+                                    -₹${purchase.couponDiscount?.toFixed(2) || '0.00'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0 10px 20px; color: #64748b; font-size: 12px;">
+                                    Coupon Code
+                                </td>
+                                <td align="right" style="padding: 4px 0 10px; color: #64748b; font-size: 12px; font-family: monospace; font-weight: 600;">
+                                    ${purchase.couponCode}
+                                </td>
+                            </tr>
+                            ` : ''}
+                            <tr>
+                                <td style="padding: 16px 0 0; color: #2563eb; font-size: 18px; font-weight: 800; border-top: 2px solid #cbd5e1;">
+                                    Amount Paid
+                                </td>
+                                <td align="right" style="padding: 16px 0 0; color: #2563eb; font-size: 18px; font-weight: 800; border-top: 2px solid #cbd5e1;">
+                                    ₹${(purchase.finalAmountPaid ?? purchase.planPrice ?? plan.price).toFixed(2)}
+                                </td>
                             </tr>
                         </table>
+                        ${purchase.coinDiscountApplied > 0 ? `
+                        <div style="margin-top:16px;padding:12px;background:#ecfdf5;border:1px solid #bbf7d0;border-radius:8px;">
+                            <p style="margin:0;color:#059669;font-weight:700;">
+                                🎉 You saved ₹${purchase.coinDiscountApplied.toFixed(2)} using Powerfiling Coins.
+                            </p>
+                        </div>
+                        ` : ''}
                     </div>
 
                     <div class="cta">

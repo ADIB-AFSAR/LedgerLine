@@ -4,7 +4,10 @@ import jwt from 'jsonwebtoken';
 
 const withdrawalRequestSchema = new mongoose.Schema({
     requestedAt: { type: Date, default: Date.now },
-    coinsRedeemed: { type: Number, required: true },
+    coinsRedeemed: { type: Number,
+        //  required: true ,
+        default : 0,
+        },
     upiId: { type: String },
     amount: { type: Number, required: true },
     status: {
@@ -15,6 +18,7 @@ const withdrawalRequestSchema = new mongoose.Schema({
     processedAt: { type: Date },
     adminNote: { type: String }
 });
+
  
 const referralHistorySchema = new mongoose.Schema({
     referredUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -125,11 +129,20 @@ const userSchema = new mongoose.Schema({
     referralTier: {
         // Unlocked at 25 referrals
         type: String,
-        enum: ['standard', 'premium_partner'],
+        enum: ['standard', 'silver', 'gold', 'partner'],
         default: 'standard'
     },
+    cashbackCoins: {
+    type: Number,
+    default: 0
+},
+    cashbackCoinsExpiresAt: { 
+    type: Date, 
+    default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) }
+,
     referralHistory: [referralHistorySchema],
-    withdrawalRequests: [withdrawalRequestSchema]
+    withdrawalRequests: [withdrawalRequestSchema],
+    
 });
 
 // Encrypt password using bcrypt

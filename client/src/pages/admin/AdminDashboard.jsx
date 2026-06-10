@@ -22,6 +22,7 @@ import {
     SearchIcon,
     ArrowUpRight,
     ArrowDownToLine,
+    Tag,
     Shield,
     Briefcase,
     UserPlus,
@@ -33,6 +34,7 @@ import { useAuth } from '../../context/AuthContext';
 import OrderDetails from '../dashboard/OrderDetails';
 import api from '../../api/axios';
 import WithdrawalPanel from './WithdrawalPanel';
+import CouponPanel from './CouponPanel';
 
 const AdminDashboard = () => {
     const { logout, user } = useAuth();
@@ -73,6 +75,7 @@ const AdminDashboard = () => {
         { id: 'orders', label: 'Orders', icon: ShoppingBag, adminOnly: true },
         { id: 'filings', label: 'Filings', icon: FileText },
         { id: 'withdrawals', label: 'Withdrawals', icon: ArrowDownToLine, adminOnly: true },
+        { id: 'coupons', label: 'Coupons', icon: Tag, adminOnly: true }
     ].filter(item => {
         if (user?.role === 'ca') {
             return item.id === 'filings';
@@ -841,6 +844,7 @@ const AdminDashboard = () => {
             case 'orders': return renderOrders();
             case 'filings': return renderFilings();
             case 'withdrawals': return <WithdrawalPanel />;
+            case 'coupons': return <CouponPanel />;
             case 'documents':
                 return <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center"><p className="text-zinc-500 font-medium">Document Archive coming soon...</p></div>;
             case 'settings':

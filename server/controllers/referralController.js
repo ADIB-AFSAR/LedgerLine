@@ -177,11 +177,21 @@ export const creditReferralCoins = async ({ buyerUserId, planName }) => {
 // @route   GET /api/v1/referral/me
 // @access  Private
 export const getMyReferral = asyncHandler(async (req, res, next) => {
+    
     if (!req.user) {
         return next(new AppError('Not authorized', 401));
     }
     const user = await User.findById(req.user._id || req.user.id)
-        .select('coins totalReferrals referralTier referralHistory withdrawalRequests name email');
+        .select('coins cashbackCoinsExpiresAt cashbackCoins totalReferrals referralTier referralHistory withdrawalRequests name email');
+    
+        console.log("Logged in user:", req.user.id);
+console.log("Expiry:", user.cashbackCoinsExpiresAt);
+     // ── Auto-expire cashback coins ─────────────────────────────
+    if (user.cashbackCoins > 0 && user.cashbackCoinsExpiresAt && user.cashbackCoinsExpiresAt < new Date()) {
+        user.cashbackCoins = 0;
+        user.cashbackCoinsExpiresAt = null;
+        await user.save({ validateBeforeSave: false });
+    }
 
     const referralLink = `${process.env.CLIENT_URL}?ref=${Buffer.from(user._id.toString()).toString('base64')}`;
 
@@ -189,6 +199,9 @@ export const getMyReferral = asyncHandler(async (req, res, next) => {
         success: true,
         data: {
             coins: user.coins,
+            cashbackCoins: user.cashbackCoins,
+            cashbackCoinsExpiresAt: user.cashbackCoinsExpiresAt,
+            totalCoins: user.coins + user.cashbackCoins,
             totalReferrals: user.totalReferrals,
             referralTier: user.referralTier,
             referralLink,
@@ -482,3 +495,94 @@ export const applyReferralCode = asyncHandler(async (req, res, next) => {
         message: `Referral code applied! You were referred by ${referrer.name}.`
     });
 });
+
+export const creditCashbackCoins = async ({ buyerUserId, planName }) => {
+    try {
+        const reward = getPlanReward(planName);
+        if (!reward) return;
+
+        await User.findByIdAndUpdate(buyerUserId, {
+            $inc: { cashbackCoins: reward },
+            $set: { cashbackCoinsExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) }
+
+        });
+
+        console.log(`[Cashback] Credited ${reward} cashback coins to ${buyerUserId} for ${planName}`);
+    } catch (err) {
+        console.error('[Cashback] creditCashbackCoins error:', err);
+    }
+};
+
+export const applyDiscountCoins = asyncHandler(async (req, res, next) => {
+    const { planId, coinsToUse, coinType } = req.body;
+    // coinType: 'referral' | 'cashback' | 'both'
+
+    const plan = await Plan.findById(planId);
+    if (!plan) return next(new AppError('Plan not found', 404));
+
+    const user = await User.findById(req.user.id);
+
+    if (user.cashbackCoinsExpiresAt && user.cashbackCoinsExpiresAt < new Date()) {
+    // Expired — reset cashback coins
+    await User.findByIdAndUpdate(userId, { cashbackCoins: 0 });
+    return next(new AppError('Your cashback coins have expired', 400));
+}
+
+    // Calculate max discount (50% of plan price)
+    const maxDiscount = Math.floor(plan.price * 0.5);
+    const maxCoinsUsable = Math.min(coinsToUse, maxDiscount);
+
+    // Check available coins based on type
+    const availableCoins = coinType === 'cashback'
+        ? user.cashbackCoins
+        : coinType === 'referral'
+        ? user.coins
+        : user.coins + user.cashbackCoins; // both
+
+    if (coinsToUse > availableCoins) {
+        return next(new AppError(`You only have ${availableCoins} coins available`, 400));
+    }
+
+    const finalPrice = plan.price - maxCoinsUsable;
+
+    res.status(200).json({
+        success: true,
+        data: {
+            originalPrice: plan.price,
+            coinsApplied: maxCoinsUsable,
+            discount: maxCoinsUsable,
+            finalPrice,
+            maxCoinsUsable,
+            availableCoins
+        }
+    });
+});
+
+export const deductCoins = async ({ userId, coinsUsed, coinType, referralCoinsUsed, cashbackCoinsUsed }) => {
+    try {
+        if (coinType === 'separate') {
+            // Deduct each type separately
+            const update = {};
+            if (referralCoinsUsed > 0) update.coins = -referralCoinsUsed;
+            if (cashbackCoinsUsed > 0) update.cashbackCoins = -cashbackCoinsUsed;
+            if (Object.keys(update).length > 0) {
+                await User.findByIdAndUpdate(userId, { $inc: update });
+            }
+        } else if (coinType === 'both') {
+            const user = await User.findById(userId);
+            let remaining = coinsUsed;
+            const fromReferral = Math.min(user.coins, remaining);
+            remaining -= fromReferral;
+            const fromCashback = Math.min(user.cashbackCoins, remaining);
+            await User.findByIdAndUpdate(userId, {
+                $inc: { coins: -fromReferral, cashbackCoins: -fromCashback }
+            });
+        } else if (coinType === 'referral') {
+            await User.findByIdAndUpdate(userId, { $inc: { coins: -coinsUsed } });
+        } else {
+            await User.findByIdAndUpdate(userId, { $inc: { cashbackCoins: -coinsUsed } });
+        }
+    } catch (err) {
+        console.error('[Coins] deductCoins error:', err);
+    }
+};

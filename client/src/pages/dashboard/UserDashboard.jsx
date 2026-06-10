@@ -45,7 +45,6 @@ const UserDashboard = () => {
     logout();
     navigate("/");
   };
-
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
@@ -78,7 +77,7 @@ const UserDashboard = () => {
     try {
         setReferralLoading(true);
         const { data } = await api.get(`/referral/me`);
-        // console.log('[Referral] response:', data);
+        console.log('[Referral] response:', data);
         if (data.success) setReferralData(data.data);
     } catch (err) {
         console.error('[Referral] fetch error:', err.response?.data || err.message);
@@ -104,7 +103,7 @@ const UserDashboard = () => {
   const menuItems = [
     { id: "profile", label: "Profile", icon: User },
     { id: "orders", label: "My Orders", icon: ShoppingBag },
-    { id: "Refer", label: "Refer a Friend", icon: Handshake },
+    { id: "Refer", label: "Refer & Cashbacks", icon: Handshake },
     { id: "help", label: "Need Help", icon: HelpCircle },
     { id: "logout", label: "Log Out", icon: LogOut },
   ];
@@ -187,6 +186,7 @@ const UserDashboard = () => {
       </div>
     </div>
   );
+ console.log('[UserDashboard] referralData:', referralData);
 
   const renderRefer = () => {
     const hasPendingWithdrawal = referralData?.withdrawalRequests?.some(r => r.status === 'pending');
@@ -241,12 +241,56 @@ const UserDashboard = () => {
                     <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Refer a Friend</h2>
                     <p className="text-sm sm:text-base text-slate-600 mt-1">Invite friends and earn coins · 1 coin = ₹1</p>
                 </div>
-                <div className="self-start sm:self-auto bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2">
-                    <Coins size={16} />
-                    {referralData?.coins ?? 0} Coins
-                </div>
+                <div className="self-start sm:self-auto flex items-center gap-2 flex-wrap">
+                <div className="flex flex-wrap gap-3 items-stretch">
+    <div className="bg-blue-100 text-blue-700 px-4 py-2 min-h-[64px] rounded-xl font-bold text-sm flex items-center gap-2">
+        <Coins size={16} />
+        {referralData?.coins ?? 0} Referral
+    </div>
+    {/* Cashback coins badge */}
+{(referralData?.cashbackCoins ?? 0) > 0 && (
+    <div className="bg-green-100 min-h-[64px] text-green-700 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2">
+        <Coins size={16} />
+        <div>
+            <p>{referralData.cashbackCoins} Cashback</p>
+            {referralData.cashbackCoinsExpiresAt && (
+                <p className="text-xs font-normal text-green-600">
+                    Expires {new Date(referralData.cashbackCoinsExpiresAt).toLocaleDateString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    })}
+                </p>
+            )}
+        </div>
+    </div>
+)}
+    <div className={`px-4 py-2 flex items-center min-h-[64px] rounded-xl font-bold text-m ${
+        referralData?.referralTier === 'partner' ? 'bg-purple-100 text-purple-700' :
+        referralData?.referralTier === 'gold'    ? 'bg-yellow-100 text-yellow-700' :
+        referralData?.referralTier === 'silver'  ? 'bg-gray-200 text-gray-700' :
+                                                   'bg-slate-100 text-slate-600'
+    }`}>
+        {referralData?.referralTier === 'partner' ? '💎 Premium Partner' :
+         referralData?.referralTier === 'gold'    ? '🥇 Gold' :
+         referralData?.referralTier === 'silver'  ? '🥈 Silver' : '⭐ Standard'}
+    </div>
+    </div>
+</div>
             </div>
-
+          {/* Cashback expiry warning */}
+          {referralData?.cashbackCoins > 0 && referralData?.cashbackCoinsExpiresAt && 
+          new Date(referralData.cashbackCoinsExpiresAt) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && (
+              <div className="flex items-center gap-2 p-3 mb-2 bg-amber-50 border border-amber-200 rounded-xl">
+                  <span>⚠️</span>
+                  <p className="text-xs text-amber-700 font-medium">
+                      Your <strong>{referralData.cashbackCoins} cashback coins</strong> expire on{' '}
+                      <strong>{new Date(referralData.cashbackCoinsExpiresAt).toLocaleDateString('en-IN', {
+                          day: '2-digit', month: 'short', year: 'numeric'
+                      })}</strong>. Use them before they're gone!
+                  </p>
+              </div>
+          )}
             <div className="space-y-5 sm:space-y-6">
                 {/* Referral Card */}
                 <div className="bg-blue-600 rounded-2xl p-4 sm:p-6 text-white shadow-lg shadow-blue-500/10">
@@ -271,34 +315,39 @@ const UserDashboard = () => {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                        <p className="text-sm text-slate-500 mb-1">Total Referrals</p>
-                        <h4 className="text-xl sm:text-2xl font-bold text-slate-900">{referralData?.totalReferrals ?? 0}</h4>
-                    </div>
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                        <p className="text-sm text-slate-500 mb-1">Coins Earned</p>
-                        <h4 className="text-xl sm:text-2xl font-bold text-blue-600">{referralData?.coins ?? 0}</h4>
-                    </div>
-                    <div className={`rounded-xl p-4 border ${
-                        referralData?.referralTier === 'partner' ? 'bg-purple-50 border-purple-200' :
-                        referralData?.referralTier === 'gold'    ? 'bg-yellow-50 border-yellow-200' :
-                        referralData?.referralTier === 'silver'  ? 'bg-gray-100 border-gray-300' :
-                                                                  'bg-slate-50 border-slate-200'
-                    }`}>
-                        <p className="text-sm text-slate-500 mb-1">Tier</p>
-                        <h4 className={`text-xl sm:text-2xl font-bold capitalize ${
-                            referralData?.referralTier === 'partner' ? 'text-purple-600' :
-                            referralData?.referralTier === 'gold'    ? 'text-yellow-600' :
-                            referralData?.referralTier === 'silver'  ? 'text-gray-600' :
-                                                                      'text-slate-600'
-                        }`}>
-                            {referralData?.referralTier === 'partner' ? '💎 Premium Partner' :
-                            referralData?.referralTier === 'gold'    ? '🥇 Gold' :
-                            referralData?.referralTier === 'silver'  ? '🥈 Silver' : '⭐ Standard'}
-                        </h4>
-                    </div>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+        <p className="text-sm text-slate-500 mb-1">Referral Coins</p>
+        <h4 className="text-xl sm:text-2xl font-bold text-blue-600">{referralData?.coins ?? 0}</h4>
+        <p className="text-xs text-slate-400 mt-1">Withdrawable + discount</p>
+    </div>
+    <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+    <p className="text-sm text-slate-500 mb-1">Cashback Coins</p>
+    <div className="flex justify-between items-center">
+    <h4 className="text-xl font-bold text-green-600">{referralData?.cashbackCoins ?? 0}</h4>
+    {referralData?.cashbackCoinsExpiresAt && (referralData?.cashbackCoins ?? 0) > 0 && (
+        <div className={`text-xs mt-2 font-semibold px-2 py-1 rounded-full inline-block ${
+            new Date(referralData.cashbackCoinsExpiresAt) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                ? 'bg-red-100 text-red-600'   // expiring within 30 days — red warning
+                : 'bg-green-100 text-green-700' // more than 30 days — green
+        }`}>
+            ⏳ Expires {new Date(referralData.cashbackCoinsExpiresAt).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            })}
+        </div>
+    )}
+    </div>
+    <p className="text-xs text-slate-400 mt-1">Discount only</p>
+    
+</div>
+    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+        <p className="text-sm text-slate-500 mb-1">Total Referrals</p>
+        <h4 className="text-xl sm:text-2xl font-bold text-slate-900">{referralData?.totalReferrals ?? 0}</h4>
+        <p className="text-xs text-slate-400 mt-1">Successful referrals</p>
+    </div>
+</div>
 
                 {/* Milestones */}
                 <div className="border border-slate-200 rounded-xl p-4">
@@ -337,8 +386,8 @@ const UserDashboard = () => {
                 <div className="border border-slate-200 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-3">
                         <div>
-                            <p className="font-semibold text-slate-800">Withdraw Coins</p>
-                            <p className="text-xs text-slate-400 mt-0.5">Min 50 coins · Processed within 24 hours</p>
+                            <p className="font-semibold text-slate-800">Withdraw Referral Coins</p>
+                            <p className="text-xs text-slate-400 mt-0.5">Min 50 coins · Processed within 7 days</p>
                         </div>
                         <span className="text-lg font-bold text-slate-800">₹{referralData?.coins ?? 0}</span>
                     </div>
@@ -346,7 +395,7 @@ const UserDashboard = () => {
                     {hasPendingWithdrawal && (
                         <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl mb-3">
                             <Clock size={14} className="text-amber-600" />
-                            <p className="text-xs text-amber-700 font-medium">Pending withdrawal request — processing within 24 hours.</p>
+                            <p className="text-xs text-amber-700 font-medium">Pending withdrawal request — processing within 7 days.</p>
                         </div>
                     )}
 
@@ -367,7 +416,7 @@ const UserDashboard = () => {
         placeholder="yourname@upi / yourname@okaxis"
         className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
     />
-    <p className="text-xs text-slate-400 mt-1">Payment will be sent to this UPI ID within 24 hours</p>
+    <p className="text-xs text-slate-400 mt-1">Payment will be sent to this UPI ID within 7 days</p>
 </div>
 
                     <button

@@ -6,7 +6,8 @@ import ITRForm from '../models/ITRForm.js';
 import AppError from '../utils/AppError.js';
 import sendEmail from '../utils/sendEmail.js';
 import { getInvoiceTemplate } from '../utils/emailTemplates.js';
-import { creditReferralCoins } from './referralController.js';
+import { creditCashbackCoins, creditReferralCoins, deductCoins  } from './referralController.js';
+import { markCouponUsed } from './couponController.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -14,7 +15,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // @route     POST /api/v1/payments/create-intent
 // @access    Private
 export const createPaymentIntent = asyncHandler(async (req, res, next) => {
-    const { planId } = req.body;
+    const { planId, couponDiscount = 0, coinsToUse, referralCoinsUsed = 0, cashbackCoinsUsed = 0  } = req.body;
     console.log('Creating Intent for PlanId:', planId);
 
     const plan = await Plan.findById(planId);
@@ -22,10 +23,18 @@ export const createPaymentIntent = asyncHandler(async (req, res, next) => {
     if (!plan) {
         return next(new AppError('Plan not found', 404));
     }
+    
+
+    // Calculate discounted amount
+    const coinDiscount = referralCoinsUsed + cashbackCoinsUsed;
+    const totalDiscount = referralCoinsUsed + cashbackCoinsUsed;
+    const maxDiscount = Math.floor(plan.price * 0.5);
+    const discount = Math.min(totalDiscount, maxDiscount);
+    const finalPrice = Math.max(plan.price - discount, 1); // minimum ₹1
 
     try {
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: plan.price * 100, // amount in smallest currency unit (cents/paise)
+            amount: finalPrice * 100, // amount in smallest currency unit (cents/paise)
             currency: 'inr', // Stripe usually handles currency by account, but 'inr' is good for India.
             automatic_payment_methods: {
                 enabled: true,
@@ -33,13 +42,18 @@ export const createPaymentIntent = asyncHandler(async (req, res, next) => {
             metadata: {
                 planId: plan._id.toString(),
                 userId: req.user._id.toString(),
+                coinsUsed: discount,
+                couponDiscount: discount,
+                originalPrice: plan.price
             },
         });
 
         res.status(200).json({
             success: true,
             clientSecret: paymentIntent.client_secret,
-            paymentIntentId: paymentIntent.id
+            paymentIntentId: paymentIntent.id,
+            discount,
+            finalPrice,
         });
     } catch (error) {
         console.error(error);
@@ -51,15 +65,14 @@ export const createPaymentIntent = asyncHandler(async (req, res, next) => {
 // @route     POST /api/v1/payments/confirm
 // @access    Private
 export const confirmPayment = asyncHandler(async (req, res, next) => {
-    const { paymentIntentId, planId, referralCode } = req.body;
-
+    const { paymentIntentId, planId, couponDiscount, couponCode, referralCode, coinsUsed, coinType, referralCoinsUsed, cashbackCoinsUsed } = req.body;
+    console.log(req.body)
     if (!paymentIntentId) {
         return next(new AppError('Payment Intent ID is required', 400));
     }
-    
-    // --- TEMPORARY MOCK BYPASS FOR TESTING ---
-    // Only allow mock payments if NOT in production
-    if (process.env.NODE_ENV !== 'production' && paymentIntentId && paymentIntentId.startsWith('mock_')) {
+
+    // --- MOCK BYPASS ---
+    if (process.env.NODE_ENV !== 'production' && paymentIntentId.startsWith('mock_')) {
         const existingPurchase = await Purchase.findOne({ paymentId: paymentIntentId });
         if (existingPurchase) {
             return res.status(200).json({
@@ -69,49 +82,71 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
             });
         }
 
-        if (!planId) {
-            return next(new AppError('Plan ID is required for mock payment', 400));
-        }
+        if (!planId) return next(new AppError('Plan ID is required for mock payment', 400));
 
         const plan = await Plan.findById(planId);
 
+        const planPrice = plan?.price || 0;
+        const actualCoinDiscount = Math.min((referralCoinsUsed || 0) + (cashbackCoinsUsed || 0), Math.floor(planPrice * 0.5));
+        const actualCouponDiscount = couponDiscount || 0;
+        const finalAmountPaid = Math.max(planPrice - actualCoinDiscount - actualCouponDiscount, 0);
+
         const purchase = await Purchase.create({
             userId: req.user.id,
-            planId: planId,
+            planId,
             planName: plan?.name || 'Tax Service',
             planPrice: plan?.price || 0,
             paymentId: paymentIntentId,
             paymentStatus: 'Completed',
-            formUnlocked: true
+            formUnlocked: true,
+            referralCoinsUsed: referralCoinsUsed || 0,
+            cashbackCoinsUsed: cashbackCoinsUsed || 0,
+            coinDiscountApplied: actualCoinDiscount,
+            finalAmountPaid,
+            couponDiscount: actualCouponDiscount,  
+            couponCode: couponCode || null,        
+            originalPrice: plan?.price || 0
         });
 
         req.user.purchasedPlans.push(purchase._id);
         await req.user.save();
+        console.log('Mock purchase created:', purchase);
 
-               // ── REFERRAL: Apply code if passed and not yet set ────────────────
-        if (referralCode && !req.user.referredBy && !req.user.referralRewardCredited) {
-            try {
+        // ── SEND RESPONSE IMMEDIATELY ──
+        res.status(200).json({
+            success: true,
+            message: 'MOCK Payment confirmed successfully',
+            purchaseId: purchase._id
+        });
+
+        // ── NON-CRITICAL TASKS ──
+        try {
+            if (couponCode) {
+        await markCouponUsed({ code: couponCode, userId: req.user.id });
+    }
+            if (coinsUsed && coinsUsed > 0) {
+                await deductCoins({
+                    userId: req.user.id,
+                    coinsUsed,
+                    coinType: coinType || 'both',
+                    referralCoinsUsed: referralCoinsUsed || 0,
+                    cashbackCoinsUsed: cashbackCoinsUsed || 0
+                });
+            }
+            console.log('Coins deducted for mock payment');
+            if (referralCode && !req.user.referredBy && !req.user.referralRewardCredited) {
                 const decodedId = Buffer.from(referralCode, 'base64').toString('utf-8');
                 if (/^[a-f\d]{24}$/i.test(decodedId) && decodedId !== req.user.id.toString()) {
                     const buyer = await User.findById(req.user.id);
                     buyer.referredBy = decodedId;
                     await buyer.save({ validateBeforeSave: false });
                 }
-            } catch (e) {
-                console.warn('[Referral] Could not apply referral code at checkout:', e);
             }
-        }
-        // Credit coins to referrer (mock)
-        await creditReferralCoins({
-            buyerUserId: req.user.id,
-            planName: plan?.name || ''
-        });
-        // ─────────────────────────────────────────────────────────────────
- 
 
-        // Send confirmation email (Mock)
-        try {
-            
+            await creditReferralCoins({ buyerUserId: req.user.id, planName: plan?.name || '' });
+            console.log('Referral coins credited for mock payment');
+            await creditCashbackCoins({ buyerUserId: req.user.id, planName: plan?.name || '' });
+            console.log('cashback credited for mock payment');
             if (plan) {
                 await sendEmail({
                     email: req.user.email,
@@ -119,27 +154,22 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
                     message: `You have successfully purchased ${plan.name}. Transaction ID: ${paymentIntentId}`,
                     html: getInvoiceTemplate(req.user, purchase, plan)
                 });
+                consoel.log('Email sent for mock payment');
             }
-        } catch (err) {
-            console.error('Email failed (Mock):', err);
+        } catch (nonCriticalErr) {
+            console.error('[Payment] Non-critical post-payment task failed (mock):', nonCriticalErr);
         }
 
-        return res.status(200).json({
-            success: true,
-            message: 'MOCK Payment confirmed successfully',
-            purchaseId: purchase._id
-        });
+        return; // ← CRITICAL: stops execution, prevents falling into Stripe section
     }
-    // ----------------------------------------
+    // --- END MOCK ---
 
+    // --- REAL STRIPE PAYMENT ---
     try {
         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
         if (paymentIntent.status === 'succeeded') {
-            // Check if purchase already exists for this payment intent to avoid duplicates
-            // This is a basic check. Ideally use idempotency keys or unique constraint on paymentId.
             const existingPurchase = await Purchase.findOne({ paymentId: paymentIntentId });
-
             if (existingPurchase) {
                 return res.status(200).json({
                     success: true,
@@ -150,43 +180,69 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
 
             const plan = await Plan.findById(planId || paymentIntent.metadata.planId);
 
-            // Create purchase record
+            const planPrice = plan?.price || 0;
+            const actualCoinDiscount = Math.min((referralCoinsUsed || 0) + (cashbackCoinsUsed || 0), Math.floor(planPrice * 0.5));
+            const actualCouponDiscount = couponDiscount || 0;
+            const finalAmountPaid = Math.max(planPrice - actualCoinDiscount - actualCouponDiscount, 0);
+
             const purchase = await Purchase.create({
                 userId: req.user.id,
-                planId: planId || paymentIntent.metadata.planId, // Fallback to metadata
+                planId: planId || paymentIntent.metadata.planId,
                 planName: plan?.name || 'Tax Service',
                 planPrice: plan?.price || 0,
                 paymentId: paymentIntentId,
                 paymentStatus: 'Completed',
-                formUnlocked: true
+                formUnlocked: true,
+                coinDiscountApplied: actualCoinDiscount,
+                referralCoinsUsed: referralCoinsUsed || 0,
+                cashbackCoinsUsed: cashbackCoinsUsed || 0,
+                finalAmountPaid,
+                couponCode: couponCode || null,
+                couponDiscount: actualCouponDiscount,
+                originalPrice: plan?.price || 0
             });
 
-            // Add purchase reference to user
             req.user.purchasedPlans.push(purchase._id);
             await req.user.save();
+            console.log('Purchase created:', purchase);
 
-            // ── REFERRAL: Apply code if passed at checkout ────────────────
-            if (referralCode && !req.user.referredBy && !req.user.referralRewardCredited) {
-                try {
+            // ── SEND RESPONSE IMMEDIATELY ──
+            res.status(200).json({
+                success: true,
+                message: 'Payment confirmed successfully',
+                purchaseId: purchase._id
+            });
+
+            // ── NON-CRITICAL TASKS ──
+            try {
+                if (couponCode) {
+        await markCouponUsed({ code: couponCode, userId: req.user.id });
+    }
+                if (coinsUsed && coinsUsed > 0) {
+                    await deductCoins({
+                        userId: req.user.id,
+                        coinsUsed,
+                        coinType: coinType || 'both',
+                        referralCoinsUsed: referralCoinsUsed || 0,
+                        cashbackCoinsUsed: cashbackCoinsUsed || 0
+                    });
+                    console.log('Coins deducted');
+                }
+
+                if (referralCode && !req.user.referredBy && !req.user.referralRewardCredited) {
                     const decodedId = Buffer.from(referralCode, 'base64').toString('utf-8');
                     if (/^[a-f\d]{24}$/i.test(decodedId) && decodedId !== req.user.id.toString()) {
                         const buyer = await User.findById(req.user.id);
                         buyer.referredBy = decodedId;
                         await buyer.save({ validateBeforeSave: false });
                     }
-                } catch (e) {
-                    console.warn('[Referral] Could not apply referral code at checkout:', e);
                 }
-            }
-            // Credit coins to referrer
-            await creditReferralCoins({
-                buyerUserId: req.user.id,
-                planName: plan?.name || ''
-            });
-            // ─────────────────────────────────────────────────────────────
 
-            // Send confirmation email
-            try {
+                await creditReferralCoins({ buyerUserId: req.user.id, planName: plan?.name || '' });
+                console.log('Referral coins credited');
+                await creditCashbackCoins({ buyerUserId: req.user.id, planName: plan?.name || '' });
+                console.log('cashback credited');
+
                 const planForEmail = await Plan.findById(purchase.planId);
                 if (planForEmail) {
                     await sendEmail({
@@ -195,16 +251,12 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
                         message: `You have successfully purchased ${planForEmail.name}. Transaction ID: ${paymentIntentId}`,
                         html: getInvoiceTemplate(req.user, purchase, planForEmail)
                     });
+                    console.log('Email sent');
                 }
-            } catch (err) {
-                console.error('Email failed:', err);
+            } catch (nonCriticalErr) {
+                console.error('[Payment] Non-critical post-payment task failed:', nonCriticalErr);
             }
 
-            res.status(200).json({
-                success: true,
-                message: 'Payment confirmed successfully',
-                purchaseId: purchase._id
-            });
         } else {
             return next(new AppError(`Payment not successful. Status: ${paymentIntent.status}`, 400));
         }
