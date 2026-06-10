@@ -14,6 +14,8 @@ const PaymentGateway = () => {
     const [clientSecret, setClientSecret] = useState('');
     const [amount, setAmount] = useState(0);
 
+    const [couponDiscount, setCouponDiscount] = useState(0);
+
     // data passed from ServiceDetail
     const { serviceId, planId, amount: planPrice, planName } = location.state || {}; // planName here
 
@@ -34,7 +36,8 @@ const PaymentGateway = () => {
             try {
                 const { data } = await api.post('/payments/create-intent', {
                     planId,
-                    amount: planPrice
+                    amount: planPrice,
+                    couponDiscount,
                 });
                 setClientSecret(data.clientSecret);
             } catch (error) {
@@ -46,6 +49,23 @@ const PaymentGateway = () => {
 
         createPaymentIntent();
     }, [planId, planPrice, navigate]);
+
+    useEffect(() => {
+    if (!planId || couponDiscount === null) return; // skip on initial load
+    const applyDiscount = async () => {
+        try {
+            const { data } = await api.post('/payments/create-intent', {
+                planId,
+                amount: planPrice,
+                couponDiscount,
+            });
+            setClientSecret(data.clientSecret);
+        } catch (error) {
+            console.error("Payment intent error:", error);
+        }
+    };
+    applyDiscount();
+}, [couponDiscount]);
 
     const appearance = {
         theme: 'stripe',
@@ -82,7 +102,7 @@ const PaymentGateway = () => {
 
                 {clientSecret && (
                     <Elements options={options} stripe={stripePromise}>
-                        <CheckoutForm serviceId={serviceId} planId={planId} planName={planName} />
+                        <CheckoutForm serviceId={serviceId} planId={planId} planName={planName} amount={amount} />
                     </Elements>
                 )}
 

@@ -19,6 +19,8 @@ import './config/passport.js';
 
 
 import referralRoutes from './routes/referral.js';
+import couponRoutes from './routes/couponRoutes.js';
+
 console.log('Starting connectDB()...');
 // Connect to database
 connectDB();
@@ -101,6 +103,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use('/api/v1/referral', referralRoutes);
+app.use('/api/v1/coupons', couponRoutes);
 
 // Mount routers
 app.use('/api/v1/auth', authRoutes);

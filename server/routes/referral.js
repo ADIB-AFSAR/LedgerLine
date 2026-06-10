@@ -5,7 +5,8 @@ import {
     getWithdrawalRequests,
     processWithdrawal,
     validateReferralCode,
-    applyReferralCode
+    applyReferralCode,
+    applyDiscountCoins
 } from '../controllers/referralController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 
@@ -16,6 +17,7 @@ router.get('/me', protect, getMyReferral);
 router.post('/validate', protect, validateReferralCode);
 router.post('/apply', protect, applyReferralCode);
 router.post('/withdraw', protect, requestWithdrawal);
+router.post('/apply-discount', protect, applyDiscountCoins);
 
 // Admin routes
 router.get('/admin/withdrawals', protect, authorize('admin'), getWithdrawalRequests);
