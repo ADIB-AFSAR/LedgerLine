@@ -891,7 +891,7 @@ const AdminDashboard = () => {
             )}
 
             {/* Sidebar */}
-            <aside className="w-64 bg-zinc-950 border-r border-zinc-900 flex flex-col fixed h-full z-50">
+            <aside className="flex flex-col h-screen overflow-hidden w-64 bg-zinc-950 border-r border-zinc-900 flex flex-col fixed h-full z-50">
                 <div className="p-8">
                     <div className="flex items-center gap-3 group cursor-pointer">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-all">
@@ -907,7 +907,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-1 mt-4">
+                    <nav className="flex-1 overflow-y-auto px-4 py-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     <p className="px-4 text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4">Core Console</p>
                     {menuItems.map((item) => {
                         const Icon = item.icon;
@@ -918,7 +918,7 @@ const AdminDashboard = () => {
                                 onClick={() => handleTabChange(item.id)}
                                 className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all relative group ${isActive
                                     ? 'bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-blue-500'
-                                    : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900'}`}
+                                    : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900 shrink-0'}`}
                             >
                                 <Icon size={20} className={isActive ? 'text-blue-500' : 'text-zinc-500 group-hover:text-zinc-200 transition-colors'} />
                                 <span>{item.label}</span>

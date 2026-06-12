@@ -19,6 +19,9 @@ export default function CheckoutForm({ serviceId, planId, planName, amount:planP
     const [useReferralCoins, setUseReferralCoins] = useState(false);
     const [useCashbackCoins, setUseCashbackCoins] = useState(false);
 
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    console.log(termsAccepted)
+
     //cashback states
     const [coinsToUse, setCoinsToUse] = useState(0);
     const [userCoins, setUserCoins] = useState({ referral: 0, cashback: 0 });
@@ -379,14 +382,43 @@ const finalPrice = Math.max(planPrice - totalCoinDiscount - (couponDiscount || 0
 )}
          
     </div>
-)}
+)}         
+            {/* Terms & Conditions */}
+            <div className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <input
+                    type="checkbox"
+                    id="terms"
+                    checked={termsAccepted}
+                    onChange={e => setTermsAccepted(e.target.checked)}
+                    className="w-4 h-4 mt-0.5 accent-blue-600 shrink-0 cursor-pointer"
+                />
+                <label htmlFor="terms" className="text-xs text-slate-600 cursor-pointer leading-relaxed">
+                    I have read and consent to Powerfiling processing my information in accordance with the{' '}
+                    <a href="/terms" target="_blank" className="text-blue-600 hover:underline font-semibold">
+                        Terms & Conditions
+                    </a>
+                    {' '},{' '}
+                    <a href="/privacy-policy" target="_blank" className="text-blue-600 hover:underline font-semibold">
+                        Privacy Policy
+                    </a>
+                    {' '}and{' '}
+                    <a href="/refund" target="_blank" className="text-blue-600 hover:underline font-semibold">
+                        Refund Policy
+                    </a>           
+                    </label>
+            </div>
             <button
-                disabled={isLoading || !stripe || !elements}
+                disabled={isLoading || !stripe || !elements || !termsAccepted} 
                 id="submit"
                 className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-75 disabled:cursor-not-allowed transition-colors"
             >
                 <span id="button-text">
-                    {isLoading ? <div className="spinner" id="spinner">Processing...</div> : "Pay Now & Continue"}
+                    {isLoading
+            ? <div className="spinner" id="spinner">Processing...</div>
+            : !termsAccepted
+            ? "Accept Terms to Continue"
+            : "Pay Now & Continue"
+        }
                 </span>
             </button>
             {message && <div id="payment-message" className="text-red-600 text-sm text-center">{message}</div>}

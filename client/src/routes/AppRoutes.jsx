@@ -39,6 +39,7 @@ import Navbar from '../pages/frontend/Navbar';
 import Footer from '../pages/frontend/Footer';
 import WithdrawalPanel from '../pages/admin/WithdrawalPanel';
 import ReferralDashboard from '../pages/ReferralDashboard/ReferralDashboard';
+import TermsAndConditions from '../pages/frontend/Terms&Condition';
 
 export default function AppRoutes() {
   return (
@@ -49,6 +50,7 @@ export default function AppRoutes() {
       <Route path="/privacy-policy" element={<Privacypolicy />} />
       <Route path="/disclaimer" element={<Disclaimar />} />
       <Route path="/refund" element={<Refund />} />
+      <Route path="/terms" element={<TermsAndConditions />} />
       <Route path="/security" element={<Security />} />
       <Route path='/sign_up' element={<Sign_up />} />
       <Route path="/verification" element={<UnifiedVerification />} />
