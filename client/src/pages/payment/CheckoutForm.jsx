@@ -200,7 +200,15 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
                     },
                 });
             } else {
-                setMessage('Payment may have succeeded but confirmation failed. Please check your dashboard.');
+                navigate('/payment-failed', {
+                    replace: true,
+                    state: {
+                        errorMessage: 'Payment could not be confirmed. Please try again.',
+                        transactionId: orderData.orderId,
+                        planName,
+                        serviceId,
+                    },
+                });
             }
         } catch (err) {
             console.error('Payment error:', err);
@@ -209,7 +217,15 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
                 err.response?.data?.error ||
                 err.message ||
                 'Payment failed. Please try again.';
-            setMessage(errMsg);
+
+            navigate('/payment-failed', {
+                replace: true,
+                state: {
+                    errorMessage: errMsg,
+                    planName,
+                    serviceId,
+                },
+            });
         } finally {
             setIsLoading(false);
         }

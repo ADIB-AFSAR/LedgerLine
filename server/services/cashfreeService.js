@@ -89,6 +89,22 @@ export const isOrderPaid = (order) => {
     return status === 'PAID';
 };
 
+export const getOrderStatus = (order) => order?.order_status || order?.orderStatus || 'UNKNOWN';
+
+export const getPaymentOutcomeMessage = (status) => {
+    switch (status) {
+        case 'ACTIVE':
+            return 'Payment was not completed. You can try again.';
+        case 'EXPIRED':
+            return 'Payment session expired. Please start a new payment.';
+        case 'TERMINATED':
+        case 'TERMINATION_REQUESTED':
+            return 'Payment was cancelled.';
+        default:
+            return `Payment not successful. Status: ${status}`;
+    }
+};
+
 export const verifyWebhookSignature = (signature, rawBody, timestamp) => {
     if (!signature || !rawBody || !timestamp) return false;
 

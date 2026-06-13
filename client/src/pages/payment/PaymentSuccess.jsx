@@ -8,25 +8,42 @@ const PaymentSuccess = () => {
     const location = useLocation();
     const [searchParams] = useSearchParams();
     const [countdown, setCountdown] = useState(10);
-    const [confirming, setConfirming] = useState(false);
-    const [confirmError, setConfirmError] = useState(null);
+    const [status, setStatus] = useState('verifying'); // verifying | success | failed
 
     const orderIdFromUrl = searchParams.get('order_id');
 
     const [paymentState, setPaymentState] = useState({
-        transactionId: location.state?.transactionId || orderIdFromUrl || null,
+        transactionId: null,
         serviceId: location.state?.serviceId || null,
         purchaseId: location.state?.purchaseId || null,
         planName: location.state?.planName || null,
     });
 
     useEffect(() => {
-        const confirmFromReturnUrl = async () => {
-            if (!orderIdFromUrl || location.state?.purchaseId) return;
+        const verifyPayment = async () => {
+            // Already confirmed via CheckoutForm navigation state
+            if (location.state?.purchaseId) {
+                setPaymentState({
+                    transactionId: location.state.transactionId || orderIdFromUrl,
+                    serviceId: location.state.serviceId || null,
+                    purchaseId: location.state.purchaseId,
+                    planName: location.state.planName || null,
+                });
+                setStatus('success');
+                return;
+            }
 
-            setConfirming(true);
+            if (!orderIdFromUrl) {
+                navigate('/payment-failed', {
+                    replace: true,
+                    state: { errorMessage: 'No payment information found.' },
+                });
+                return;
+            }
+
             try {
                 const { data } = await api.post('/payments/confirm', { orderId: orderIdFromUrl });
+
                 if (data.success && data.purchaseId) {
                     setPaymentState({
                         transactionId: orderIdFromUrl,
@@ -34,21 +51,37 @@ const PaymentSuccess = () => {
                         purchaseId: data.purchaseId,
                         planName: data.planName || null,
                     });
-                } else {
-                    setConfirmError('Payment confirmation failed. Please contact support.');
+                    setStatus('success');
+                    return;
                 }
+
+                navigate('/payment-failed', {
+                    replace: true,
+                    state: {
+                        errorMessage: 'Payment could not be confirmed. Please try again or contact support.',
+                        transactionId: orderIdFromUrl,
+                        serviceId: data.serviceId || null,
+                        planName: data.planName || null,
+                    },
+                });
             } catch (err) {
                 console.error('Payment confirmation error:', err);
-                setConfirmError(
-                    err.response?.data?.message || 'Could not confirm payment. Check your dashboard for order status.'
-                );
-            } finally {
-                setConfirming(false);
+                navigate('/payment-failed', {
+                    replace: true,
+                    state: {
+                        errorMessage:
+                            err.response?.data?.message ||
+                            'Payment was not completed. Please try again.',
+                        transactionId: orderIdFromUrl,
+                        serviceId: err.response?.data?.serviceId || null,
+                        planName: err.response?.data?.planName || null,
+                    },
+                });
             }
         };
 
-        confirmFromReturnUrl();
-    }, [orderIdFromUrl, location.state?.purchaseId]);
+        verifyPayment();
+    }, [orderIdFromUrl, location.state, navigate]);
 
     const { transactionId, serviceId, purchaseId, planName } = paymentState;
 
@@ -58,7 +91,7 @@ const PaymentSuccess = () => {
             : '/dashboard';
 
     useEffect(() => {
-        if (!transactionId || confirming || confirmError) return;
+        if (status !== 'success' || !purchaseId) return;
 
         const timer = setInterval(() => {
             setCountdown((prev) => {
@@ -72,30 +105,22 @@ const PaymentSuccess = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [navigate, targetUrl, transactionId, confirming, confirmError]);
+    }, [navigate, targetUrl, status, purchaseId]);
 
-    if (confirming) {
+    if (status === 'verifying') {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <p className="text-slate-600">Confirming your payment...</p>
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-slate-600 font-medium">Verifying your payment...</p>
+                    <p className="text-slate-400 text-sm mt-1">Please do not close this page.</p>
+                </div>
             </div>
         );
     }
 
-    if (!transactionId) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-slate-600 mb-4">{confirmError || 'No payment information found.'}</p>
-                    <button
-                        onClick={() => navigate('/dashboard', { replace: true })}
-                        className="text-blue-600 font-semibold"
-                    >
-                        Go to Dashboard
-                    </button>
-                </div>
-            </div>
-        );
+    if (status !== 'success' || !purchaseId) {
+        return null;
     }
 
     return (
@@ -111,10 +136,6 @@ const PaymentSuccess = () => {
                     <span className="font-semibold text-slate-800"> {planName || 'ITR'}</span>.
                 </p>
 
-                {confirmError && (
-                    <p className="text-amber-600 text-sm mb-4">{confirmError}</p>
-                )}
-
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-8 inline-block w-full">
                     <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">
                         Transaction ID
@@ -123,15 +144,13 @@ const PaymentSuccess = () => {
                 </div>
 
                 <div className="space-y-3">
-                    {purchaseId && (
-                        <button
-                            onClick={() => navigate(targetUrl, { replace: true })}
-                            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
-                        >
-                            <FileText size={18} />
-                            Start Filing Now
-                        </button>
-                    )}
+                    <button
+                        onClick={() => navigate(targetUrl, { replace: true })}
+                        className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                        <FileText size={18} />
+                        Start Filing Now
+                    </button>
 
                     <button
                         onClick={() => navigate('/dashboard', { replace: true })}
@@ -141,11 +160,9 @@ const PaymentSuccess = () => {
                         Go to Dashboard
                     </button>
 
-                    {purchaseId && (
-                        <p className="text-sm text-slate-500 mt-4">
-                            Redirecting in <span className="font-bold text-blue-600">{countdown}</span> seconds...
-                        </p>
-                    )}
+                    <p className="text-sm text-slate-500 mt-4">
+                        Redirecting in <span className="font-bold text-blue-600">{countdown}</span> seconds...
+                    </p>
                 </div>
             </div>
         </div>

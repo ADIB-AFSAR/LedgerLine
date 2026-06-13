@@ -6,7 +6,7 @@ import sendEmail from './sendEmail.js';
 import { getInvoiceTemplate } from './emailTemplates.js';
 import { creditCashbackCoins, creditReferralCoins, deductCoins } from '../controllers/referralController.js';
 import { markCouponUsed } from '../controllers/couponController.js';
-import { fetchCashfreeOrder, isOrderPaid } from '../services/cashfreeService.js';
+import { fetchCashfreeOrder, isOrderPaid, getOrderStatus, getPaymentOutcomeMessage } from '../services/cashfreeService.js';
 import AppError from './AppError.js';
 
 /**
@@ -29,9 +29,14 @@ export const fulfillPurchaseFromOrder = async ({ orderId, userId }) => {
     }
 
     const cashfreeOrder = await fetchCashfreeOrder(orderId);
+    const orderStatus = getOrderStatus(cashfreeOrder);
 
     if (!isOrderPaid(cashfreeOrder)) {
-        throw new AppError(`Payment not successful. Status: ${cashfreeOrder.order_status}`, 400);
+        if (pending.status === 'pending') {
+            pending.status = 'failed';
+            await pending.save();
+        }
+        throw new AppError(getPaymentOutcomeMessage(orderStatus), 400);
     }
 
     const paidAmount = Number(cashfreeOrder.order_amount);

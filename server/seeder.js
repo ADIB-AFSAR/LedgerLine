@@ -45,7 +45,7 @@ const plans = [
     { name: 'GST Filing', price: 999, features: ['GSTR-1 Filing', 'GSTR-3B Filing', 'Input Tax Credit'], type: 'Business', formType: 'GST' },
     { name: 'TDS Filing', price: 899, features: ['TDS Return Filing', 'Certificate Generation', 'Compliance Tracking'], type: 'Business', formType: 'OTHER' },
     { name: 'PF & ESIC', price: 1499, features: ['PF Registration', 'ESIC Registration', 'Monthly Returns'], type: 'Business', formType: 'OTHER' },
-    { name: 'Test Production Plan', price: 50, features: ['Production Test', 'Real Payment Verification'], type: 'Basic', formType: 'OTHER' }
+    { name: 'Test Production Plan', price: 1, features: ['Production Test', 'Real Payment Verification'], type: 'Basic', formType: 'OTHER' }
 ];
 
 const importData = async () => {

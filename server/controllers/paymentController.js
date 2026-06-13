@@ -161,19 +161,33 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
         return next(new AppError('Payment session not found or unauthorized', 403));
     }
 
-    const { purchase, alreadyProcessed, serviceId, planName } = await fulfillPurchaseFromOrder({
-        orderId,
-        userId: req.user.id,
-    });
+    try {
+        const { purchase, alreadyProcessed, serviceId, planName } = await fulfillPurchaseFromOrder({
+            orderId,
+            userId: req.user.id,
+        });
 
-    res.status(200).json({
-        success: true,
-        message: alreadyProcessed ? 'Payment already processed' : 'Payment confirmed successfully',
-        purchaseId: purchase._id,
-        transactionId: orderId,
-        serviceId,
-        planName,
-    });
+        res.status(200).json({
+            success: true,
+            message: alreadyProcessed ? 'Payment already processed' : 'Payment confirmed successfully',
+            purchaseId: purchase._id,
+            transactionId: orderId,
+            serviceId,
+            planName,
+            paymentStatus: 'PAID',
+        });
+    } catch (err) {
+        if (err instanceof AppError && err.statusCode === 400) {
+            return res.status(400).json({
+                success: false,
+                message: err.message,
+                transactionId: orderId,
+                serviceId: pending.serviceId,
+                planName: pending.planName,
+            });
+        }
+        throw err;
+    }
 });
 
 // @desc      Cashfree payment webhook
