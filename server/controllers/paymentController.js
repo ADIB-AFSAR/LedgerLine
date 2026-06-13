@@ -93,6 +93,7 @@ export const createOrder = asyncHandler(async (req, res, next) => {
         success: true,
         orderId,
         paymentSessionId: cashfreeOrder.payment_session_id,
+        cashfreeMode: process.env.CASHFREE_ENV === 'production' ? 'production' : 'sandbox',
         finalPrice: pricing.finalAmountPaid,
         coinDiscount: pricing.coinDiscountApplied,
         couponDiscount: pricing.couponDiscount,

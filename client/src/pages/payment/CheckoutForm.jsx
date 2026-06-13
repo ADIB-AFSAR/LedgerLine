@@ -4,7 +4,12 @@ import { load } from '@cashfreepayments/cashfree-js';
 import { getReferralCode, clearReferralCode } from '../../utils/referral/referral';
 import api from '../../api/axios';
 
-const CASHFREE_MODE = import.meta.env.VITE_CASHFREE_MODE || 'sandbox';
+const resolveCashfreeMode = () => {
+    if (import.meta.env.VITE_CASHFREE_MODE) return import.meta.env.VITE_CASHFREE_MODE;
+    const host = window.location.hostname;
+    if (host === 'powerfiling.com' || host === 'www.powerfiling.com') return 'production';
+    return 'sandbox';
+};
 
 export default function CheckoutForm({ serviceId, planId, planName, amount: planPrice }) {
     const navigate = useNavigate();
@@ -29,7 +34,7 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
     useEffect(() => {
         const initCashfree = async () => {
             try {
-                const cf = await load({ mode: CASHFREE_MODE });
+                const cf = await load({ mode: resolveCashfreeMode() });
                 setCashfree(cf);
             } catch (err) {
                 console.error('Failed to load Cashfree SDK:', err);
@@ -156,12 +161,18 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
                 throw new Error('Failed to initialize payment');
             }
 
-            const result = await cashfree.checkout({
+            // Always match SDK mode to backend — prevents sandbox/production session mismatch
+            const checkoutMode = orderData.cashfreeMode || resolveCashfreeMode();
+            const checkoutCashfree = await load({ mode: checkoutMode });
+
+            const result = await checkoutCashfree.checkout({
                 paymentSessionId: orderData.paymentSessionId,
                 redirectTarget: '_self',
             });
 
+            // With redirectTarget _self, user leaves this page — only handle inline/modal errors
             if (result?.error) {
+                setIsLoading(false);
                 navigate('/payment-failed', {
                     replace: true,
                     state: {
