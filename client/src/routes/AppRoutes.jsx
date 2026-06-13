@@ -5,7 +5,6 @@ import Disclaimar from '../pages/frontend/Disclaimar';
 import Privacypolicy from '../pages/frontend/Privacypolicy';
 import Refund from '../pages/frontend/Refund';
 import Security from '../pages/frontend/Security';
-import TermsAndConditions from '../pages/frontend/TermsAndConditions';
 import Login from '../pages/Login';
 import Sign_up from '../pages/sign-in/Sign_up';
 import UnifiedVerification from '../pages/sign-in/UnifiedVerification';
