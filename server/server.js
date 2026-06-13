@@ -11,6 +11,7 @@ import errorHandler from './middlewares/errorMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 import planRoutes from './routes/planRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import { paymentWebhook } from './controllers/paymentController.js';
 import documentRoutes from './routes/documentRoutes.js';
 import itrRoutes from './routes/itrRoutes.js';
 
@@ -29,6 +30,17 @@ const app = express();
 
 // Trust proxy - Required for Vercel/proxied environments to get correct IP
 app.set('trust proxy', 1);
+
+// Cashfree webhook — must use raw body before JSON parser for signature verification
+app.post(
+    '/api/v1/payments/webhook',
+    express.raw({ type: 'application/json' }),
+    (req, res, next) => {
+        req.rawBody = req.body.toString('utf8');
+        next();
+    },
+    paymentWebhook
+);
 
 // Body parser
 app.use(express.json());

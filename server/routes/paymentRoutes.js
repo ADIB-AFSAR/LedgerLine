@@ -1,10 +1,18 @@
 import express from 'express';
-import { createPaymentIntent, confirmPayment, checkPurchaseStatus, getMyOrders, getAllOrders, getOrderById } from '../controllers/paymentController.js';
+import {
+    createOrder,
+    confirmPayment,
+    checkPurchaseStatus,
+    getMyOrders,
+    getAllOrders,
+    getOrderById,
+} from '../controllers/paymentController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/create-intent', protect, createPaymentIntent);
+router.post('/create-order', protect, createOrder);
+router.post('/create-intent', protect, createOrder); // legacy alias
 router.post('/confirm', protect, confirmPayment);
 router.get('/check-status', protect, checkPurchaseStatus);
 router.get('/my-orders', protect, getMyOrders);
