@@ -116,11 +116,11 @@ const Navbar = () => {
       icon: <BookOpen size={16} />,
       path: "/blog",
     },
-    {
-      title: "Calculators",
-      icon: <Calculator size={16} />,
-      path: "/calculators",
-    },
+    // {
+    //   title: "Calculators",
+    //   icon: <Calculator size={16} />,
+    //   path: "/calculators",
+    // },
     {
       title: "Contact Us",
       icon: <CreditCard size={14} />,
