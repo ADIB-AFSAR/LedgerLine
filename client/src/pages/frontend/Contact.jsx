@@ -1,6 +1,14 @@
 import { useState, useRef } from "react";
 import emailjs from "@emailjs/browser";
-import { Mail, Phone, MapPin, Send, Clock, ShieldCheck, Users } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Send,
+  Clock,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
@@ -49,7 +57,7 @@ const validate = (form) => {
   const phone = form.phone.trim();
   if (!phone) {
     errors.phone = "Phone number is required.";
-  } else if (!/^[+]?[\d\s\-()]{7,15}$/.test(phone)) {
+  } else if (!/^\d{10}$/.test(form.phone)) {
     errors.phone = "Enter a valid phone number.";
   }
 
@@ -99,10 +107,21 @@ const Contact = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    const newValue =
+      name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
+
     // Clear field error on change
     if (fieldErrors[name]) {
-      setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+      setFieldErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
     }
   };
 
@@ -120,7 +139,9 @@ const Contact = () => {
     // Rate limiting
     const { allowed, retryMins } = checkRateLimit();
     if (!allowed) {
-      setError(`Too many submissions. Please try again in ${retryMins} minute${retryMins > 1 ? "s" : ""}.`);
+      setError(
+        `Too many submissions. Please try again in ${retryMins} minute${retryMins > 1 ? "s" : ""}.`,
+      );
       return;
     }
 
@@ -131,7 +152,7 @@ const Contact = () => {
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
         formRef.current,
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
       )
       .then(() => {
         setSubmitted(true);
@@ -148,20 +169,20 @@ const Contact = () => {
       <Navbar />
       <div className="min-h-screen bg-slate-50 py-16 px-4">
         <div className="max-w-5xl mx-auto">
-
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-blue-900 mb-3">Contact Us</h1>
+            <h1 className="text-4xl font-bold text-blue-900 mb-3">
+              Contact Us
+            </h1>
             <p className="text-slate-600 text-lg">
-              Have questions? We're here to help. Reach out and we'll get back to you shortly.
+              Have questions? We're here to help. Reach out and we'll get back
+              to you shortly.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-
             {/* Left Column */}
             <div className="space-y-6">
-
               {/* Contact Info */}
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
                 <div className="flex items-start gap-4">
@@ -179,7 +200,9 @@ const Contact = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-slate-800">Email</p>
-                    <p className="text-slate-600 text-sm">support@powerfiling.com</p>
+                    <p className="text-slate-600 text-sm">
+                      support@powerfiling.com
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -189,8 +212,8 @@ const Contact = () => {
                   <div>
                     <p className="font-semibold text-slate-800">Address</p>
                     <p className="text-slate-600 text-sm">
-                      Jtm Mall, FF25, Jagatpura Rd, near Jagatpura Flyover, Model Town,
-                      Malviya Nagar, Jaipur, Rajasthan 302017
+                      Jtm Mall, FF25, Jagatpura Rd, near Jagatpura Flyover,
+                      Model Town, Malviya Nagar, Jaipur, Rajasthan 302017
                     </p>
                   </div>
                 </div>
@@ -207,11 +230,15 @@ const Contact = () => {
                 <div className="space-y-2 text-sm text-slate-600">
                   <div className="flex justify-between">
                     <span>Monday – Friday</span>
-                    <span className="font-medium text-slate-700">10 am – 7 pm</span>
+                    <span className="font-medium text-slate-700">
+                      10 am – 7 pm
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Saturday</span>
-                    <span className="font-medium text-slate-700">10 am – 4 pm</span>
+                    <span className="font-medium text-slate-700">
+                      10 am – 4 pm
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Sunday</span>
@@ -222,15 +249,21 @@ const Contact = () => {
 
               {/* Why Choose Powerfiling */}
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <h3 className="font-semibold text-slate-800 mb-4">Why Choose Powerfiling?</h3>
+                <h3 className="font-semibold text-slate-800 mb-4">
+                  Why Choose Powerfiling?
+                </h3>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <div className="bg-green-100 p-2.5 rounded-xl">
                       <Users className="text-green-600 w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-medium text-slate-700 text-sm">Expert Advisors</p>
-                      <p className="text-slate-500 text-xs">Experienced professionals guiding you at every step.</p>
+                      <p className="font-medium text-slate-700 text-sm">
+                        Expert Advisors
+                      </p>
+                      <p className="text-slate-500 text-xs">
+                        Experienced professionals guiding you at every step.
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -238,13 +271,17 @@ const Contact = () => {
                       <ShieldCheck className="text-green-600 w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-medium text-slate-700 text-sm">100% Secure</p>
-                      <p className="text-slate-500 text-xs">Your data is safe and handled with complete confidentiality.</p>
+                      <p className="font-medium text-slate-700 text-sm">
+                        100% Secure
+                      </p>
+                      <p className="text-slate-500 text-xs">
+                        Your data is safe and handled with complete
+                        confidentiality.
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
-
             </div>
 
             {/* Right Column — Contact Form */}
@@ -254,22 +291,35 @@ const Contact = () => {
                   <div className="bg-green-100 p-4 rounded-full mb-4">
                     <Send className="text-green-600 w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-2">Message Sent!</h3>
-                  <p className="text-slate-600 text-sm">We'll respond within 1 business day.</p>
+                  <h3 className="text-xl font-bold text-slate-800 mb-2">
+                    Message Sent!
+                  </h3>
+                  <p className="text-slate-600 text-sm">
+                    We'll respond within 1 business day.
+                  </p>
                 </div>
               ) : (
                 <>
                   <div className="mb-5">
-                    <h2 className="text-lg font-bold text-slate-800">Send us a Message</h2>
+                    <h2 className="text-lg font-bold text-slate-800">
+                      Send us a Message
+                    </h2>
                     <p className="text-slate-500 text-sm mt-1">
-                      Fill in the details below and we'll respond within 1 business day.
+                      Fill in the details below and we'll respond within 1
+                      business day.
                     </p>
                   </div>
-                  <form onSubmit={handleSubmit} ref={formRef} className="space-y-4" noValidate>
-
+                  <form
+                    onSubmit={handleSubmit}
+                    ref={formRef}
+                    className="space-y-4"
+                    noValidate
+                  >
                     {/* Full Name */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Full Name
+                      </label>
                       <input
                         type="text"
                         name="fullName"
@@ -279,13 +329,17 @@ const Contact = () => {
                         className={inputClass(fieldErrors.fullName)}
                       />
                       {fieldErrors.fullName && (
-                        <p className="text-red-500 text-xs mt-1">{fieldErrors.fullName}</p>
+                        <p className="text-red-500 text-xs mt-1">
+                          {fieldErrors.fullName}
+                        </p>
                       )}
                     </div>
 
                     {/* Phone */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Phone Number
+                      </label>
                       <input
                         type="tel"
                         name="phone"
@@ -295,13 +349,17 @@ const Contact = () => {
                         className={inputClass(fieldErrors.phone)}
                       />
                       {fieldErrors.phone && (
-                        <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>
+                        <p className="text-red-500 text-xs mt-1">
+                          {fieldErrors.phone}
+                        </p>
                       )}
                     </div>
 
                     {/* Email */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Email Address
+                      </label>
                       <input
                         type="email"
                         name="email"
@@ -311,26 +369,36 @@ const Contact = () => {
                         className={inputClass(fieldErrors.email)}
                       />
                       {fieldErrors.email && (
-                        <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>
+                        <p className="text-red-500 text-xs mt-1">
+                          {fieldErrors.email}
+                        </p>
                       )}
                     </div>
 
                     {/* Service */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Service Required</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Service Required
+                      </label>
                       <select
                         name="service"
                         value={form.service}
                         onChange={handleChange}
                         className={`${inputClass(fieldErrors.service)} bg-white text-slate-700`}
                       >
-                        <option value="" disabled>Select a service</option>
+                        <option value="" disabled>
+                          Select a service
+                        </option>
                         {serviceOptions.map((option) => (
-                          <option key={option} value={option}>{option}</option>
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
                         ))}
                       </select>
                       {fieldErrors.service && (
-                        <p className="text-red-500 text-xs mt-1">{fieldErrors.service}</p>
+                        <p className="text-red-500 text-xs mt-1">
+                          {fieldErrors.service}
+                        </p>
                       )}
                     </div>
 
@@ -352,7 +420,9 @@ const Contact = () => {
                         className={`${inputClass(fieldErrors.message)} resize-none`}
                       />
                       {fieldErrors.message && (
-                        <p className="text-red-500 text-xs mt-1">{fieldErrors.message}</p>
+                        <p className="text-red-500 text-xs mt-1">
+                          {fieldErrors.message}
+                        </p>
                       )}
                     </div>
 
@@ -375,7 +445,6 @@ const Contact = () => {
                 </>
               )}
             </div>
-
           </div>
         </div>
       </div>

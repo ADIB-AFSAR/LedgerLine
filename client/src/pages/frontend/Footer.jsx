@@ -110,7 +110,7 @@ const Footer = () => {
               <li className="flex items-start gap-2.5">
                 <MapPin size={14} className="mt-0.5 flex-shrink-0 text-blue-400" />
                 <div>
-                    <p className="font-semibold text-slate-800">Address</p>
+                    <p className="font-bold text-slate-400">Address</p>
                     <p className="text-slate-600 text-sm">
                       Jtm Mall, FF25, Jagatpura Rd, near Jagatpura Flyover, Model Town,
                       Malviya Nagar, Jaipur, Rajasthan 302017
