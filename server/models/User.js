@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { getCollectionName } from '../config/database.js';
+import { createModel } from '../config/database.js';
 
 const withdrawalRequestSchema = new mongoose.Schema({
     requestedAt: { type: Date, default: Date.now },
@@ -144,8 +144,6 @@ const userSchema = new mongoose.Schema({
     referralHistory: [referralHistorySchema],
     withdrawalRequests: [withdrawalRequestSchema],
     
-}, {
-    collection: getCollectionName('users')
 });
 
 // Encrypt password using bcrypt
@@ -169,4 +167,4 @@ userSchema.methods.getSignedJwtToken = function () {
     });
 };
 
-export default mongoose.model('User', userSchema);
+export default createModel(mongoose, 'User', userSchema, 'users');

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { getCollectionName } from '../config/database.js';
+import { createModel } from '../config/database.js';
 
 const planSchema = new mongoose.Schema({
     name: {
@@ -30,8 +30,7 @@ const planSchema = new mongoose.Schema({
         default: true
     }
 }, {
-    timestamps: true,
-    collection: getCollectionName('plans')
+    timestamps: true
 });
 
-export default mongoose.model('Plan', planSchema);
+export default createModel(mongoose, 'Plan', planSchema, 'plans');

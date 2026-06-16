@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { getCollectionName } from '../config/database.js';
+import { createModel } from '../config/database.js';
 
 const purchaseSchema = new mongoose.Schema({
     userId: {
@@ -71,8 +71,7 @@ const purchaseSchema = new mongoose.Schema({
 },
 },
  {
-    timestamps: true,
-    collection: getCollectionName('purchases')
+    timestamps: true
 });
 
-export default mongoose.model('Purchase', purchaseSchema);
+export default createModel(mongoose, 'Purchase', purchaseSchema, 'purchases');

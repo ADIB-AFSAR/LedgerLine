@@ -1,5 +1,5 @@
  import mongoose from 'mongoose';
-import { getCollectionName } from '../config/database.js';
+import { createModel } from '../config/database.js';
 
 const couponSchema = new mongoose.Schema({
     code: {
@@ -38,10 +38,7 @@ const couponSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }
-}, {
-    timestamps: true,
-    collection: getCollectionName('coupons')
-});
+}, { timestamps: true });
 
 couponSchema.virtual('isExpired').get(function () {
     if (!this.expiresAt) return false;
@@ -51,4 +48,4 @@ couponSchema.virtual('isExpired').get(function () {
 couponSchema.set('toJSON', { virtuals: true });
 couponSchema.set('toObject', { virtuals: true });
 
-export default mongoose.model('Coupon', couponSchema);
+export default createModel(mongoose, 'Coupon', couponSchema, 'coupons');

@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { getCollectionName } from '../config/database.js';
 
 const adminSchema = new mongoose.Schema({
     name: {
@@ -73,7 +72,7 @@ const adminSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     }
-}, { collection: getCollectionName('users') });
+});
 
 // Encrypt password using bcrypt
 adminSchema.pre('save', async function (next) {

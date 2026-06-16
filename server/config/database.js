@@ -1,19 +1,17 @@
+import './preload-env.js';
+
 /**
- * Database environment config.
- *
- * Same MongoDB database (MONGO_DB_NAME), separate collections per environment:
- *   production  -> users, plans, purchases, ...
- *   development -> dev_users, dev_plans, dev_purchases, ...
- *
- * Set DB_ENV in .env (or rely on NODE_ENV).
+ * One Atlas cluster, separate databases via MONGO_DB_NAME:
+ *   Dev        + DB_ENV=development -> dev_users, dev_plans, ...
+ *   Production + DB_ENV=production  -> users, plans, ...
  */
 
-export const DB_NAME = process.env.MONGO_DB_NAME || 'test';
+export const getDbName = () => process.env.MONGO_DB_NAME || 'test';
 
-export const DB_ENV = process.env.DB_ENV
+export const getDbEnv = () => process.env.DB_ENV
     || (process.env.NODE_ENV === 'production' ? 'production' : 'development');
 
-export const isProductionDb = () => DB_ENV === 'production';
+export const isProductionDb = () => getDbEnv() === 'production';
 
 export const getCollectionName = (baseName) => {
     if (isProductionDb()) {
@@ -22,25 +20,34 @@ export const getCollectionName = (baseName) => {
     return `dev_${baseName}`;
 };
 
-export const buildMongoUri = (databaseName = DB_NAME) => {
+export const buildMongoUri = (databaseName = getDbName()) => {
     const uri = process.env.MONGO_URI;
     if (!uri) {
         throw new Error('MONGO_URI is required');
     }
 
-    const [base, query = ''] = uri.split('?');
-    const pathMatch = base.match(/mongodb(\+srv)?:\/\/[^/]+\/(.+)$/);
-
-    if (pathMatch?.[2]) {
-        return uri;
+    const [, query = ''] = uri.split('?');
+    const hostMatch = uri.match(/^(mongodb(\+srv)?:\/\/[^/?]+)/);
+    if (!hostMatch) {
+        throw new Error('Invalid MONGO_URI format');
     }
 
-    const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
-    const withDb = `${normalizedBase}/${databaseName}`;
+    const withDb = `${hostMatch[1]}/${databaseName}`;
     return query ? `${withDb}?${query}` : withDb;
+};
+
+export const createModel = (connection, modelName, schema, baseCollectionName) => {
+    const collectionName = getCollectionName(baseCollectionName);
+
+    if (connection.models[modelName]) {
+        connection.deleteModel(modelName);
+    }
+
+    return connection.model(modelName, schema, collectionName);
 };
 
 export const logDatabaseConfig = () => {
     const prefix = isProductionDb() ? '(production collections)' : 'dev_*';
-    console.log(`MongoDB database: ${DB_NAME} | DB_ENV: ${DB_ENV} | Collections: ${prefix}`);
+    console.log(`MongoDB database: ${getDbName()} | DB_ENV: ${getDbEnv()} | Collections: ${prefix}`);
+    console.log(`Users collection: ${getCollectionName('users')}`);
 };

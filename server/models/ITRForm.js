@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { getCollectionName } from '../config/database.js';
+import { createModel } from '../config/database.js';
 
 const itrFormSchema = new mongoose.Schema({
     userId: {
@@ -65,8 +65,7 @@ const itrFormSchema = new mongoose.Schema({
         ref: 'Document'
     }]
 }, {
-    timestamps: true,
-    collection: getCollectionName('itrforms')
+    timestamps: true
 });
 
-export default mongoose.model('ITRForm', itrFormSchema);
+export default createModel(mongoose, 'ITRForm', itrFormSchema, 'itrforms');

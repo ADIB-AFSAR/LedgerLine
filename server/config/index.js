@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import adminSchema from '../models/Admin.js';
-import { buildMongoUri, logDatabaseConfig } from './database.js';
+import { buildMongoUri, createModel, logDatabaseConfig } from './database.js';
 
 let adminConn;
 export let Admin;
@@ -46,7 +46,7 @@ export const connectDB = async () => {
             const queryParams = mongoUri.includes('?') ? '?' + mongoUri.split('?')[1] : '';
             
             adminConn = mongoose.createConnection(adminUri + queryParams, mongoOptions);
-            Admin = adminConn.model('Admin', adminSchema);
+            Admin = createModel(adminConn, 'Admin', adminSchema, 'users');
             
             console.log(`Admin Database Connected`);
             return { Admin };
