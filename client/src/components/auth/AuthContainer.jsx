@@ -33,7 +33,7 @@ const AuthContainer = ({ onAuthSuccess, externalError }) => {
             <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 text-red-600 font-bold">!</div>
             <div>
               <p className="text-sm font-bold tracking-tight">{externalError}</p>
-              {externalError.toLowerCase().includes('register') && (
+              {!isSignup && (
                 <button 
                   onClick={() => setIsSignup(true)}
                   className="text-xs font-bold underline hover:no-underline"

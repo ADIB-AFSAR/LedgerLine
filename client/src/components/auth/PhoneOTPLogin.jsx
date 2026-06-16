@@ -3,7 +3,6 @@ import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../../firebase/firebase";
 import { Phone, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import api from '../../api/axios';
-import { getIndianMobileError, getMobileDigits, getPhoneAuthErrorMessage } from '../../utils/phoneValidation';
 
 const PhoneOTPLogin = ({ onAuthSuccess }) => {
   const [phoneNumber, setPhoneNumber] = useState("+91");
@@ -11,17 +10,7 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [msg, setMsg] = useState("");
-  const [timer, setTimer] = useState(0);
   const [step, setStep] = useState('phone'); // 'phone' or 'otp'
-
-  useEffect(() => {
-    let interval = null;
-    if (timer > 0) {
-      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
 
   const setupRecaptcha = () => {
     if (!window.recaptchaVerifier) {
@@ -34,34 +23,18 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
     }
   };
 
-  const sendFirebaseOtp = async () => {
-    const cleanNumber = phoneNumber.replace(/\D/g, '').slice(-10);
-    const finalFormattedNumber = cleanNumber.length === 10 ? `+91${cleanNumber}` : phoneNumber;
-
-    setupRecaptcha();
-    const appVerifier = window.recaptchaVerifier;
-    const result = await signInWithPhoneNumber(auth, finalFormattedNumber, appVerifier);
-    setConfirmationResult(result);
-    setStep('otp');
-    setTimer(30);
-    return finalFormattedNumber;
-  };
-
   const sendOTP = async (e) => {
     e.preventDefault();
     setError("");
-    setMsg("");
     
-    const cleanNumber = getMobileDigits(phoneNumber);
-    const mobileError = getIndianMobileError(cleanNumber);
-    if (mobileError) {
-      setError(mobileError);
-      return;
-    }
+    // Strict Normalization for Firebase (+91XXXXXXXXXX)
+    const cleanNumber = phoneNumber.replace(/\D/g, '').slice(-10);
+    const finalFormattedNumber = cleanNumber.length === 10 ? `+91${cleanNumber}` : phoneNumber;
     
     setLoading(true);
 
     try {
+      // 1. Check if user exists in our DB first
       const checkRes = await api.post('/auth/check-user', { identifier: cleanNumber });
       
       if (!checkRes.data.exists) {
@@ -70,28 +43,18 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
         return;
       }
 
-      await sendFirebaseOtp();
+      // 2. If user exists, proceed with Firebase OTP
+      console.log(`📡 Sending OTP to Firebase: ${finalFormattedNumber}`);
+      setupRecaptcha();
+      const appVerifier = window.recaptchaVerifier;
+      const result = await signInWithPhoneNumber(auth, finalFormattedNumber, appVerifier);
+      setConfirmationResult(result);
+      setStep('otp');
+      console.log("OTP Sent Successfully");
     } catch (err) {
       console.error("Error sending OTP:", err);
-      setError(getPhoneAuthErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    if (timer > 0 || loading) return;
-
-    setError("");
-    setMsg("");
-    setLoading(true);
-
-    try {
-      await sendFirebaseOtp();
-      setMsg("Verification code resent successfully.");
-    } catch (err) {
-      console.error("Error resending OTP:", err);
-      setError(getPhoneAuthErrorMessage(err));
+      setError(err.message || "Failed to send OTP. Please check the number.");
+      // Do NOT clear recaptchaVerifier here, otherwise retrying will throw "reCAPTCHA has already been rendered"
     } finally {
       setLoading(false);
     }
@@ -100,35 +63,19 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
   const verifyOTP = async (e) => {
     e.preventDefault();
     setError("");
-    setMsg("");
     setLoading(true);
 
-    const cleanOtp = otp.replace(/\D/g, '');
-    if (cleanOtp.length !== 6) {
-      setError('Please enter a valid 6-digit verification code.');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const result = await confirmationResult.confirm(cleanOtp);
+      const result = await confirmationResult.confirm(otp);
       const firebaseUser = result.user;
-
+      console.log("Firebase Auth User:", firebaseUser);
+      
       if (onAuthSuccess) {
-        const authResult = await onAuthSuccess(firebaseUser);
-        if (authResult && !authResult.success) {
-          setError(authResult.message || 'Login failed. Please try again.');
-        }
+        await onAuthSuccess(firebaseUser);
       }
     } catch (err) {
       console.error("Error verifying OTP:", err);
-      if (err.code === 'auth/code-expired') {
-        setError('Verification code expired. Please resend a new code.');
-      } else if (err.code === 'auth/invalid-verification-code') {
-        setError('Invalid verification code. Please try again.');
-      } else {
-        setError('Unable to verify code. Please try again.');
-      }
+      setError("Invalid OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -142,13 +89,6 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
         <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 animate-in fade-in slide-in-from-top-1">
           <AlertCircle size={20} className="flex-shrink-0" />
           <span className="text-sm font-medium">{error}</span>
-        </div>
-      )}
-
-      {msg && (
-        <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 animate-in fade-in slide-in-from-top-1">
-          <CheckCircle2 size={20} className="flex-shrink-0" />
-          <span className="text-sm font-medium">{msg}</span>
         </div>
       )}
 
@@ -209,13 +149,7 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
               </label>
               <button 
                 type="button"
-                onClick={() => {
-                  setStep('phone');
-                  setOtp('');
-                  setTimer(0);
-                  setMsg('');
-                  setError('');
-                }}
+                onClick={() => setStep('phone')}
                 className="text-xs font-bold text-blue-600 hover:underline"
               >
                 Change Number
@@ -226,7 +160,7 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
               <input
                 type="text"
                 value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) => setOtp(e.target.value)}
                 placeholder="Ex: 123456"
                 required
                 maxLength={6}
@@ -249,24 +183,6 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
               </>
             )}
           </button>
-
-          <div className="text-center">
-            <p className="text-sm text-slate-600">
-              Didn't receive the code?{' '}
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={timer > 0 || loading}
-                className={`font-semibold transition-colors ${
-                  timer > 0 || loading
-                    ? 'text-slate-400 cursor-not-allowed'
-                    : 'text-blue-600 hover:text-blue-500 hover:underline'
-                }`}
-              >
-                {timer > 0 ? `Resend in ${timer}s` : 'Resend Verification Code'}
-              </button>
-            </p>
-          </div>
         </form>
       )}
     </div>

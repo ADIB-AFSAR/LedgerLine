@@ -26,12 +26,6 @@ console.log('Starting connectDB()...');
 // Connect to database
 connectDB();
 
-// In dev: auto-seed plans if dev_plans is empty.
-// This prevents service pages from disabling "Get Started" due to missing plan records.
-import('./utils/seedDevPlansIfEmpty.js')
-  .then((m) => m.seedDevPlansIfEmpty())
-  .catch((e) => console.error('Plan seeding init failed:', e));
-
 const app = express();
 
 // Trust proxy - Required for Vercel/proxied environments to get correct IP

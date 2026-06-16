@@ -6,7 +6,6 @@ import { Mail, Smartphone, CheckCircle, ArrowRight, Loader2, Lock, AlertCircle, 
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../../firebase/firebase";
 import api from '../../api/axios';
-import { getIndianMobileError, getPhoneAuthErrorMessage } from '../../utils/phoneValidation';
 
 const UnifiedVerification = () => {
     const { state } = useLocation();
@@ -119,7 +118,7 @@ const UnifiedVerification = () => {
         if (res.success) {
             setEmailMsg('OTP sent to your email!');
             setEmailOtpSent(true);
-            setResendEmailTimer(30);
+            setResendEmailTimer(60);
         } else {
             setEmailError(res.message);
         }
@@ -140,41 +139,24 @@ const UnifiedVerification = () => {
     };
 
     // --- reCAPTCHA Setup ---
-    // Avoid global window.recaptchaVerifier reuse; it can become stale and trigger frequent captcha-check-failed.
-    const recaptchaVerifierRef = useRef(null);
-
-    const clearRecaptcha = () => {
-        try {
-            recaptchaVerifierRef.current?.clear?.();
-        } catch (e) {}
-        recaptchaVerifierRef.current = null;
-        const container = document.getElementById('recaptcha-container-verify');
-        if (container) container.innerHTML = '';
-    };
-
-    useEffect(() => {
-        return () => clearRecaptcha();
-    }, []);
+    const windowVerifierRef = useRef(null);
 
     const setupRecaptcha = async () => {
-        const container = document.getElementById('recaptcha-container-verify');
-        if (!container) {
-            throw new Error('reCAPTCHA container not found');
-        }
-
-        // Always create a fresh verifier for each send attempt to reduce BLOCKED/captcha-check-failed.
-        clearRecaptcha();
-
         try {
-            const verifier = new RecaptchaVerifier(auth, 'recaptcha-container-verify', {
-                size: 'invisible',
-                callback: () => {},
-            });
-            recaptchaVerifierRef.current = verifier;
-            await verifier.render();
-            return verifier;
+            if (!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-verify', {
+                    'size': 'invisible',
+                    'callback': () => { console.log("reCAPTCHA verified"); }
+                });
+                await window.recaptchaVerifier.render();
+            }
+            return window.recaptchaVerifier;
         } catch (err) {
-            clearRecaptcha();
+            console.error("reCAPTCHA init failed:", err);
+            // If initialization fails, wipe it so we can try again
+            window.recaptchaVerifier = null;
+            const container = document.getElementById('recaptcha-container-verify');
+            if (container) container.innerHTML = '';
             throw err;
         }
     };
@@ -198,12 +180,6 @@ const UnifiedVerification = () => {
 
             // 0. Strict Normalization for Firebase (+91XXXXXXXXXX)
             const cleanNumber = finalMobile.replace(/\D/g, '').slice(-10);
-            const mobileError = getIndianMobileError(cleanNumber);
-            if (mobileError) {
-                setMobileError(mobileError);
-                setMobileLoading(false);
-                return;
-            }
             const formattedMobile = `+91${cleanNumber}`;
 
             // 1. Check if number exists in DB and belongs to someone else
@@ -234,19 +210,10 @@ const UnifiedVerification = () => {
             
             setMobileOtpSent(true);
             setNeedsMobileInput(false);
-            setResendMobileTimer(30);
+            setResendMobileTimer(60);
         } catch (err) {
             console.error("Firebase Mobile OTP Fail:", err);
-            // If captcha got blocked, clear and allow retry without requiring page reload.
-            if (err?.code === 'auth/captcha-check-failed') {
-                clearRecaptcha();
-                setResendMobileTimer(0);
-                setMobileError(
-                    'Verification check failed. Please disable ad-block/VPN, allow cookies, then tap “Send Mobile OTP” again.'
-                );
-            } else {
-                setMobileError(getPhoneAuthErrorMessage(err));
-            }
+            setMobileError(err.message || 'Failed to send SMS');
         } finally {
             setMobileLoading(false);
         }

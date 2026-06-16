@@ -6,207 +6,76 @@ import sendEmail from '../utils/sendEmail.js';
 import { getVerificationTemplate } from '../utils/emailTemplates.js';
 import admin from 'firebase-admin';
 
-const resolveReferralCode = async (referralCode) => {
-    if (!referralCode) return null;
-
-    try {
-        const decodedId = Buffer.from(referralCode, 'base64').toString('utf-8');
-        if (/^[a-f\d]{24}$/i.test(decodedId)) {
-            const referrer = await User.findById(decodedId).select('_id');
-            if (referrer) return referrer._id;
-        }
-    } catch (err) {
-        console.warn('[Referral] Invalid referral code during register:', referralCode);
-    }
-
-    return null;
-};
-
-const sendUserRegistrationOtp = async (user) => {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.otp = otp;
-    user.otpExpires = Date.now() + 10 * 60 * 1000;
-    await user.save({ validateBeforeSave: false });
-
-    if (process.env.NODE_ENV !== 'production') {
-        console.log(`OTP sent to ${user.email}: ${otp}`);
-    }
-
-    try {
-        await sendEmail({
-            email: user.email,
-            subject: 'Email Verification - Powerfiling',
-            message: `Your verification code is: ${otp}`,
-            html: getVerificationTemplate(otp, 'Verification')
-        });
-    } catch (err) {
-        console.error(err);
-    }
-};
-
-const normalizeMobile = (num) => {
-    if (!num) return null;
-    const cleaned = String(num).replace(/\D/g, '');
-    return cleaned.length >= 10 ? cleaned.slice(-10) : null;
-};
-
-const findUserByMobile = async (mobile) => {
-    const mobile10 = normalizeMobile(mobile);
-    if (!mobile10) return null;
-
-    return User.findOne({
-        $or: [
-            { mobile: mobile10 },
-            { mobile: `+91${mobile10}` },
-            { mobile: `91${mobile10}` }
-        ]
-    });
-};
-
-const findUserByEmail = async (email) => {
-    const normalizedEmail = email?.trim().toLowerCase();
-    if (!normalizedEmail) return null;
-
-    return User.findOne({
-        email: { $regex: new RegExp(`^${normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
-    });
-};
-
-const handleDuplicateKeyError = (error, next) => {
-    if (error.code !== 11000) return false;
-
-    const field = Object.keys(error.keyPattern || error.keyValue || {})[0];
-    const message = field === 'mobile'
-        ? 'Mobile number already exists'
-        : field === 'email'
-            ? 'Email already registered'
-            : 'This account already exists';
-
-    next(new ErrorResponse(message, 400));
-    return true;
-};
-
-const isValidIndianMobile = (mobile10) => {
-    if (!mobile10 || mobile10.length !== 10) return false;
-    if (!/^[6-9]\d{9}$/.test(mobile10)) return false;
-    if (/^(\d)\1{9}$/.test(mobile10)) return false;
-    return true;
-};
-
 // @desc      Register user
 // @route     POST /api/v1/auth/register
 // @access    Public
 export const register = asyncHandler(async (req, res, next) => {
     const { name, email, password, mobile, role, referralCode } = req.body;
-
-    const normalizedEmail = email?.trim().toLowerCase();
-    const normalizedMobile = normalizeMobile(mobile);
-
-    if (normalizedMobile && !isValidIndianMobile(normalizedMobile)) {
-        return next(new ErrorResponse('Please enter a valid Indian mobile number', 400));
-    }
-
-    const existingByEmail = normalizedEmail ? await findUserByEmail(normalizedEmail) : null;
-    const existingByMobile = normalizedMobile
-        ? await findUserByMobile(normalizedMobile)
-        : null;
-
-    if (existingByEmail?.isEmailVerified) {
+ 
+    // Check if user exists
+    let user = await User.findOne({ email });
+    if (user) {
         return next(new ErrorResponse('Email already registered', 400));
     }
-
-    if (existingByMobile?.isEmailVerified) {
-        return next(new ErrorResponse('Mobile number already exists', 400));
-    }
-
-    if (existingByMobile?.isMobileVerified) {
-        const sameAccount = existingByEmail?.id === existingByMobile.id;
-        if (!sameAccount) {
-            return next(new ErrorResponse('Mobile number already exists', 400));
-        }
-    }
-
-    if (
-        existingByEmail &&
-        existingByMobile &&
-        existingByEmail.id !== existingByMobile.id
-    ) {
-        return next(new ErrorResponse(
-            'This email and mobile number belong to different accounts. Please contact support.',
-            400
-        ));
-    }
-
-    let user = existingByEmail || existingByMobile;
-
-    // Resume signup when email verification was never completed
-    if (user && !user.isEmailVerified) {
-        if (user.role !== 'user') {
-            return next(new ErrorResponse('Email already registered', 400));
-        }
-
-        if (normalizedMobile) {
-            const mobileOwner = await findUserByMobile(normalizedMobile);
-            if (
-                mobileOwner &&
-                mobileOwner.id !== user.id &&
-                (mobileOwner.isEmailVerified || mobileOwner.isMobileVerified)
-            ) {
-                return next(new ErrorResponse('Mobile number already exists', 400));
+ 
+    // ── Validate referral code before creating user ──────────────────────────
+    let referredByUserId = null;
+ 
+    if (referralCode) {
+        try {
+            const decodedId = Buffer.from(referralCode, 'base64').toString('utf-8');
+ 
+            // Basic ObjectId format check
+            if (/^[a-f\d]{24}$/i.test(decodedId)) {
+                const referrer = await User.findById(decodedId).select('_id');
+ 
+                // Referrer must exist and not be the registering email
+                if (referrer) {
+                    referredByUserId = referrer._id;
+                }
             }
+        } catch (err) {
+            // Invalid code — silently ignore, don't block registration
+            console.warn('[Referral] Invalid referral code during register:', referralCode);
         }
-
-        user.name = name;
-        if (normalizedEmail) user.email = normalizedEmail;
-        if (normalizedMobile) user.mobile = normalizedMobile;
-        if (password) user.password = password;
-
-        if (referralCode && !user.referredBy) {
-            const referredByUserId = await resolveReferralCode(referralCode);
-            if (referredByUserId) user.referredBy = referredByUserId;
-        }
-
-        try {
-            await sendUserRegistrationOtp(user);
-        } catch (error) {
-            if (handleDuplicateKeyError(error, next)) return;
-            throw error;
-        }
-
-        return res.status(200).json({
-            success: true,
-            requireVerification: true,
-            email: user.email,
-            message: 'Verification code sent. Please complete your registration.'
-        });
     }
-
-    const referredByUserId = await resolveReferralCode(referralCode);
-
-    try {
-        user = await User.create({
-            name,
-            email: normalizedEmail,
-            password,
-            mobile: normalizedMobile,
-            role,
-            isEmailVerified: role === 'admin' || role === 'ca',
-            isMobileVerified: role === 'admin' || role === 'ca',
-            referredBy: referredByUserId
-        });
-    } catch (error) {
-        if (handleDuplicateKeyError(error, next)) return;
-        throw error;
-    }
-
+    // ────────────────────────────────────────────────────────────────────────
+ 
+    // Create user
+    user = await User.create({
+        name,
+        email,
+        password,
+        mobile,
+        role,
+        isEmailVerified: role === 'admin' || role === 'ca',
+        isMobileVerified: role === 'admin' || role === 'ca',
+        // ── referral ──
+        referredBy: referredByUserId
+    });
+ 
     if (user.role === 'user') {
-        try {
-            await sendUserRegistrationOtp(user);
-        } catch (error) {
-            if (handleDuplicateKeyError(error, next)) return;
-            throw error;
+        // Generate OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.otp = otp;
+        user.otpExpires = Date.now() + 10 * 60 * 1000;
+        await user.save({ validateBeforeSave: false });
+ 
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`OTP sent to ${user.email}: ${otp}`);
         }
-
+ 
+        try {
+            await sendEmail({
+                email: user.email,
+                subject: 'Email Verification - Powerfiling',
+                message: `Your verification code is: ${otp}`,
+                html: getVerificationTemplate(otp, 'Verification')
+            });
+        } catch (err) {
+            console.error(err);
+        }
+ 
         return res.status(200).json({
             success: true,
             requireVerification: true,
@@ -214,7 +83,7 @@ export const register = asyncHandler(async (req, res, next) => {
             message: 'Registration successful. Please check your email for verification code.'
         });
     }
-
+ 
     res.status(200).json({
         success: true,
         requireVerification: false,
@@ -740,104 +609,67 @@ export const handleAdminRequest = asyncHandler(async (req, res, next) => {
 // @route     POST /api/v1/auth/firebase-login
 // @access    Public
 export const firebaseLogin = asyncHandler(async (req, res, next) => {
-    const { idToken, mobile } = req.body;
+    const { idToken, uid, mobile } = req.body;
 
     if (!idToken) {
         return next(new ErrorResponse('Please provide a Firebase ID token', 400));
     }
 
-    let decodedToken;
     try {
-        decodedToken = await admin.auth().verifyIdToken(idToken);
-    } catch (error) {
-        console.error('Firebase token verification failed:', error);
-        return next(new ErrorResponse(
-            'Verification code expired or invalid. Please request a new code and try again.',
-            401
-        ));
-    }
+        // Verify Firebase Token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const { uid: firebaseUid, email: firebaseEmail, phone_number: firebasePhone } = decodedToken;
 
-    const searchMobile = normalizeMobile(decodedToken.phone_number || mobile);
+        // Normalize mobile numbers (use last 10 digits for consistent lookup)
+        const normalizeMobile = (num) => {
+            if (!num) return null;
+            const cleaned = num.replace(/\D/g, '');
+            return cleaned.length >= 10 ? cleaned.slice(-10) : cleaned;
+        };
 
-    if (!searchMobile && !decodedToken.email) {
-        return next(new ErrorResponse(
-            'Phone number could not be verified. Please try again.',
-            400
-        ));
-    }
+        const searchMobile = normalizeMobile(firebasePhone || mobile);
 
-    let user = null;
-    if (searchMobile) {
-        user = await findUserByMobile(searchMobile);
-    }
-    if (!user && decodedToken.email) {
-        user = await User.findOne({ email: decodedToken.email });
-    }
-    if (!user) {
-        user = await User.findOne({ firebaseUid: decodedToken.uid });
-    }
+        // Find user in our DB
+        // We check firebaseUid, then email, then mobile
+        let user = await User.findOne({
+            $or: [
+                { firebaseUid: decodedToken.uid },
+                ...(firebaseEmail ? [{ email: firebaseEmail }] : []),
+                ...(searchMobile ? [{ mobile: searchMobile }] : [])
+            ]
+        });
 
-    if (!user) {
-        return next(new ErrorResponse('You are a new user, please register yourself first.', 404));
-    }
-
-    if (searchMobile && user.mobile) {
-        const storedMobile = normalizeMobile(user.mobile);
-        if (storedMobile && storedMobile !== searchMobile) {
-            return next(new ErrorResponse(
-                'This mobile number is not linked to your account.',
-                400
-            ));
-        }
-    }
-
-    try {
-        let updated = false;
-
-        if (!user.firebaseUid) {
-            user.firebaseUid = decodedToken.uid;
-            updated = true;
-        } else if (user.firebaseUid !== decodedToken.uid) {
-            user.firebaseUid = decodedToken.uid;
-            updated = true;
-        }
-
-        if (!user.email && decodedToken.email) {
-            user.email = decodedToken.email;
-            user.isEmailVerified = decodedToken.email_verified || true;
-            updated = true;
-        }
-
-        if (searchMobile) {
-            if (!user.mobile) {
-                user.mobile = searchMobile;
+        if (!user) {
+            return next(new ErrorResponse('You are a new user, please register yourself first.', 404));
+        } else {
+            // Update existing user with info if missing
+            let updated = false;
+            
+            if (!user.firebaseUid) {
+                user.firebaseUid = decodedToken.uid;
                 updated = true;
             }
-            if (!user.isMobileVerified) {
+            if (!user.email && firebaseEmail) {
+                user.email = firebaseEmail;
+                user.isEmailVerified = decodedToken.email_verified || true;
+                updated = true;
+            }
+            if (!user.mobile && searchMobile) {
+                user.mobile = searchMobile;
                 user.isMobileVerified = true;
                 updated = true;
             }
+
+            if (updated) {
+                await user.save({ validateBeforeSave: false });
+            }
         }
 
-        if (updated) {
-            await user.save({ validateBeforeSave: false });
-        }
+        sendTokenResponse(user, 200, res);
     } catch (error) {
-        if (error.code === 11000) {
-            const field = Object.keys(error.keyPattern || error.keyValue || {})[0];
-            const message = field === 'mobile'
-                ? 'Mobile number already exists'
-                : field === 'email'
-                    ? 'Email already registered'
-                    : 'This account already exists';
-            return next(new ErrorResponse(message, 400));
-        }
-
-        console.error('Failed to update user during firebase login:', error);
-        return next(new ErrorResponse('Unable to complete login. Please try again.', 500));
+        console.error('Firebase token verification failed:', error);
+        return next(new ErrorResponse('Authentication failed', 401));
     }
-
-    sendTokenResponse(user, 200, res);
 });
 
 // @desc      Check if user exists
@@ -850,21 +682,21 @@ export const checkUser = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse('Please provide an email or mobile number', 400));
     }
 
+    // Normalize identifier (remove spaces and special characters from mobile)
     const normalizedIdentifier = identifier.trim().replace(/\s/g, '');
-    const mobile10 = normalizeMobile(normalizedIdentifier);
-    const isMobile = Boolean(mobile10 && mobile10.length === 10);
 
-    if (isMobile && !isValidIndianMobile(mobile10)) {
-        return res.status(400).json({
-            success: false,
-            exists: false,
-            message: 'Please enter a valid Indian mobile number.'
-        });
+    // Check if input is likely a mobile number
+    const isMobile = /^\d{10}$/.test(normalizedIdentifier) || (/^\+91\d{10}$/.test(normalizedIdentifier));
+    
+    let query = {};
+    if (isMobile) {
+        const last10 = normalizedIdentifier.slice(-10);
+        query = { mobile: last10 };
+    } else {
+        query = { email: normalizedIdentifier.toLowerCase() };
     }
 
-    const user = isMobile
-        ? await findUserByMobile(mobile10)
-        : await User.findOne({ email: normalizedIdentifier.toLowerCase() });
+    const user = await User.findOne(query);
 
     if (!user) {
         return res.status(200).json({

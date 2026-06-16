@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { createModel } from '../config/database.js';
 
 const withdrawalRequestSchema = new mongoose.Schema({
     requestedAt: { type: Date, default: Date.now },
@@ -167,4 +166,4 @@ userSchema.methods.getSignedJwtToken = function () {
     });
 };
 
-export default createModel(mongoose, 'User', userSchema, 'users');
+export default mongoose.model('User', userSchema);

@@ -72,7 +72,7 @@ const adminSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     }
-});
+}, { collection: 'users' }); // Specify collection name as 'users'
 
 // Encrypt password using bcrypt
 adminSchema.pre('save', async function (next) {

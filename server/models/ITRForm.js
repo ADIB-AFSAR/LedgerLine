@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { createModel } from '../config/database.js';
 
 const itrFormSchema = new mongoose.Schema({
     userId: {
@@ -68,4 +67,4 @@ const itrFormSchema = new mongoose.Schema({
     timestamps: true
 });
 
-export default createModel(mongoose, 'ITRForm', itrFormSchema, 'itrforms');
+export default mongoose.model('ITRForm', itrFormSchema);
