@@ -1,4 +1,5 @@
  import mongoose from 'mongoose';
+import { getCollectionName } from '../config/database.js';
 
 const couponSchema = new mongoose.Schema({
     code: {
@@ -37,7 +38,10 @@ const couponSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }
-}, { timestamps: true });
+}, {
+    timestamps: true,
+    collection: getCollectionName('coupons')
+});
 
 couponSchema.virtual('isExpired').get(function () {
     if (!this.expiresAt) return false;

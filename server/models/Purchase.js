@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { getCollectionName } from '../config/database.js';
 
 const purchaseSchema = new mongoose.Schema({
     userId: {
@@ -70,7 +71,8 @@ const purchaseSchema = new mongoose.Schema({
 },
 },
  {
-    timestamps: true
+    timestamps: true,
+    collection: getCollectionName('purchases')
 });
 
 export default mongoose.model('Purchase', purchaseSchema);

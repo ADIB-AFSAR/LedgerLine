@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { getCollectionName } from '../config/database.js';
 
 const documentSchema = new mongoose.Schema({
     userId: {
@@ -42,6 +43,8 @@ const documentSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     }
+}, {
+    collection: getCollectionName('documents')
 });
 
 export default mongoose.model('Document', documentSchema);

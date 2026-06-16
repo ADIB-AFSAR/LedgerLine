@@ -3,6 +3,7 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../../firebase/firebase";
 import { Chrome, Loader2 } from 'lucide-react';
 import { FcGoogle } from "react-icons/fc";
+import { getGoogleAuthErrorMessage } from '../../utils/authErrors';
 
 
 const GoogleLogin = ({ onAuthSuccess }) => {
@@ -20,11 +21,14 @@ const GoogleLogin = ({ onAuthSuccess }) => {
       console.log("Google Auth Success:", firebaseUser);
       
       if (onAuthSuccess) {
-        await onAuthSuccess(firebaseUser);
+        const authResult = await onAuthSuccess(firebaseUser);
+        if (authResult && !authResult.success) {
+          setError(authResult.message || 'Login failed. Please try again.');
+        }
       }
     } catch (err) {
       console.error("Google Auth Error:", err);
-      setError(err.message || "Failed to sign in with Google.");
+      setError(getGoogleAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }

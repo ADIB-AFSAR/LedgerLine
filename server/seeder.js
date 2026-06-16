@@ -1,18 +1,19 @@
+import 'dotenv/config';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import Plan from './models/Plan.js';
+import { buildMongoUri, logDatabaseConfig } from './config/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-dotenv.config({ path: join(__dirname, '.env') });
-
 const connectDB = async () => {
     try {
-        const conn = await mongoose.connect(process.env.MONGO_URI);
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
+        const mongoUri = buildMongoUri();
+        logDatabaseConfig();
+        const conn = await mongoose.connect(mongoUri);
+        console.log(`MongoDB Connected: ${conn.connection.host} (${conn.connection.name})`);
     } catch (error) {
         console.log(error);
         process.exit(1);

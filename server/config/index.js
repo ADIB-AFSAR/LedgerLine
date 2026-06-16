@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import adminSchema from '../models/Admin.js';
+import { buildMongoUri, logDatabaseConfig } from './database.js';
 
 let adminConn;
 export let Admin;
@@ -30,16 +31,19 @@ export const connectDB = async () => {
                 console.log('Mongo target host: (unavailable)');
             }
 
-            const conn = await mongoose.connect(process.env.MONGO_URI, mongoOptions);
-            console.log(`MongoDB Connected: ${conn.connection.host}`);
+            const mongoUri = buildMongoUri();
+            logDatabaseConfig();
+
+            const conn = await mongoose.connect(mongoUri, mongoOptions);
+            console.log(`MongoDB Connected: ${conn.connection.host} (${conn.connection.name})`);
 
 
-            const baseUri = process.env.MONGO_URI.includes('?') 
-                ? process.env.MONGO_URI.split('?')[0]
-                : process.env.MONGO_URI;
-            
+            const baseUri = mongoUri.includes('?')
+                ? mongoUri.split('?')[0]
+                : mongoUri;
+
             const adminUri = baseUri.substring(0, baseUri.lastIndexOf('/')) + '/admin_db';
-            const queryParams = process.env.MONGO_URI.includes('?') ? '?' + process.env.MONGO_URI.split('?')[1] : '';
+            const queryParams = mongoUri.includes('?') ? '?' + mongoUri.split('?')[1] : '';
             
             adminConn = mongoose.createConnection(adminUri + queryParams, mongoOptions);
             Admin = adminConn.model('Admin', adminSchema);

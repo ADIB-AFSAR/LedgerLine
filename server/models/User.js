@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { getCollectionName } from '../config/database.js';
 
 const withdrawalRequestSchema = new mongoose.Schema({
     requestedAt: { type: Date, default: Date.now },
@@ -143,6 +144,8 @@ const userSchema = new mongoose.Schema({
     referralHistory: [referralHistorySchema],
     withdrawalRequests: [withdrawalRequestSchema],
     
+}, {
+    collection: getCollectionName('users')
 });
 
 // Encrypt password using bcrypt

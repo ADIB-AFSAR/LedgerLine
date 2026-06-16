@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { getCollectionName } from '../config/database.js';
 
 const planSchema = new mongoose.Schema({
     name: {
@@ -29,7 +30,8 @@ const planSchema = new mongoose.Schema({
         default: true
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    collection: getCollectionName('plans')
 });
 
 export default mongoose.model('Plan', planSchema);

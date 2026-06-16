@@ -118,7 +118,7 @@ const UnifiedVerification = () => {
         if (res.success) {
             setEmailMsg('OTP sent to your email!');
             setEmailOtpSent(true);
-            setResendEmailTimer(60);
+            setResendEmailTimer(30);
         } else {
             setEmailError(res.message);
         }
@@ -210,7 +210,7 @@ const UnifiedVerification = () => {
             
             setMobileOtpSent(true);
             setNeedsMobileInput(false);
-            setResendMobileTimer(60);
+            setResendMobileTimer(30);
         } catch (err) {
             console.error("Firebase Mobile OTP Fail:", err);
             setMobileError(err.message || 'Failed to send SMS');
