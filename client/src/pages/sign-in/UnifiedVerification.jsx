@@ -6,6 +6,7 @@ import { Mail, Smartphone, CheckCircle, ArrowRight, Loader2, Lock, AlertCircle, 
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../../firebase/firebase";
 import api from '../../api/axios';
+import { getIndianMobileError, getPhoneAuthErrorMessage } from '../../utils/phoneValidation';
 
 const UnifiedVerification = () => {
     const { state } = useLocation();
@@ -139,24 +140,41 @@ const UnifiedVerification = () => {
     };
 
     // --- reCAPTCHA Setup ---
-    const windowVerifierRef = useRef(null);
+    // Avoid global window.recaptchaVerifier reuse; it can become stale and trigger frequent captcha-check-failed.
+    const recaptchaVerifierRef = useRef(null);
+
+    const clearRecaptcha = () => {
+        try {
+            recaptchaVerifierRef.current?.clear?.();
+        } catch (e) {}
+        recaptchaVerifierRef.current = null;
+        const container = document.getElementById('recaptcha-container-verify');
+        if (container) container.innerHTML = '';
+    };
+
+    useEffect(() => {
+        return () => clearRecaptcha();
+    }, []);
 
     const setupRecaptcha = async () => {
+        const container = document.getElementById('recaptcha-container-verify');
+        if (!container) {
+            throw new Error('reCAPTCHA container not found');
+        }
+
+        // Always create a fresh verifier for each send attempt to reduce BLOCKED/captcha-check-failed.
+        clearRecaptcha();
+
         try {
-            if (!window.recaptchaVerifier) {
-                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-verify', {
-                    'size': 'invisible',
-                    'callback': () => { console.log("reCAPTCHA verified"); }
-                });
-                await window.recaptchaVerifier.render();
-            }
-            return window.recaptchaVerifier;
+            const verifier = new RecaptchaVerifier(auth, 'recaptcha-container-verify', {
+                size: 'invisible',
+                callback: () => {},
+            });
+            recaptchaVerifierRef.current = verifier;
+            await verifier.render();
+            return verifier;
         } catch (err) {
-            console.error("reCAPTCHA init failed:", err);
-            // If initialization fails, wipe it so we can try again
-            window.recaptchaVerifier = null;
-            const container = document.getElementById('recaptcha-container-verify');
-            if (container) container.innerHTML = '';
+            clearRecaptcha();
             throw err;
         }
     };
@@ -180,6 +198,12 @@ const UnifiedVerification = () => {
 
             // 0. Strict Normalization for Firebase (+91XXXXXXXXXX)
             const cleanNumber = finalMobile.replace(/\D/g, '').slice(-10);
+            const mobileError = getIndianMobileError(cleanNumber);
+            if (mobileError) {
+                setMobileError(mobileError);
+                setMobileLoading(false);
+                return;
+            }
             const formattedMobile = `+91${cleanNumber}`;
 
             // 1. Check if number exists in DB and belongs to someone else
@@ -213,7 +237,16 @@ const UnifiedVerification = () => {
             setResendMobileTimer(30);
         } catch (err) {
             console.error("Firebase Mobile OTP Fail:", err);
-            setMobileError(err.message || 'Failed to send SMS');
+            // If captcha got blocked, clear and allow retry without requiring page reload.
+            if (err?.code === 'auth/captcha-check-failed') {
+                clearRecaptcha();
+                setResendMobileTimer(0);
+                setMobileError(
+                    'Verification check failed. Please disable ad-block/VPN, allow cookies, then tap “Send Mobile OTP” again.'
+                );
+            } else {
+                setMobileError(getPhoneAuthErrorMessage(err));
+            }
         } finally {
             setMobileLoading(false);
         }
