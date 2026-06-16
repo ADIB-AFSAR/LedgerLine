@@ -2,6 +2,7 @@ const errorHandler = (err, req, res, next) => {
     let message = err.message;
     let statusCode = err.statusCode || 500;
 
+    // MongoDB duplicate key — return user-friendly messages instead of raw E11000
     if (err.code === 11000) {
         statusCode = 400;
         const field = Object.keys(err.keyPattern || err.keyValue || {})[0];
