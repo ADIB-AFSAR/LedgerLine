@@ -325,7 +325,7 @@ const Home = () => {
                 <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-blue-200">
                   <Calculator className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-1">Foregin Assests Support</h3>
+                <h3 className="text-xl font-bold text-slate-900 mb-1">Salary (Premium)</h3>
                 <p className="text-slate-500 text-sm">Multiple income sources</p>
               </div>
               <div className="mb-8">
@@ -341,7 +341,7 @@ const Home = () => {
                   "Salary + House Property",
                   "Capital Gain Support",
                   "Dividend & Interest Income",
-                  "Foreign Assets Disclosure",
+
                   "Deduction Optimization",
                   "Expert Consultation",
                 ].map((f, i) => (
@@ -424,8 +424,6 @@ const Home = () => {
                   "DTAA Benefit Claim",
                   "Foreign Tax Credit (FTC)",
                   "Schedule FA Reporting",
-                  "FBAR Compliance Guidance",
-                  "FEMA Basic Compliance",
                 ].map((f, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <div className="w-5 h-5 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">

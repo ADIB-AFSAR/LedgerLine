@@ -130,7 +130,7 @@ const IndividualITR = () => {
                 help you choose the perfect plan.
               </p>
               <a
-                href="https://wa.me/+918385002585"
+                href="https://wa.me/+99784799904"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block bg-[#2563eb] text-white px-10 py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10"

@@ -34,21 +34,21 @@ const Footer = () => {
 
             {/* Social Links */}
             <div className="flex items-center gap-3 pt-1">
-              <a href="#" aria-label="Twitter" className="w-9 h-9 bg-slate-800 hover:bg-blue-600 rounded-xl flex items-center justify-center transition-colors">
+              <a href="https://x.com/PowerFiling" target="_blank" aria-label="Twitter" className="w-9 h-9 bg-slate-800 hover:bg-blue-600 rounded-xl flex items-center justify-center transition-colors">
                 <X size={15} />
               </a>
-              <a href="#" aria-label="LinkedIn" className="w-9 h-9 bg-slate-800 hover:bg-blue-600 rounded-xl flex items-center justify-center transition-colors">
+              <a href="http://www.linkedin.com/in/powerfiling" target="_blank" aria-label="LinkedIn" className="w-9 h-9 bg-slate-800 hover:bg-blue-600 rounded-xl flex items-center justify-center transition-colors">
                 <Linkedin size={15} />
               </a>
-              <a href="#" aria-label="Instagram" className="w-9 h-9 bg-slate-800 hover:bg-pink-600 rounded-xl flex items-center justify-center transition-colors">
+              <a href="https://www.instagram.com/powerfiling?igsh=MWVib2YxemVkcHNycw%3D%3D&utm_source=qr" target="_blank" aria-label="Instagram" className="w-9 h-9 bg-slate-800 hover:bg-pink-600 rounded-xl flex items-center justify-center transition-colors">
                 <Instagram size={15} />
               </a>
-              <a href="#" aria-label="Facebook" className="w-9 h-9 bg-slate-800 hover:bg-blue-700 rounded-xl flex items-center justify-center transition-colors">
+              <a href="https://www.facebook.com/share/1bdA8jcc6n/?mibextid=wwXIfr" target="_blank" aria-label="Facebook" className="w-9 h-9 bg-slate-800 hover:bg-blue-700 rounded-xl flex items-center justify-center transition-colors">
                 <Facebook size={15} />
               </a>
-              <a href="#" aria-label="YouTube" className="w-9 h-9 bg-slate-800 hover:bg-red-600 rounded-xl flex items-center justify-center transition-colors">
+              {/* <a href="#" aria-label="YouTube" className="w-9 h-9 bg-slate-800 hover:bg-red-600 rounded-xl flex items-center justify-center transition-colors">
                 <Youtube size={15} />
-              </a>
+              </a> */}
             </div>
           </div>
 
@@ -104,7 +104,7 @@ const Footer = () => {
               <li>
                 <a href="tel:+919876543210" className="flex items-start gap-2.5 hover:text-white transition-colors">
                   <Phone size={14} className="mt-0.5 flex-shrink-0 text-blue-400" />
-                  +91 98765 43210
+                  +91 97847 99904
                 </a>
               </li>
               <li className="flex items-start gap-2.5">
