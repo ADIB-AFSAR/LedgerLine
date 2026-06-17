@@ -177,7 +177,7 @@ const ServiceDetail = () => {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <a
-                  href="https://wa.me/+99784799904"
+                  href="https://wa.me/+919784799904"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 bg-white/10 border border-white/20 text-white px-6 py-4 rounded-2xl font-semibold text-sm hover:bg-white/20 transition-all"
@@ -245,7 +245,7 @@ const ServiceDetail = () => {
                 {loadingPlan ? 'Checking...' : checkingStatus ? 'Verifying...' : hasActivePurchase ? 'Continue Filing' : `Get Started — ${displayPrice}`}
               </button>
               <a
-                href="https://wa.me/+99784799904"
+                href="https://wa.me/+919784799904"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white/10 border border-white/20 text-white px-8 py-4 rounded-2xl font-semibold hover:bg-white/20 transition-all text-base"
