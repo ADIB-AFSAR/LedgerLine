@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ShieldCheck,
   UserCheck,
@@ -10,6 +10,8 @@ import {
   Calculator,
   MessageSquare,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -19,6 +21,7 @@ const Home = () => {
 
   const [selectedIncome, setSelectedIncome] = useState([]);
   const [suggestedITR, setSuggestedITR] = useState(null);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   const incomeTypes = [
     { id: "salary", label: "Salary/Pension" },
@@ -26,6 +29,49 @@ const Home = () => {
     { id: "business", label: "Business/Profession" },
     { id: "capgains", label: "Capital Gains" },
     { id: "foreign", label: "Foreign Income" },
+  ];
+
+  const testimonials = [
+    {
+      name: "Priya Sharma",
+      role: "Software Engineer",
+      company: "Tech Innovations Pvt Ltd",
+      rating: 5,
+      text: "With capital gains from stocks and mutual funds, my tax situation was complex. Powerfiling's CA team handled it beautifully with proper optimization. I saved money on taxes and had complete peace of mind. Excellent service delivery!",
+      avatar: "PS"
+    },
+    {
+      name: "Rajesh Kumar",
+      role: "Business Owner",
+      company: "Kumar Enterprises",
+      rating: 5,
+      text: "As a business owner with multiple income sources, I was worried about filing my ITR correctly. Powerfiling's premium plan covered everything - from my business income to capital gains. The dedicated CA assigned to me was knowledgeable and always available for queries.",
+      avatar: "RK"
+    },
+    {
+      name: "Anita Patel",
+      role: "Freelance Designer",
+      company: "Creative Solutions",
+      rating: 5,
+      text: "The presumptive taxation support for my freelancing income was exactly what I needed. Powerfiling's team understood my unique situation and filed my ITR perfectly. The pricing is transparent and the service is top-notch. Highly recommended!",
+      avatar: "AP"
+    },
+    {
+      name: "Vikram Singh",
+      role: "Investment Professional",
+      company: "Financial Advisors Inc",
+      rating: 5,
+      text: "Powerfiling made my tax filing incredibly simple! The CA support was exceptional, and I got my refund processed faster than ever. Their platform is user-friendly and the step-by-step guidance helped me understand every aspect of my tax filing.",
+      avatar: "VS"
+    },
+    {
+      name: "Deepika Gupta",
+      role: "NRI Professional",
+      company: "Global Tech Corp",
+      rating: 5,
+      text: "Filing taxes as an NRI was always confusing until I found Powerfiling. They explained DTAA benefits, foreign tax credit, and all compliance requirements clearly. Best decision I made for my tax planning. Highly satisfied!",
+      avatar: "DG"
+    }
   ];
 
   const handleSuggest = () => {
@@ -41,6 +87,21 @@ const Home = () => {
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
+
+  const nextTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+  };
+
+  const prevTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      nextTestimonial();
+    }, 5000); // Auto-rotate every 5 seconds
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-900">
@@ -64,15 +125,15 @@ const Home = () => {
               Salaried, Business & Capital Gains — Secure, expert-reviewed ITR
               filing for everyone. Don't risk notices, file with confidence.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
               <Link to="/services/individual" className="w-full sm:w-auto">
-                <button className="animate-float w-full bg-blue-600 text-white px-10 py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 shadow-[0_8px_30px_rgba(37,99,235,0.5)] hover:shadow-[0_12px_40px_rgba(37,99,235,0.7)] hover:bg-blue-700 transition-all duration-300">
+                <button className="animate-float w-full sm:w-auto bg-blue-600 text-white px-8 sm:px-10 py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 shadow-[0_8px_30px_rgba(37,99,235,0.5)] hover:shadow-[0_12px_40px_rgba(37,99,235,0.7)] hover:bg-blue-700 transition-all duration-300 transform hover:-translate-y-1">
                   File ITR Now <ArrowRight size={20} />
                 </button>
               </Link>
-              <button className="w-full sm:w-auto bg-white text-slate-700 border border-slate-200 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-slate-50 flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md transform hover:-translate-y-1">
-                <PlayCircle size={20} /> Watch How it Works
-              </button>
+              <div className="w-full sm:w-auto bg-white text-slate-700 border-2 border-slate-200 px-8 sm:px-10 py-4 rounded-2xl text-lg font-bold hover:bg-slate-50 hover:border-slate-300 flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md transform hover:-translate-y-1">
+                Powering Your Compliance
+              </div>
             </div>
 
             <div className="flex flex-wrap justify-center items-center gap-10 grayscale opacity-60 animate-in fade-in duration-1000 delay-500">
@@ -280,7 +341,7 @@ const Home = () => {
                   "Salary + House Property",
                   "Capital Gain Support",
                   "Dividend & Interest Income",
-                  "Foreign Assets Disclosure",
+
                   "Deduction Optimization",
                   "Expert Consultation",
                 ].map((f, i) => (
@@ -363,8 +424,6 @@ const Home = () => {
                   "DTAA Benefit Claim",
                   "Foreign Tax Credit (FTC)",
                   "Schedule FA Reporting",
-                  "FBAR Compliance Guidance",
-                  "FEMA Basic Compliance",
                 ].map((f, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <div className="w-5 h-5 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
@@ -396,60 +455,98 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-10 ">
-            {[
-              {
-                name: "Priya Sharma",
-                role: "Software Engineer",
-                company: "Tech Innovations Pvt Ltd",
-                rating: 5,
-                text: "Powerfiling made my tax filing incredibly simple! The CA support was exceptional, and I got my refund processed faster than ever. Their platform is user-friendly and the step-by-step guidance helped me understand every aspect of my tax filing.",
-                avatar: "PS"
-              },
-              {
-                name: "Rajesh Kumar",
-                role: "Business Owner",
-                company: "Kumar Enterprises",
-                rating: 5,
-                text: "As a business owner with multiple income sources, I was worried about filing my ITR correctly. Powerfiling's premium plan covered everything - from my business income to capital gains. The dedicated CA assigned to me was knowledgeable and always available for queries.",
-                avatar: "RK"
-              },
-              {
-                name: "Anita Patel",
-                role: "Freelance Designer",
-                company: "Creative Solutions",
-                rating: 5,
-                text: "The presumptive taxation support for my freelancing income was exactly what I needed. Powerfiling's team understood my unique situation and filed my ITR perfectly. The pricing is transparent and the service is top-notch. Highly recommended!",
-                avatar: "AP"
-              }
-            ].map((testimonial, idx) => (
-              <div key={idx} className="bg-slate-50/50 rounded-[2rem] p-10 relative hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-black">
-                <div className="flex items-center mb-8">
-                  <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl mr-5 shadow-lg shadow-blue-100">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-lg">{testimonial.name}</h4>
-                    <p className="text-sm text-slate-500 font-medium">{testimonial.role}</p>
-                  </div>
-                </div>
+          {/* Carousel Container */}
+          <div className="relative">
+            {/* Testimonials Grid with Side Buttons */}
+            <div className="flex items-center gap-6 md:gap-4">
+              {/* Previous Button - Left */}
+              <button
+                onClick={prevTestimonial}
+                className="flex-shrink-0 bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110 hidden md:flex items-center justify-center"
+                aria-label="Previous testimonials"
+              >
+                <ChevronLeft size={24} />
+              </button>
 
-                <div className="flex mb-6">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <div key={i} className="w-5 h-5 text-yellow-400 mr-1">
-                      ⭐
+              {/* Testimonials Grid - 3 at a time */}
+              <div className="grid md:grid-cols-3 gap-10 flex-1">
+                {[
+                  testimonials[currentTestimonial],
+                  testimonials[(currentTestimonial + 1) % testimonials.length],
+                  testimonials[(currentTestimonial + 2) % testimonials.length],
+                ].map((testimonial, idx) => (
+                  <div key={idx} className="bg-slate-50/50 rounded-[2rem] p-10 relative hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-slate-100 animate-in fade-in duration-500">
+                    <div className="flex items-center mb-8">
+                      <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl mr-5 shadow-lg shadow-blue-100">
+                        {testimonial.avatar}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-lg">{testimonial.name}</h4>
+                        <p className="text-sm text-slate-500 font-medium">{testimonial.role}</p>
+                      </div>
                     </div>
-                  ))}
-                </div>
 
-                <p className="text-slate-600 leading-relaxed italic text-lg mb-4">
-                  "{testimonial.text}"
-                </p>
+                    <div className="flex mb-6">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <div key={i} className="w-5 h-5 text-yellow-400 mr-1">
+                          ⭐
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="text-slate-600 leading-relaxed italic text-lg mb-4">
+                      "{testimonial.text}"
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
+
+              {/* Next Button - Right */}
+              <button
+                onClick={nextTestimonial}
+                className="flex-shrink-0 bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110 hidden md:flex items-center justify-center"
+                aria-label="Next testimonials"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </div>
+
+            {/* Mobile Navigation Buttons */}
+            <div className="flex justify-center gap-4 mt-8 md:hidden">
+              <button
+                onClick={prevTestimonial}
+                className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-all"
+                aria-label="Previous testimonials"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <button
+                onClick={nextTestimonial}
+                className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-all"
+                aria-label="Next testimonials"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </div>
+
+            {/* Indicator Dots */}
+            <div className="flex justify-center items-center gap-2 mt-8">
+              {testimonials.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentTestimonial(idx)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    idx === currentTestimonial
+                      ? "bg-blue-600 w-8"
+                      : "bg-slate-300 hover:bg-slate-400"
+                  }`}
+                  aria-label={`Go to testimonial group ${idx + 1}`}
+                />
+              ))}
+            </div>
           </div>
 
-          <div className="text-center mt-20">
+          <div className="text-center mt-12">
             <div className="flex justify-center items-center gap-3 mb-6 bg-blue-50/50 w-fit mx-auto px-6 py-3 rounded-full border border-blue-100">
               <span className="text-slate-900 font-bold">⭐⭐⭐⭐⭐ Trusted by Professionals, Businesses & Individuals Across India</span>
             </div>

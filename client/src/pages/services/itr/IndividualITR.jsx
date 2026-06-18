@@ -16,11 +16,11 @@ const IndividualITR = () => {
     const fetchPurchases = async () => {
       if (!isLoggedIn) return;
       try {
-        const { data } = await api.get('/payments/my-orders');
+        const { data } = await api.get("/payments/my-orders");
         if (data.success) {
           const names = data.data
-            .filter(order => order.planId && order.planId.name)
-            .map(order => order.planId.name);
+            .filter((order) => order.planId && order.planId.name)
+            .map((order) => order.planId.name);
           setPurchasedPlanNames(names);
         }
       } catch (err) {
@@ -70,7 +70,9 @@ const IndividualITR = () => {
                     <h3 className="text-xl font-bold text-slate-900 mb-1">
                       {service.title}
                     </h3>
-                    <p className="text-slate-600 mb-3 text-sm">{service.description}</p>
+                    <p className="text-slate-600 mb-3 text-sm">
+                      {service.description}
+                    </p>
                     <div className="text-2xl font-extrabold text-slate-900 mb-4">
                       {service.price}
                     </div>
@@ -128,7 +130,9 @@ const IndividualITR = () => {
                 help you choose the perfect plan.
               </p>
               <a
-                href="tel:8126456433"
+                href="https://wa.me/+919784799904"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-block bg-[#2563eb] text-white px-10 py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10"
               >
                 Get Expert Consultation

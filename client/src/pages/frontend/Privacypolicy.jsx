@@ -141,7 +141,7 @@ const Privacypolicy = () => {
               This Privacy Policy (the <strong>"Policy"</strong>) applies to the use of or access to the website <strong>www.Powerfiling.com</strong> and on its mobile/web applications (hereinafter, collectively referred to as the <strong>"Platform"</strong>), by the User (hereinafter <strong>"you"</strong> or <strong>"your"</strong>).
             </p>
             <p className="text-slate-700 leading-relaxed mb-4">
-              The Platform is provided by <strong>POWERFILING PRIVATE LIMITED</strong> (hereinafter <strong>"Company"</strong> or <strong>"our"</strong> or <strong>"we"</strong> or <strong>"us"</strong>), a Private Limited Company incorporated under the Indian Companies Act, 2013, having its registered office at 96 Vipra Vihar, Sawai Gaitor, Near Shani Mandir, Malviya Nagar, Jaipur-302017, Rajasthan.
+              The Platform is provided by <strong>POWERFILING PRIVATE LIMITED</strong> (hereinafter <strong>"Company"</strong> or <strong>"our"</strong> or <strong>"we"</strong> or <strong>"us"</strong>), a Private Limited Company incorporated under the Indian Companies Act, 2013, having its registered office at Jtm Mall, FF25, Jagatpura Rd, near Jagatpura Flyover, Model Town, Malviya Nagar, Jaipur, Rajasthan 302017.
             </p>
             <p className="text-slate-700 leading-relaxed mb-4">
               This Policy is published in accordance with the provisions of Rule 3(1)(a) of the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021 and Rule 4 of the Information Technology (Reasonable Security Practices and Procedures and Sensitive Personal data or Information) Rules, 2011 framed under the Information Technology Act, 2000.
@@ -206,13 +206,13 @@ const Privacypolicy = () => {
                 </div>
                 <div>
                   <span className="font-medium text-slate-500 block mb-0.5">Email</span>
-                  <a href="mailto:shubhambeing12@gmail.com" className="text-blue-600 hover:underline">
-                    shubhambeing12@gmail.com
+                  <a href="mailto:contact@Powerfiling.com" className="text-blue-600 hover:underline">
+                    contact@Powerfiling.com
                   </a>
                 </div>
                 <div className="sm:col-span-2">
                   <span className="font-medium text-slate-500 block mb-0.5">Address</span>
-                  96 Vipra Vihar, Sawai Gaitor, Near Shani Mandir, Malviya Nagar, Jaipur, Rajasthan — PIN: 302017
+                  Jtm Mall, FF25, Jagatpura Rd, near Jagatpura Flyover, Model Town, Malviya Nagar, Jaipur, Rajasthan 302017
                 </div>
               </div>
             </div>
