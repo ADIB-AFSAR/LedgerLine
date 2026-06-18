@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /payment/
+Disallow: /order/
+Disallow: /login
+Disallow: /sign_up
+Disallow: /verification
+Disallow: /verify-otp
+Disallow: /verify-mobile
+
+Sitemap: https://powerfiling.com/sitemap.xml
