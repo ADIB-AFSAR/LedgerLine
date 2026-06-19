@@ -745,34 +745,34 @@ export const otherServices = [
       ]
     }
   },
-  {
-    id: 'test-production-plan',
-    title: "Test Production Plan",
-    description: "Special plan for production payment testing",
-    price: "₹1",
-    numericPrice: 1,
-    icon: Shield,
-    bgColor: "bg-green-50",
-    iconColor: "text-green-600",
-    features: [
-      "Production Testing",
-      "Real Payment Verification",
-      "100% Secure Transaction",
-      "Instant Confirmation",
-    ],
-    detailContent: {
-      overview: "This plan is specifically designed for testing real payments in the production environment at a nominal cost of ₹1.",
-      inclusions: [
-        "Real payment processing",
-        "Order creation",
-        "Status tracking",
-        "Email confirmation"
-      ],
-      documents: [
-        "Test Document"
-      ]
-    }
-  }
+  // {
+  //   id: 'test-production-plan',
+  //   title: "Test Production Plan",
+  //   description: "Special plan for production payment testing",
+  //   price: "₹1",
+  //   numericPrice: 1,
+  //   icon: Shield,
+  //   bgColor: "bg-green-50",
+  //   iconColor: "text-green-600",
+  //   features: [
+  //     "Production Testing",
+  //     "Real Payment Verification",
+  //     "100% Secure Transaction",
+  //     "Instant Confirmation",
+  //   ],
+  //   detailContent: {
+  //     overview: "This plan is specifically designed for testing real payments in the production environment at a nominal cost of ₹1.",
+  //     inclusions: [
+  //       "Real payment processing",
+  //       "Order creation",
+  //       "Status tracking",
+  //       "Email confirmation"
+  //     ],
+  //     documents: [
+  //       "Test Document"
+  //     ]
+  //   }
+  // }
 ];
 
 // Service Categories

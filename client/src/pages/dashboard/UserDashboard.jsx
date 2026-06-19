@@ -626,28 +626,29 @@ const UserDashboard = () => {
           {orders.map((order) => (
             <div
               key={order.id}
-              className="border border-slate-200 rounded-xl p-6 hover:shadow-md transition-shadow"
+              className="border border-slate-200 rounded-2xl p-5 hover:shadow-md transition-shadow bg-gradient-to-br from-slate-50 to-white"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div>
+              {/* Top section */}
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                <div className="flex-1">
                   <h3 className="font-bold text-slate-900 text-lg">
                     {order.service}
                   </h3>
-                  <p className="text-sm text-slate-600">
-                    Order ID: #{order.id}
+                  <p className="text-sm text-slate-500 mt-1">
+                    Order ID: <span className="font-mono text-slate-700">{order.id.substring(0, 16)}</span>
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-slate-900 text-lg">
+                <div className="flex flex-col items-start md:items-end gap-2">
+                  <p className="font-extrabold text-slate-900 text-xl">
                     {order.amount}
                   </p>
                   <div
-                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${
                       ["completed", "submitted"].includes(
                         order.status.toLowerCase(),
                       )
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-amber-100 text-amber-700"
                     }`}
                   >
                     {["completed", "submitted"].includes(
@@ -657,11 +658,20 @@ const UserDashboard = () => {
                     ) : (
                       <Clock size={14} />
                     )}
-                    <span className="capitalize">{order.status}</span>
+                    <span className="capitalize font-semibold">{order.status}</span>
                   </div>
+                </div>
+              </div>
+
+              {/* Details section */}
+              <div className="mb-4 pb-4 border-t border-slate-100">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm mt-3">
+                  <p className="text-slate-600">
+                    <span className="font-semibold">Order Date:</span> {new Date(order.date).toLocaleDateString()}
+                  </p>
                   {order.statusDate && (
-                    <p className="text-[10px] text-slate-500 mt-1 flex items-center justify-end gap-1">
-                      <Clock size={10} />
+                    <p className="text-slate-500 flex items-center gap-1">
+                      <Clock size={13} />
                       {new Date(order.statusDate).toLocaleString("en-IN", {
                         day: "2-digit",
                         month: "2-digit",
@@ -674,32 +684,29 @@ const UserDashboard = () => {
                   )}
                 </div>
               </div>
-              <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-                <p className="text-sm text-slate-600">
-                  Order Date: {new Date(order.date).toLocaleDateString()}
-                </p>
-                <div className="flex gap-3">
-                  {order.canFile && (
-                    <button
-                      onClick={() =>
-                        navigate(
-                          `/services/userform?service=${order.serviceSlug}&purchaseId=${order.id}`,
-                        )
-                      }
-                      className="flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
-                    >
-                      Complete Filing
-                      <ArrowRight size={16} />
-                    </button>
-                  )}
+
+              {/* Action buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {order.canFile && (
                   <button
-                    onClick={() => navigate(`/order/${order.id}`)}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
+                    onClick={() =>
+                      navigate(
+                        `/services/userform?service=${order.serviceSlug}&purchaseId=${order.id}`,
+                      )
+                    }
+                    className="flex items-center justify-center gap-2 text-white bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm"
                   >
-                    View Details
-                    <ChevronRight size={16} />
+                    Complete Filing
+                    <ArrowRight size={16} />
                   </button>
-                </div>
+                )}
+                <button
+                  onClick={() => navigate(`/order/${order.id}`)}
+                  className="flex items-center justify-center gap-2 text-blue-600 bg-blue-50 hover:bg-blue-100 px-6 py-2.5 rounded-xl font-semibold text-sm border border-blue-200 transition-all"
+                >
+                  View Details
+                  <ChevronRight size={16} />
+                </button>
               </div>
             </div>
           ))}
