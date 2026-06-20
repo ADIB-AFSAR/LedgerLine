@@ -839,7 +839,7 @@ const UserDashboard = () => {
             </div>
 
             {/* Main Content */}
-            <div className="lg:col-span-3">{renderContent()}</div>
+            <div className="lg:col-span-3 min-w-0">{renderContent()}</div>
           </div>
         </div>
       </main>
