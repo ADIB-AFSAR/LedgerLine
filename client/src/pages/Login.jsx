@@ -39,7 +39,10 @@ const LoginPage = () => {
       }
     } catch (err) {
       console.error("Backend auth sync failed:", err);
-      const message = err.response?.data?.message || "Authentication successful but failed to sync. Please try again.";
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Authentication failed. Please try again.';
       setAuthError(message);
     }
   };

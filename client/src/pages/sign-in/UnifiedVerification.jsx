@@ -6,6 +6,15 @@ import { Mail, Smartphone, CheckCircle, ArrowRight, Loader2, Lock, AlertCircle, 
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../../firebase/firebase";
 import api from '../../api/axios';
+import {
+    formatIndianMobile,
+    getPhoneAuthErrorMessage,
+    isValidIndianMobile,
+    normalizeIndianMobile,
+} from '../../utils/phoneValidation';
+
+const RESEND_MOBILE_COOLDOWN_SEC = 30;
+const RECAPTCHA_CONTAINER_ID = 'recaptcha-container-verify';
 
 const UnifiedVerification = () => {
     const { state } = useLocation();
@@ -139,32 +148,39 @@ const UnifiedVerification = () => {
     };
 
     // --- reCAPTCHA Setup ---
-    const windowVerifierRef = useRef(null);
+    const recaptchaVerifierRef = useRef(null);
 
-    const setupRecaptcha = async () => {
-        try {
-            if (!window.recaptchaVerifier) {
-                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-verify', {
-                    'size': 'invisible',
-                    'callback': () => { console.log("reCAPTCHA verified"); }
-                });
-                await window.recaptchaVerifier.render();
+    const clearRecaptcha = () => {
+        if (recaptchaVerifierRef.current) {
+            try {
+                recaptchaVerifierRef.current.clear();
+            } catch {
+                // ignore cleanup errors
             }
-            return window.recaptchaVerifier;
-        } catch (err) {
-            console.error("reCAPTCHA init failed:", err);
-            // If initialization fails, wipe it so we can try again
-            window.recaptchaVerifier = null;
-            const container = document.getElementById('recaptcha-container-verify');
-            if (container) container.innerHTML = '';
-            throw err;
+            recaptchaVerifierRef.current = null;
         }
+
+        const container = document.getElementById(RECAPTCHA_CONTAINER_ID);
+        if (container) container.innerHTML = '';
     };
 
+    const setupRecaptcha = async () => {
+        clearRecaptcha();
+
+        const verifier = new RecaptchaVerifier(auth, RECAPTCHA_CONTAINER_ID, {
+            size: 'invisible',
+        });
+
+        await verifier.render();
+        recaptchaVerifierRef.current = verifier;
+        return verifier;
+    };
+
+    useEffect(() => () => clearRecaptcha(), []);
+
     // --- Mobile Handlers ---
-    const handleSendMobileOTP = async (customMobile) => {
-        if (isMobileVerified || mobileLoading) return;
-        if (resendMobileTimer > 0 && !customMobile) return;
+    const handleSendMobileOTP = async (customMobile, { isResend = false } = {}) => {
+        if (isMobileVerified || mobileLoading || resendMobileTimer > 0) return;
 
         setMobileLoading(true);
         setMobileError('');
@@ -172,48 +188,51 @@ const UnifiedVerification = () => {
 
         try {
             const finalMobile = customMobile || user?.mobile;
-            if (!finalMobile || finalMobile.length < 10) {
+            const cleanNumber = normalizeIndianMobile(finalMobile);
+
+            if (!isValidIndianMobile(cleanNumber)) {
                 setNeedsMobileInput(true);
+                setMobileError('Enter a valid 10-digit Indian mobile number.');
                 setMobileLoading(false);
                 return;
             }
 
-            // 0. Strict Normalization for Firebase (+91XXXXXXXXXX)
-            const cleanNumber = finalMobile.replace(/\D/g, '').slice(-10);
-            const formattedMobile = `+91${cleanNumber}`;
+            const formattedMobile = formatIndianMobile(cleanNumber);
 
-            // 1. Check if number exists in DB and belongs to someone else
-            // If the user is logged in, we check if the cleanNumber is different from their current mobile
-            // and if it's already taken.
-            if (customMobile && cleanNumber !== user?.mobile?.replace(/\D/g, '').slice(-10)) {
+            if (customMobile && cleanNumber !== normalizeIndianMobile(user?.mobile)) {
                 try {
                     const checkRes = await api.post('/auth/check-user', { identifier: cleanNumber });
-                    if (checkRes.data.success && checkRes.data.exists) {
-                        setMobileError("This mobile number is already registered with another account.");
+                    if (checkRes.data?.exists) {
+                        setMobileError('This mobile number is already registered with another account.');
                         setMobileLoading(false);
                         return;
                     }
                 } catch (e) {
-                    console.error("Check user failed:", e);
+                    console.error('Check user failed:', e);
+                    setMobileError('Could not verify mobile number. Please try again.');
+                    setMobileLoading(false);
+                    return;
                 }
             }
 
-            // Build fresh verifier
             const verifier = await setupRecaptcha();
-
             const result = await signInWithPhoneNumber(auth, formattedMobile, verifier);
+
             setConfirmationResult(result);
-            setMobileMsg('OTP sent to your mobile!');
-            
-            // Update the mobileNumber state to reflect the number used in UI
+            setMobileMsg(
+                isResend
+                    ? `A new OTP has been sent to +91 ${cleanNumber}.`
+                    : `OTP sent to +91 ${cleanNumber}.`
+            );
             setMobileNumber(cleanNumber);
-            
+            setMobileOtp('');
             setMobileOtpSent(true);
             setNeedsMobileInput(false);
-            setResendMobileTimer(60);
+            setResendMobileTimer(RESEND_MOBILE_COOLDOWN_SEC);
         } catch (err) {
-            console.error("Firebase Mobile OTP Fail:", err);
-            setMobileError(err.message || 'Failed to send SMS');
+            console.error('Firebase Mobile OTP Fail:', err);
+            clearRecaptcha();
+            setMobileError(getPhoneAuthErrorMessage(err));
         } finally {
             setMobileLoading(false);
         }
@@ -260,8 +279,8 @@ const UnifiedVerification = () => {
                 setTimeout(() => window.location.reload(), 1000);
             }
         } catch (err) {
-            console.error("Mobile OTP Verification Fail:", err);
-            setMobileError('Invalid OTP or verification expired');
+            console.error('Mobile OTP Verification Fail:', err);
+            setMobileError(getPhoneAuthErrorMessage(err));
         } finally {
             setMobileLoading(false);
         }
@@ -369,7 +388,7 @@ const UnifiedVerification = () => {
                             {!isMobileVerified && (
                                 <div className="space-y-4">
                                     {/* reCAPTCHA Container - MUST be always present in DOM */}
-                                    <div id="recaptcha-container-verify" className="flex justify-center my-2"></div>
+                                    <div id={RECAPTCHA_CONTAINER_ID} className="flex justify-center my-2" />
 
                                     {!isEmailVerified && (
                                         <div className="text-amber-600 text-sm bg-amber-50 p-3 rounded-lg border border-amber-200 flex items-start gap-2">
@@ -436,10 +455,25 @@ const UnifiedVerification = () => {
                                                     </button>
 
                                                     <div className="text-center text-sm flex justify-center gap-4">
-                                                        <button type="button" onClick={() => handleSendMobileOTP()} disabled={resendMobileTimer > 0} className={resendMobileTimer > 0 ? "text-slate-400" : "text-green-600 hover:underline"}>
-                                                            {resendMobileTimer > 0 ? `Resend in ${resendMobileTimer}s` : "Resend OTP"}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleSendMobileOTP(mobileNumber, { isResend: true })}
+                                                            disabled={mobileLoading || resendMobileTimer > 0}
+                                                            className={resendMobileTimer > 0 ? 'text-slate-400 cursor-not-allowed' : 'text-green-600 hover:underline font-semibold'}
+                                                        >
+                                                            {resendMobileTimer > 0 ? `Resend OTP in ${resendMobileTimer}s` : 'Resend OTP'}
                                                         </button>
-                                                        <button type="button" onClick={() => { setNeedsMobileInput(true); setMobileOtpSent(false); }} className="text-slate-500 hover:text-slate-700 underline">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setNeedsMobileInput(true);
+                                                                setMobileOtpSent(false);
+                                                                setMobileOtp('');
+                                                                setResendMobileTimer(0);
+                                                                clearRecaptcha();
+                                                            }}
+                                                            className="text-slate-500 hover:text-slate-700 underline"
+                                                        >
                                                             Change Number
                                                         </button>
                                                     </div>
