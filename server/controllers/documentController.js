@@ -44,6 +44,25 @@ export const uploadDocument = asyncHandler(async (req, res, next) => {
             // Sanitize sharedWith to handle "undefined" string from frontend
             const sharedWithId = (req.body.sharedWith && req.body.sharedWith !== 'undefined') ? req.body.sharedWith : null;
 
+            if (sharedWithId) {
+                const isAdminOrCA =
+                    req.user.role === 'admin' || (req.user.role === 'ca' && req.user.adminStatus === 'approved');
+                if (!isAdminOrCA) {
+                    return next(new AppError('Not authorized to share documents', 403));
+                }
+                if (!req.body.formId) {
+                    return next(new AppError('formId is required when sharing documents with a user', 400));
+                }
+
+                const itr = await ITRForm.findById(req.body.formId);
+                if (!itr) {
+                    return next(new AppError('ITR form not found', 404));
+                }
+                if (itr.userId.toString() !== sharedWithId.toString()) {
+                    return next(new AppError('Document can only be shared with the order owner', 403));
+                }
+            }
+
             const document = await Document.create({
                 userId: sharedWithId || req.user.id,
                 uploadedBy: req.user.id,
@@ -93,6 +112,7 @@ export const getMyDocuments = asyncHandler(async (req, res, next) => {
 // @access    Private
 export const getSharedDocuments = asyncHandler(async (req, res, next) => {
     const { userId } = req.params;
+    const { formId } = req.query;
     const requestUserId = userId || req.user.id;
 
     if (!requestUserId || requestUserId === 'undefined') {
@@ -103,16 +123,34 @@ export const getSharedDocuments = asyncHandler(async (req, res, next) => {
         });
     }
 
-    // Authorization check: Regular users can only see their own shared documents
     const isAdminOrCA = req.user.role === 'admin' || (req.user.role === 'ca' && req.user.adminStatus === 'approved');
     if (requestUserId.toString() !== req.user.id.toString() && !isAdminOrCA) {
         return next(new AppError('Not authorized to access these shared documents', 403));
     }
 
-    const documents = await Document.find({ 
+    const query = {
         sharedWith: requestUserId,
-        isShared: true 
-    }).sort({ uploadedAt: -1 });
+        isShared: true,
+    };
+
+    if (formId) {
+        const itr = await ITRForm.findById(formId);
+        if (!itr) {
+            return next(new AppError('ITR form not found', 404));
+        }
+        if (itr.userId.toString() !== requestUserId.toString()) {
+            return next(new AppError('Not authorized to access these shared documents', 403));
+        }
+        query.formId = formId;
+    } else if (!isAdminOrCA) {
+        return res.status(200).json({
+            success: true,
+            count: 0,
+            data: [],
+        });
+    }
+
+    const documents = await Document.find(query).sort({ uploadedAt: -1 });
 
     // Refresh URLs using the same logic as ITR controller
     const refreshedDocs = await Promise.all(documents.map(async (doc) => {

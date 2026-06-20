@@ -3,8 +3,10 @@ import asyncHandler from '../middlewares/asyncHandler.js';
 import Purchase from '../models/Purchase.js';
 import Plan from '../models/Plan.js';
 import ITRForm from '../models/ITRForm.js';
+import Document from '../models/Document.js';
 import PendingPayment from '../models/PendingPayment.js';
 import AppError from '../utils/AppError.js';
+import { bucket } from '../config/firebase.js';
 import { calculateOrderPricing } from '../utils/paymentPricing.js';
 import { fulfillPurchaseFromOrder } from '../utils/fulfillPurchase.js';
 import {
@@ -359,6 +361,81 @@ export const getAllOrders = asyncHandler(async (req, res, next) => {
     });
 });
 
+const refreshDocumentUrls = async (documents) => {
+    if (!documents?.length) return [];
+
+    return Promise.all(documents.map(async (doc) => {
+        const docObj = doc.toObject ? doc.toObject() : doc;
+        const storagePath = docObj.storagePath;
+
+        if (!storagePath) return docObj;
+
+        try {
+            const [newUrl] = await bucket.file(storagePath).getSignedUrl({
+                version: 'v4',
+                action: 'read',
+                expires: Date.now() + 15 * 60 * 1000,
+            });
+            return { ...docObj, fileUrl: newUrl };
+        } catch (err) {
+            console.error('URL refresh failed for shared doc:', err);
+            return docObj;
+        }
+    }));
+};
+
+const assertOrderAccess = (purchase, user) => {
+    const isAdminOrCA =
+        user.role === 'admin' || (user.role === 'ca' && user.adminStatus === 'approved');
+    const purchaseUserId = purchase.userId?._id || purchase.userId;
+
+    if (!isAdminOrCA && purchaseUserId.toString() !== user.id.toString()) {
+        throw new AppError('Not authorized to view this order', 403);
+    }
+
+    return purchaseUserId;
+};
+
+// @desc      Get shared documents for a specific order
+// @route     GET /api/v1/payments/:id/shared-documents
+// @access    Private
+export const getOrderSharedDocuments = asyncHandler(async (req, res, next) => {
+    const purchase = await Purchase.findById(req.params.id);
+
+    if (!purchase) {
+        return next(new AppError('Order not found', 404));
+    }
+
+    let purchaseUserId;
+    try {
+        purchaseUserId = assertOrderAccess(purchase, req.user);
+    } catch (error) {
+        return next(error);
+    }
+
+    const itr = await ITRForm.findOne({ purchaseId: purchase._id });
+    if (!itr) {
+        return res.status(200).json({ success: true, count: 0, data: [] });
+    }
+
+    const documents = await Document.find({
+        isShared: true,
+        sharedWith: purchaseUserId,
+        $or: [
+            { formId: itr._id },
+            { _id: { $in: itr.sharedDocuments || [] } },
+        ],
+    }).sort({ uploadedAt: -1 });
+
+    const refreshedDocs = await refreshDocumentUrls(documents);
+
+    res.status(200).json({
+        success: true,
+        count: refreshedDocs.length,
+        data: refreshedDocs,
+    });
+});
+
 // @desc      Get Order By ID
 // @route     GET /api/v1/payments/:id
 // @access    Private
@@ -371,10 +448,10 @@ export const getOrderById = asyncHandler(async (req, res, next) => {
         return next(new AppError('Order not found', 404));
     }
 
-    const isAdminOrCA =
-        req.user.role === 'admin' || (req.user.role === 'ca' && req.user.adminStatus === 'approved');
-    if (!isAdminOrCA && purchase.userId?._id.toString() !== req.user.id.toString()) {
-        return next(new AppError('Not authorized to view this order', 403));
+    try {
+        assertOrderAccess(purchase, req.user);
+    } catch (error) {
+        return next(error);
     }
 
     let itrStatus = 'Pending Filing';
