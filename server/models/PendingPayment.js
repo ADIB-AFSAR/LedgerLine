@@ -30,8 +30,12 @@ const pendingPaymentSchema = new mongoose.Schema(
         finalAmountPaid: { type: Number, required: true },
         status: {
             type: String,
-            enum: ['pending', 'completed', 'failed'],
+            enum: ['pending', 'processing', 'completed', 'failed'],
             default: 'pending',
+        },
+        failureEmailSent: {
+            type: Boolean,
+            default: false,
         },
     },
     { timestamps: true }

@@ -5,6 +5,12 @@ import AppError from './AppError.js';
 
 const MAX_COIN_DISCOUNT_RATIO = 0.5;
 
+const sanitizeCoinAmount = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < 0) return 0;
+    return Math.floor(parsed);
+};
+
 /**
  * Server-side pricing — never trust client-sent amounts.
  */
@@ -25,18 +31,22 @@ export const calculateOrderPricing = async ({
         throw new AppError('User not found', 404);
     }
 
+    const safeReferralCoins = sanitizeCoinAmount(referralCoinsUsed);
+    const safeCashbackCoins = sanitizeCoinAmount(cashbackCoinsUsed);
     const maxCoinDiscount = Math.floor(plan.price * MAX_COIN_DISCOUNT_RATIO);
-    const requestedCoinDiscount = (referralCoinsUsed || 0) + (cashbackCoinsUsed || 0);
+    const requestedCoinDiscount = safeReferralCoins + safeCashbackCoins;
 
-    if (referralCoinsUsed > (user.coins || 0)) {
+    if (safeReferralCoins > (user.coins || 0)) {
         throw new AppError('Insufficient referral coins', 400);
     }
-    if (cashbackCoinsUsed > (user.cashbackCoins || 0)) {
+    if (safeCashbackCoins > (user.cashbackCoins || 0)) {
         throw new AppError('Insufficient cashback coins', 400);
     }
     if (requestedCoinDiscount > maxCoinDiscount) {
         throw new AppError('Coin discount cannot exceed 50% of plan price', 400);
     }
+
+    const coinDiscountApplied = Math.min(requestedCoinDiscount, maxCoinDiscount);
 
     let couponDiscount = 0;
     let validatedCouponCode = null;
@@ -51,19 +61,19 @@ export const calculateOrderPricing = async ({
         const alreadyUsed = coupon.usedBy.some((u) => u.userId.toString() === userId.toString());
         if (alreadyUsed) throw new AppError('You have already used this coupon', 400);
 
-        couponDiscount = coupon.discountAmount;
+        const maxCouponDiscount = Math.max(plan.price - coinDiscountApplied - 1, 0);
+        couponDiscount = Math.min(coupon.discountAmount, maxCouponDiscount);
         validatedCouponCode = coupon.code;
     }
 
-    const coinDiscountApplied = Math.min(requestedCoinDiscount, maxCoinDiscount);
     const finalAmountPaid = Math.max(plan.price - coinDiscountApplied - couponDiscount, 1);
 
     return {
         plan,
         user,
         planPrice: plan.price,
-        referralCoinsUsed: referralCoinsUsed || 0,
-        cashbackCoinsUsed: cashbackCoinsUsed || 0,
+        referralCoinsUsed: safeReferralCoins,
+        cashbackCoinsUsed: safeCashbackCoins,
         coinDiscountApplied,
         couponDiscount,
         couponCode: validatedCouponCode,

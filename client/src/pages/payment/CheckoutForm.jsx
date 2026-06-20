@@ -177,6 +177,7 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
                     replace: true,
                     state: {
                         errorMessage: result.error.message || 'Payment was cancelled or failed.',
+                        transactionId: orderData.orderId,
                         planName,
                         serviceId,
                     },
@@ -222,6 +223,7 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
                 replace: true,
                 state: {
                     errorMessage: errMsg,
+                    transactionId: err.response?.data?.transactionId || null,
                     planName,
                     serviceId,
                 },

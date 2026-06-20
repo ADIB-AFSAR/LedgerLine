@@ -2,6 +2,7 @@ import express from 'express';
 import {
     createOrder,
     confirmPayment,
+    notifyFailedPayment,
     checkPurchaseStatus,
     getMyOrders,
     getAllOrders,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post('/create-order', protect, createOrder);
 router.post('/create-intent', protect, createOrder); // legacy alias
 router.post('/confirm', protect, confirmPayment);
+router.post('/notify-failed', protect, notifyFailedPayment);
 router.get('/check-status', protect, checkPurchaseStatus);
 router.get('/my-orders', protect, getMyOrders);
 router.get('/all', protect, authorize('admin'), getAllOrders);

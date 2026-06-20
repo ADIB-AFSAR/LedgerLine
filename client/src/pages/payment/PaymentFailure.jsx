@@ -1,11 +1,26 @@
+import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { XCircle, RefreshCcw, LayoutDashboard, Home } from 'lucide-react';
+import api from '../../api/axios';
 
 const PaymentFailure = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const notifiedRef = useRef(false);
 
     const { errorMessage, planName, serviceId, transactionId } = location.state || {};
+
+    useEffect(() => {
+        if (!transactionId || notifiedRef.current) return;
+
+        notifiedRef.current = true;
+        api.post('/payments/notify-failed', {
+            orderId: transactionId,
+            reason: errorMessage,
+        }).catch((err) => {
+            console.error('Failed to send payment failure notification:', err);
+        });
+    }, [transactionId, errorMessage]);
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

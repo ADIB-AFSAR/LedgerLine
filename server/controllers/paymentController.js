@@ -1,14 +1,16 @@
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import asyncHandler from '../middlewares/asyncHandler.js';
 import Purchase from '../models/Purchase.js';
 import Plan from '../models/Plan.js';
 import ITRForm from '../models/ITRForm.js';
 import Document from '../models/Document.js';
 import PendingPayment from '../models/PendingPayment.js';
+import User from '../models/User.js';
 import AppError from '../utils/AppError.js';
 import { bucket } from '../config/firebase.js';
 import { calculateOrderPricing } from '../utils/paymentPricing.js';
-import { fulfillPurchaseFromOrder } from '../utils/fulfillPurchase.js';
+import { fulfillPurchaseFromOrder, notifyPaymentFailed } from '../utils/fulfillPurchase.js';
 import {
     createCashfreeOrder,
     verifyWebhookSignature,
@@ -42,6 +44,10 @@ export const createOrder = asyncHandler(async (req, res, next) => {
 
     if (!planId) {
         return next(new AppError('Plan ID is required', 400));
+    }
+
+    if (!mongoose.isValidObjectId(planId)) {
+        return next(new AppError('Invalid plan ID', 400));
     }
 
     const pricing = await calculateOrderPricing({
@@ -112,9 +118,12 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
         return next(new AppError('Order ID is required', 400));
     }
 
-    // Dev mock bypass
-    if (process.env.NODE_ENV !== 'production' && String(orderId).startsWith('mock_')) {
-        const { planId, couponCode, referralCode, referralCoinsUsed = 0, cashbackCoinsUsed = 0, couponDiscount = 0 } = req.body;
+    // Dev-only mock bypass — requires explicit env flag
+    if (
+        process.env.ALLOW_MOCK_PAYMENTS === 'true' &&
+        process.env.NODE_ENV !== 'production' &&
+        String(orderId).startsWith('mock_')
+    ) {
         const existingPurchase = await Purchase.findOne({ paymentId: orderId });
         if (existingPurchase) {
             return res.status(200).json({
@@ -123,33 +132,36 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
                 purchaseId: existingPurchase._id,
             });
         }
+
+        const { planId, couponCode, referralCode, referralCoinsUsed = 0, cashbackCoinsUsed = 0 } = req.body;
         if (!planId) return next(new AppError('Plan ID is required for mock payment', 400));
 
-        const plan = await Plan.findById(planId);
-        const planPrice = plan?.price || 0;
-        const actualCoinDiscount = Math.min((referralCoinsUsed || 0) + (cashbackCoinsUsed || 0), Math.floor(planPrice * 0.5));
-        const actualCouponDiscount = couponDiscount || 0;
-        const finalAmountPaid = Math.max(planPrice - actualCoinDiscount - actualCouponDiscount, 1);
+        const pricing = await calculateOrderPricing({
+            planId,
+            userId: req.user.id,
+            couponCode,
+            referralCoinsUsed,
+            cashbackCoinsUsed,
+        });
 
         const purchase = await Purchase.create({
             userId: req.user.id,
-            planId,
-            planName: plan?.name || 'Tax Service',
-            planPrice,
+            planId: pricing.plan._id,
+            planName: pricing.plan.name,
+            planPrice: pricing.planPrice,
             paymentId: orderId,
             paymentStatus: 'Completed',
             formUnlocked: true,
-            referralCoinsUsed: referralCoinsUsed || 0,
-            cashbackCoinsUsed: cashbackCoinsUsed || 0,
-            coinDiscountApplied: actualCoinDiscount,
-            finalAmountPaid,
-            couponDiscount: actualCouponDiscount,
-            couponCode: couponCode || null,
-            originalPrice: planPrice,
+            referralCoinsUsed: pricing.referralCoinsUsed,
+            cashbackCoinsUsed: pricing.cashbackCoinsUsed,
+            coinDiscountApplied: pricing.coinDiscountApplied,
+            finalAmountPaid: pricing.finalAmountPaid,
+            couponDiscount: pricing.couponDiscount,
+            couponCode: pricing.couponCode,
+            originalPrice: pricing.planPrice,
         });
 
-        req.user.purchasedPlans.push(purchase._id);
-        await req.user.save();
+        await User.findByIdAndUpdate(req.user.id, { $push: { purchasedPlans: purchase._id } });
 
         return res.status(200).json({
             success: true,
@@ -179,8 +191,8 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
             paymentStatus: 'PAID',
         });
     } catch (err) {
-        if (err instanceof AppError && err.statusCode === 400) {
-            return res.status(400).json({
+        if (err instanceof AppError && [400, 403, 409].includes(err.statusCode)) {
+            return res.status(err.statusCode).json({
                 success: false,
                 message: err.message,
                 transactionId: orderId,
@@ -190,6 +202,29 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
         }
         throw err;
     }
+});
+
+// @desc      Notify failed payment and send email (idempotent)
+// @route     POST /api/v1/payments/notify-failed
+// @access    Private
+export const notifyFailedPayment = asyncHandler(async (req, res, next) => {
+    const orderId = req.body.orderId || req.body.paymentIntentId;
+    const reason = req.body.reason;
+
+    if (!orderId) {
+        return next(new AppError('Order ID is required', 400));
+    }
+
+    const result = await notifyPaymentFailed({
+        orderId,
+        userId: req.user.id,
+        reason,
+    });
+
+    res.status(200).json({
+        success: true,
+        emailSent: result.sent,
+    });
 });
 
 // @desc      Cashfree payment webhook
@@ -217,13 +252,26 @@ export const paymentWebhook = asyncHandler(async (req, res) => {
     if (eventType !== 'PAYMENT_SUCCESS_WEBHOOK') return;
 
     const orderId = payload?.data?.order?.order_id;
-    const userId = payload?.data?.customer_details?.customer_id;
+    if (!orderId) return;
 
-    if (!orderId || !userId) return;
+    const pending = await PendingPayment.findOne({ orderId });
+    if (!pending) {
+        console.error('[Webhook] No pending payment for order:', orderId);
+        return;
+    }
+
+    const webhookUserId = payload?.data?.customer_details?.customer_id;
+    if (webhookUserId && pending.userId.toString() !== webhookUserId.toString()) {
+        console.error('[Webhook] Customer mismatch for order:', orderId);
+        return;
+    }
 
     setImmediate(async () => {
         try {
-            await fulfillPurchaseFromOrder({ orderId, userId });
+            await fulfillPurchaseFromOrder({
+                orderId,
+                userId: pending.userId.toString(),
+            });
         } catch (err) {
             console.error('[Webhook] Fulfillment failed:', err.message);
         }

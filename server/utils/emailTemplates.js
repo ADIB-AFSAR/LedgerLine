@@ -301,3 +301,89 @@ export const getStatusUpdateTemplate = (user, itr, status, remarks, updaterName,
     </html>
     `;
 };
+
+export const getPaymentFailedTemplate = (user, pending, { orderId, reason }) => {
+    const clientUrl = process.env.CLIENT_URL || 'https://powerfiling.com';
+    const retryUrl = pending.serviceId
+        ? `${clientUrl}/services/${pending.serviceId}`
+        : `${clientUrl}/dashboard`;
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+            .wrapper { width: 100%; background-color: #f8fafc; padding: 40px 0; }
+            .content { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+            .header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 40px 20px; text-align: center; color: #ffffff; }
+            .header h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em; }
+            .body { padding: 40px; }
+            .welcome { font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 0; }
+            .badge { display: inline-block; background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 9999px; font-size: 14px; font-weight: 600; margin-bottom: 24px; }
+            .card { background: #f8fafc; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; margin: 24px 0; }
+            .details-label { font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; }
+            .alert { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin: 24px 0; color: #991b1b; font-size: 14px; line-height: 1.6; }
+            .cta { text-align: center; margin-top: 32px; }
+            .button { background-color: #2563eb; color: #ffffff !important; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; }
+            .footer { padding: 32px; text-align: center; font-size: 12px; color: #94a3b8; }
+            .footer a { color: #2563eb; text-decoration: none; }
+        </style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="content">
+                <div class="header">
+                    <div style="background: rgba(255,255,255,0.2); width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </div>
+                    <h1>Powerfiling</h1>
+                    <p style="margin: 8px 0 0; opacity: 0.9;">Payment Not Completed</p>
+                </div>
+                <div class="body">
+                    <h2 class="welcome">Hi ${user.name || 'User'},</h2>
+                    <div class="badge">Payment Failed</div>
+                    <p style="color: #475569; line-height: 1.6;">We couldn't complete your payment for <strong>${pending.planName}</strong>. No amount has been charged for this attempt. You can try again whenever you're ready.</p>
+
+                    <div class="alert">
+                        <strong>Details:</strong> ${reason || 'Payment was not completed.'}
+                    </div>
+
+                    <div class="card">
+                        <div class="details-label">Attempt Summary</div>
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 10px 0; color: #64748b; font-size: 14px;">Plan</td>
+                                <td align="right" style="padding: 10px 0; color: #1e293b; font-size: 14px; font-weight: 600;">${pending.planName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; color: #64748b; font-size: 14px;">Reference ID</td>
+                                <td align="right" style="padding: 10px 0; color: #1e293b; font-size: 12px; font-family: monospace; font-weight: 600;">${orderId}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; color: #64748b; font-size: 14px;">Amount</td>
+                                <td align="right" style="padding: 10px 0; color: #1e293b; font-size: 14px; font-weight: 600;">₹${pending.finalAmountPaid.toFixed(2)}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="cta">
+                        <p style="font-size: 14px; color: #64748b; margin-bottom: 20px;">Need help? Our support team is here for you.</p>
+                        <a href="${retryUrl}" class="button">Try Again</a>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>&copy; ${new Date().getFullYear()} Powerfiling. All rights reserved.</p>
+                    <p>Questions? Contact <a href="mailto:support@powerfiling.com">support@powerfiling.com</a></p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+};
