@@ -1,19 +1,18 @@
-import 'dotenv/config';
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import Plan from './models/Plan.js';
-import { buildMongoUri, logDatabaseConfig } from './config/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+dotenv.config({ path: join(__dirname, '.env') });
+
 const connectDB = async () => {
     try {
-        const mongoUri = buildMongoUri();
-        logDatabaseConfig();
-        const conn = await mongoose.connect(mongoUri);
-        console.log(`MongoDB Connected: ${conn.connection.host} (${conn.connection.name})`);
+        const conn = await mongoose.connect(process.env.MONGO_URI);
+        console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
         console.log(error);
         process.exit(1);
@@ -28,7 +27,7 @@ const plans = [
     { name: 'Salary (Basic) ITR', price: 599, features: ['ITR-1', 'Salary Income', 'Standard Deductions'], type: 'Basic', formType: 'ITR1' },
     { name: 'Salary (Premium)', price: 999, features: ['ITR-2', 'Multiple Income Sources', 'House Property'], type: 'Premium', formType: 'ITR2' },
     { name: 'Capital Gain', price: 1499, features: ['LTCG & STCG', 'Stock Market Gains', 'Property Sales'], type: 'Premium', formType: 'ITR2' },
-    { name: 'Foreign/NRI Income', price: 1999, features: ['NRI Tax Filing', 'Foreign Income', 'DTAA Benefits'], type: 'Premium', formType: 'ITR2' },
+    { name: 'Foreign / NRI Income', price: 1999, features: ['NRI Tax Filing', 'Foreign Income', 'DTAA Benefits'], type: 'Premium', formType: 'ITR2' },
 
     { name: 'Business & Profession', price: 1499, features: ['ITR-3/ITR-4', 'Business Income', 'Professional Income'], type: 'Business', formType: 'ITR3' },
     { name: 'F&O Trading', price: 1299, features: ['F&O Trading Income', 'Speculative Income', 'Loss Carry Forward'], type: 'Business', formType: 'ITR3' },
@@ -43,9 +42,9 @@ const plans = [
     { name: 'LLP Registration', price: 4999, features: ['LLP Agreement', 'ROC Registration', 'Compliance Setup'], type: 'Business', formType: 'OTHER' },
 
     // Others
-    { name: 'GST Filing', price: 999, features: ['GSTR-1 Filing', 'GSTR-3B Filing', 'Input Tax Credit'], type: 'Business', formType: 'GST' },
-    { name: 'TDS Filing', price: 899, features: ['TDS Return Filing', 'Certificate Generation', 'Compliance Tracking'], type: 'Business', formType: 'OTHER' },
-    { name: 'PF & ESIC', price: 1499, features: ['PF Registration', 'ESIC Registration', 'Monthly Returns'], type: 'Business', formType: 'OTHER' },
+    { name: 'GST Return Filing', price: 999, features: ['GSTR-1 Filing', 'GSTR-3B Filing', 'Input Tax Credit'], type: 'Business', formType: 'GST' },
+    { name: 'Form 26QB Filing – TDS on Property Purchase', price: 899, features: ['TDS Return Filing', 'Certificate Generation', 'Compliance Tracking'], type: 'Business', formType: 'OTHER' },
+    { name: 'PF & ESIC Registration', price: 1499, features: ['PF Registration', 'ESIC Registration', 'Monthly Returns'], type: 'Business', formType: 'OTHER' },
     { name: 'Test Production Plan', price: 1, features: ['Production Test', 'Real Payment Verification'], type: 'Basic', formType: 'OTHER' }
 ];
 

@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext';
 import { User, Mail, Phone, Loader2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { captureReferralFromURL, getReferralCode } from '../../utils/referral/referral';
-import { getIndianMobileError, getMobileDigits } from '../../utils/phoneValidation';
 import { useEffect } from 'react';
 
 const SignupForm = ({ onSwitchToLogin }) => {
@@ -29,46 +28,27 @@ const SignupForm = ({ onSwitchToLogin }) => {
     }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === 'mobile') {
-      setFormData((prev) => ({
-        ...prev,
-        mobile: value.replace(/\D/g, '').slice(0, 10),
-      }));
-      return;
-    }
-
-    setFormData({ ...formData, [name]: value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    const mobileError = getIndianMobileError(formData.mobile);
-    if (mobileError) {
-      setError(mobileError);
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const result = await register({
-        ...formData,
-        email: formData.email.trim().toLowerCase(),
-        mobile: getMobileDigits(formData.mobile),
-      });
+      const result = await register(formData);
       if (result.success) {
+        // Successful registration
         navigate('/dashboard');
       } else if (result.requireVerification) {
+        // Move to verification page
         navigate('/verification', { state: { email: result.email } });
       } else {
-        setError(result.message || 'Email or mobile number may already be registered.');
+        setError(result.message || "Registration failed. Mobile or Email might already exist.");
       }
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

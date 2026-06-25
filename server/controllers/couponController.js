@@ -153,12 +153,12 @@ export const validateCoupon = asyncHandler(async (req, res, next) => {
     const plan = await Plan.findById(planId);
     if (!plan) return next(new AppError('Plan not found', 400));
 
-    const actualDiscount = coupon.discountAmount;
+    const actualDiscount = Math.min(
+        coupon.discountAmount,
+        Math.max(plan.price - 1, 0)
+    );
 
-    const finalPrice = Math.max(
-    plan.price - actualDiscount,
-    1
-);
+    const finalPrice = Math.max(plan.price - actualDiscount, 1);
 
     res.status(200).json({
         success: true,

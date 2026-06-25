@@ -40,6 +40,7 @@ export const PLAN_REWARD_MAP = {
     'company registration': 1000,
     'llp registration': 500,
     'tds filing': 150,
+    'Form 26QB Filing – TDS on Property Purchase':150,
     'pf & esic': 150
 };
 

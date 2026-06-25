@@ -13,7 +13,7 @@ const OTPVerification = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [msg, setMsg] = useState('');
-    const [timer, setTimer] = useState(30); // 30 seconds cooldown for resend
+    const [timer, setTimer] = useState(60); // 60 seconds cooldown for resend
 
     // If no email in state, redirect to login
     useEffect(() => {
@@ -63,7 +63,7 @@ const OTPVerification = () => {
         const result = await resendOTP(state.email);
         if (result.success) {
             setMsg('OTP resent successfully. Please check your email.');
-            setTimer(30);
+            setTimer(60);
         } else {
             setError(result.message || 'Failed to resend OTP');
         }

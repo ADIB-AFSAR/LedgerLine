@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { createModel } from '../config/database.js';
 
 const planSchema = new mongoose.Schema({
     name: {
@@ -33,4 +32,4 @@ const planSchema = new mongoose.Schema({
     timestamps: true
 });
 
-export default createModel(mongoose, 'Plan', planSchema, 'plans');
+export default mongoose.model('Plan', planSchema);

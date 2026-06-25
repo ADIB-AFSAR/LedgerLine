@@ -1,5 +1,4 @@
  import mongoose from 'mongoose';
-import { createModel } from '../config/database.js';
 
 const couponSchema = new mongoose.Schema({
     code: {
@@ -48,4 +47,4 @@ couponSchema.virtual('isExpired').get(function () {
 couponSchema.set('toJSON', { virtuals: true });
 couponSchema.set('toObject', { virtuals: true });
 
-export default createModel(mongoose, 'Coupon', couponSchema, 'coupons');
+export default mongoose.model('Coupon', couponSchema);

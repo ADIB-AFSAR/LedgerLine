@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { Clock, Tag, ArrowLeft, ChevronRight } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import Navbar from "../frontend/Navbar";
 import Footer from "../frontend/Footer";
 import blogs from "../../data/blogsData";
@@ -26,7 +27,31 @@ const BlogDetail = () => {
     );
   }
 
-  // Render content: bold **text** and paragraphs
+  // Render inline content: bold **text** and [text](url) hyperlinks
+  const renderInline = (text) => {
+    const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g);
+    return parts.map((part, j) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={j} className="text-slate-900 font-semibold">
+            {part.replace(/\*\*/g, "")}
+          </strong>
+        );
+      }
+      const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (linkMatch) {
+        return (
+          <a key={j} href={linkMatch[2]} target="_blank" rel="noopener noreferrer"
+            className="text-blue-600 hover:underline font-medium">
+            {linkMatch[1]}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
+  // Render content: bold **text**, [links](url), bullet lists, tables and paragraphs
   const renderContent = (text) => {
     return text.split("\n\n").map((para, i) => {
       if (!para.trim()) return null;
@@ -40,6 +65,58 @@ const BlogDetail = () => {
         );
       }
 
+      // Image ![alt](url)
+      if (para.startsWith("![")) {
+        const imgMatch = para.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+        if (imgMatch) {
+          return (
+            <div key={i} className="my-5 flex justify-center">
+              <img
+                src={imgMatch[2]}
+                alt={imgMatch[1]}
+                className="rounded-xl border border-slate-200 shadow-sm max-w-full"
+              />
+            </div>
+          );
+        }
+      }
+
+      // Table (lines starting with |)
+      if (para.startsWith("| ") || para.startsWith("|")) {
+        const rows = para.split("\n").filter(line => line.trim() && !line.match(/^\|[-| ]+\|$/));
+        const headers = rows[0].split("|").filter(c => c.trim()).map(c => c.trim());
+        const bodyRows = rows.slice(1);
+        return (
+          <div key={i} className="my-4 overflow-x-auto rounded-xl border border-yellow-300">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-yellow-300">
+                  {headers.map((h, j) => (
+                    <th key={j} className="text-left px-4 py-2.5 font-bold text-slate-800 bg-yellow-50 text-xs uppercase tracking-wide">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {bodyRows.map((row, j) => {
+                  const cells = row.split("|").filter(c => c.trim()).map(c => c.trim());
+                  return (
+                    <tr key={j} className={`border-b border-yellow-200 ${j % 2 === 1 ? "bg-slate-50" : "bg-white"}`}>
+                      {cells.map((cell, k) => (
+                        <td key={k} className="px-4 py-2.5 text-slate-700 font-medium text-xs">
+                          {renderInline(cell)}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
       // Bullet list (lines starting with -)
       if (para.includes("\n- ") || para.startsWith("- ")) {
         const lines = para.split("\n");
@@ -50,14 +127,13 @@ const BlogDetail = () => {
                 return (
                   <li key={j} className="flex gap-2 text-slate-700 text-sm leading-relaxed">
                     <span className="mt-2 w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
-                    {line.slice(2)}
+                    <span>{renderInline(line.slice(2))}</span>
                   </li>
                 );
               }
-              // Non-bullet line in same block (heading before list)
               return (
                 <p key={j} className="text-slate-700 text-sm leading-relaxed font-medium mb-1">
-                  {line}
+                  {renderInline(line)}
                 </p>
               );
             })}
@@ -65,19 +141,9 @@ const BlogDetail = () => {
         );
       }
 
-      // Bold inline text
-      const parts = para.split(/(\*\*[^*]+\*\*)/g);
       return (
         <p key={i} className="text-slate-700 text-sm leading-relaxed my-3">
-          {parts.map((part, j) =>
-            part.startsWith("**") && part.endsWith("**") ? (
-              <strong key={j} className="text-slate-900 font-semibold">
-                {part.replace(/\*\*/g, "")}
-              </strong>
-            ) : (
-              part
-            )
-          )}
+          {renderInline(para)}
         </p>
       );
     });
@@ -87,6 +153,16 @@ const BlogDetail = () => {
 
   return (
     <>
+      <Helmet>
+        <title>{blog.metaTitle || blog.title}</title>
+        <meta name="description" content={blog.metaDescription || blog.excerpt} />
+        <meta property="og:title" content={blog.metaTitle || blog.title} />
+        <meta property="og:description" content={blog.metaDescription || blog.excerpt} />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={blog.metaTitle || blog.title} />
+        <meta name="twitter:description" content={blog.metaDescription || blog.excerpt} />
+      </Helmet>
       <Navbar />
 
       <main className="bg-slate-50 min-h-screen">

@@ -65,8 +65,8 @@ export default function AppRoutes() {
         }
       />
 
-      {/* <Route path="/calculators" element={<CalculatorHub />} /> */}
-      {/* <Route path="/calculators/income-tax" element={<IncomeTaxCalculator />} />
+      <Route path="/calculators" element={<CalculatorHub />} />
+      <Route path="/calculators/income-tax" element={<IncomeTaxCalculator />} />
       <Route path="/calculators/old-new-regime" element={<IncomeTaxCalculator />} />
       <Route path="/calculators/salary-tax" element={<IncomeTaxCalculator />} />
       <Route path="/calculators/capital-gain-tax" element={<IncomeTaxCalculator />} />
@@ -74,7 +74,7 @@ export default function AppRoutes() {
       <Route path="/calculators/tds-calculator" element={<IncomeTaxCalculator />} />
       <Route path="/calculators/home-loan-emi" element={<HomeLoanEMICalculator />} />
       <Route path="/calculators/car-loan-emi" element={<CarLoanEMICalculator />} />
-      <Route path="/calculators/personal-loan-emi" element={<PersonalLoanEMICalculator />} /> */}
+      <Route path="/calculators/personal-loan-emi" element={<PersonalLoanEMICalculator />} />
 
       <Route path="/blog" element={<BlogList />} />
       <Route path="/blog/:id" element={<BlogDetail />} />

@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { createModel } from '../config/database.js';
 
 const documentSchema = new mongoose.Schema({
     userId: {
@@ -45,4 +44,4 @@ const documentSchema = new mongoose.Schema({
     }
 });
 
-export default createModel(mongoose, 'Document', documentSchema, 'documents');
+export default mongoose.model('Document', documentSchema);

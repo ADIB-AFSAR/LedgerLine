@@ -104,23 +104,21 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
   useEffect(() => {
     if (!order) return;
     const fetchItrDetails = async () => {
-      // Fetch standalone shared documents regardless of ITR status
       try {
-        const targetUserId = order?.userId?._id || order?.userId || order?.originalData?.userId?._id || order?.originalData?.userId;
-        if (targetUserId) {
-          const { data: sharedRes } = await api.get(`/documents/shared/${targetUserId}`);
+        const orderIdToFetch = order.id || orderId;
+        if (orderIdToFetch) {
+          const { data: sharedRes } = await api.get(`/payments/${orderIdToFetch}/shared-documents`);
           if (sharedRes.success) {
             setStandaloneSharedDocs(sharedRes.data);
           }
         }
       } catch (err) {
         console.error('Error fetching shared docs:', err);
+        setStandaloneSharedDocs([]);
       }
 
-      // Only fetch if there's an actual ITR linked to this order
       const idToFetch = order.itrId || order.originalData?.itrId;
       if (!idToFetch) {
-        // No ITR filed yet — nothing to fetch
         setLoadingItr(false);
         return;
       }
@@ -139,7 +137,7 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
       }
     };
     fetchItrDetails();
-  }, [order]);
+  }, [order, orderId]);
 
   const handleUpdateStatus = async () => {
     const idToUpdate = itrData?._id || order?.itrId || order?.originalData?.itrId;
@@ -294,8 +292,15 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
                          order?.originalData?.userId?._id || 
                          order?.originalData?.userId;
 
+    const formIdToUse = itrData?._id || order?.itrId || order?.originalData?.itrId;
+
     if (isSharedUpload && (!targetUserId || targetUserId === 'undefined')) {
       alert('Could not identify the user for this order. Please wait for the page to load completely or refresh.');
+      return;
+    }
+
+    if (isSharedUpload && !formIdToUse) {
+      alert('Cannot share documents until this order has a linked filing.');
       return;
     }
 
@@ -307,7 +312,7 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
       if (isSharedUpload) {
         formData.append('sharedWith', targetUserId);
         formData.append('isShared', 'true');
-        if (itrData?._id) formData.append('formId', itrData._id);
+        formData.append('formId', formIdToUse);
       } else {
         formData.append('requestId', uploadingRequestId);
       }
@@ -318,17 +323,22 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
 
       if (data.success) {
         if (isSharedUpload) {
-          // Force refresh data
           const idToFetch = itrData?._id || order?.itrId || order?.originalData?.itrId;
           if (idToFetch) {
             const { data: freshData } = await api.get(`/itr/${idToFetch}`);
             if (freshData.success) {
               setItrData(freshData.data);
             }
-          } else {
-             // If no ITR yet, we might need a different way to refresh or just show success
-             alert('Document shared successfully!');
           }
+
+          const orderIdToFetch = order?.id || orderId;
+          if (orderIdToFetch) {
+            const { data: sharedRes } = await api.get(`/payments/${orderIdToFetch}/shared-documents`);
+            if (sharedRes.success) {
+              setStandaloneSharedDocs(sharedRes.data);
+            }
+          }
+
           setUploadingRequestId(null);
         } else {
           const { data: updateRes } = await api.put(`/itr/${itrData._id}/request/${uploadingRequestId}/fulfill`, {

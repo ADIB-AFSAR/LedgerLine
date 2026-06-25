@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { createModel } from '../config/database.js';
 
 const pendingPaymentSchema = new mongoose.Schema(
     {
@@ -31,11 +30,15 @@ const pendingPaymentSchema = new mongoose.Schema(
         finalAmountPaid: { type: Number, required: true },
         status: {
             type: String,
-            enum: ['pending', 'completed', 'failed'],
+            enum: ['pending', 'processing', 'completed', 'failed'],
             default: 'pending',
+        },
+        failureEmailSent: {
+            type: Boolean,
+            default: false,
         },
     },
     { timestamps: true }
 );
 
-export default createModel(mongoose, 'PendingPayment', pendingPaymentSchema, 'pendingpayments');
+export default mongoose.model('PendingPayment', pendingPaymentSchema);

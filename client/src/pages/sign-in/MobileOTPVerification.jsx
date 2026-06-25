@@ -64,7 +64,7 @@ const MobileOTPVerification = () => {
             setMsg('OTP sent to your mobile number.');
             setOtpSent(true);
             setNeedsMobileInput(false); // Move to OTP step
-            setTimer(30);
+            setTimer(60);
         } else {
             setError(result.message);
             // If auto-send failed, maybe ask for input?

@@ -1,7 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axios';
-import { getMobileDigits } from '../utils/phoneValidation';
-import { getRegistrationErrorMessage } from '../utils/authErrors';
 
 const AuthContext = createContext();
 
@@ -143,26 +141,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (userData) => {
-    const payload = {
-      ...userData,
-      email: userData.email?.trim().toLowerCase(),
-      mobile: getMobileDigits(userData.mobile) || userData.mobile,
-    };
-
     try {
-      const { data } = await api.post('/auth/register', payload);
+      const { data } = await api.post('/auth/register', userData);
 
-      if (data?.requireVerification) {
+      if (data.requireVerification) {
         return {
           success: false,
           requireVerification: true,
-          email: data.email || payload.email,
+          email: data.email,
           message: data.message
         };
       }
 
-      if (data?.success && data?.token) {
+      if (data.success) {
         localStorage.setItem('token', data.token);
+        // Fetch full user details
         const userResponse = await api.get('/auth/me', {
             headers: { Authorization: `Bearer ${data.token}` }
         });
@@ -173,26 +166,22 @@ export const AuthProvider = ({ children }) => {
           return { success: true };
         }
       }
-
-      return {
-        success: false,
-        message: data?.message || 'Registration failed. Email or mobile may already be registered.'
-      };
     } catch (error) {
       console.error("Registration error:", error);
       if (error.response?.data?.requireVerification) {
         return {
           success: false,
           requireVerification: true,
-          email: payload.email,
+          email: userData.email, // Best guess
           message: error.response.data.message
         };
       }
       return {
         success: false,
-        message: getRegistrationErrorMessage(error)
+        message: error.response?.data?.message || 'Registration failed'
       };
     }
+    return { success: false, message: 'Registration failed' };
   };
 
   const verifyOTP = async (otpData) => {
