@@ -38,9 +38,14 @@ const LoginPage = () => {
         window.location.href = '/dashboard';
       }
     } catch (err) {
-      console.error("Backend auth sync failed:", err);
-      const message = err.response?.data?.message || "Authentication successful but failed to sync. Please try again.";
-      setAuthError(message);
+        // ✅ Handle new user case specifically
+        if (err.response?.status === 404) {
+        setAuthError("No account found. Please create an account first.");
+        return;
+    }
+        // Other errors
+        const message = err.response?.data?.message || "Authentication successful but failed to sync. Please try again.";
+        setAuthError(message);
     }
   };
 
