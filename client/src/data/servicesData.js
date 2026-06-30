@@ -1,3 +1,4 @@
+import plansConfig from './plansConfig.json';
 import { 
   User, 
   TrendingUp, 
@@ -19,8 +20,6 @@ export const individualServices = [
     id: 'salary-basic-itr',
     title: "Salary (Basic) ITR",
     description: "Simple ITR filing for salaried individuals with basic income sources",
-    price: "₹599",
-    numericPrice: 599,
     icon: User,
     bgColor: "bg-blue-100",
     iconColor: "text-blue-600",
@@ -61,8 +60,6 @@ export const individualServices = [
     id: 'salary-premium',
     title: "Salary (Premium)",
     description: "Comprehensive ITR filing for professionals with multiple income sources",
-    price: "₹999",
-    numericPrice: 999,
     icon: User,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -103,8 +100,6 @@ export const individualServices = [
     id: 'capital-gain',
     title: "Capital Gain",
     description: "Specialized filing for stock market and investment gains",
-    price: "₹1,499",
-    numericPrice: 1499,
     icon: TrendingUp,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -146,8 +141,6 @@ export const individualServices = [
     id: 'nri-income',
     title: "Foreign / NRI Income",
     description: "ITR filing for NRIs and foreign income sources",
-    price: "₹1,999",
-    numericPrice: 1999,
     icon: Globe,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -193,8 +186,6 @@ export const businessServices = [
     id: 'business-profession',
     title: "Business & Profession",
     description: "Comprehensive ITR filing for business owners and professionals",
-    price: "₹1,499",
-    numericPrice: 1499,
     icon: Briefcase,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -237,8 +228,6 @@ export const businessServices = [
     id: 'fo-trading',
     title: "F&O Trading",
     description: "Specialized filing for futures and options trading income",
-    price: "₹1,299",
-    numericPrice: 1299,
     icon: TrendingUp,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -280,8 +269,6 @@ export const businessServices = [
     id: 'house-property',
     title: "House Property",
     description: "ITR filing for rental income and property investments",
-    price: "₹899",
-    numericPrice: 899,
     icon: Home,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -324,8 +311,6 @@ export const businessServices = [
     id: 'crypto-trading',
     title: "Crypto Trading",
     description: "ITR filing for cryptocurrency trading and investments",
-    price: "₹1,999",
-    numericPrice: 1999,
     icon: Coins,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -367,8 +352,6 @@ export const businessServices = [
     id: 'huf-filing',
     title: "HUF Filing",
     description: "Hindu Undivided Family tax return filing",
-    price: "₹1,299",
-    numericPrice: 1299,
     icon: Users,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -415,8 +398,6 @@ export const registrationServices = [
     id: 'gst-registration',
     title: "GST Registration",
     description: "Complete GST registration for businesses and professionals",
-    price: "₹1,499",
-    numericPrice: 1499,
     icon: Receipt,
     bgColor: "bg-blue-100",
     iconColor: "text-blue-600",
@@ -462,8 +443,6 @@ export const registrationServices = [
     id: 'huf-registration',
     title: "HUF Registration",
     description: "Hindu Undivided Family registration and setup services",
-    price: "₹2,999",
-    numericPrice: 2999,
     icon: Users,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -509,8 +488,6 @@ export const registrationServices = [
     id: 'company-registration',
     title: "Company Registration",
     description: "Private Limited Company incorporation with full compliance setup",
-    price: "₹6,999",
-    numericPrice: 6999,
     icon: Building,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -556,8 +533,6 @@ export const registrationServices = [
     id: 'llp-registration',
     title: "LLP Registration",
     description: "Limited Liability Partnership registration and compliance setup",
-    price: "₹4,999",
-    numericPrice: 4999,
     planId: "699747cb583ee92f4aed58a3",
     icon: Building2,
     bgColor: "bg-blue-50",
@@ -608,8 +583,6 @@ export const otherServices = [
     id: 'gst-filing',
     title: "GST Return Filing",
     description: "Complete GST return filing and compliance support for businesses",
-    price: "Starting ₹999",
-    numericPrice: 999,
     planId: "699747cb583ee92f4aed58a4",
     icon: Receipt,
     bgColor: "bg-blue-100",
@@ -656,8 +629,6 @@ export const otherServices = [
     id: 'tds-filing',
     title: "Form 26QB Filing – TDS on Property Purchase",
     description: "Complete TDS return filing and compliance support for businesses & professionals",
-    price: "Starting ₹899",
-    numericPrice: 899,
     planId: "699747cb583ee92f4aed58a5",
     icon: CreditCard,
     bgColor: "bg-blue-50",
@@ -700,8 +671,6 @@ export const otherServices = [
     id: 'pf-esic',
     title: "PF & ESIC Registration",
     description: "Complete employee compliance setup for businesses and employers",
-    price: "₹1,499",
-    numericPrice: 1499,
     planId: "699747cb583ee92f4aed58a6",
     icon: Shield,
     bgColor: "bg-blue-50",
@@ -810,3 +779,16 @@ export const serviceCategories = {
     services: otherServices
   }
 };
+
+const formatPrice = (price) => `₹${price.toLocaleString('en-IN')}`;
+
+[...individualServices, ...businessServices, ...registrationServices, ...otherServices].forEach(service => {
+  if (plansConfig[service.id]) {
+    service.numericPrice = plansConfig[service.id].price;
+    if (service.price && service.price.startsWith('Starting')) {
+      service.price = `Starting ${formatPrice(service.numericPrice)}`;
+    } else {
+      service.price = formatPrice(service.numericPrice);
+    }
+  }
+});

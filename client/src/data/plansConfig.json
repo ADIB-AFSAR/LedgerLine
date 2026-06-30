@@ -1,0 +1,53 @@
+{
+  "salary-basic-itr": {
+    "price": 999
+  },
+  "salary-premium": {
+    "price": 1999
+  },
+  "capital-gain": {
+    "price": 2499
+  },
+  "nri-income": {
+    "price": 3499
+  },
+  "business-profession": {
+    "price": 1999
+  },
+  "fo-trading": {
+    "price": 2499
+  },
+  "house-property": {
+    "price": 899
+  },
+  "crypto-trading": {
+    "price": 3499
+  },
+  "huf-filing": {
+    "price": 1500
+  },
+  "gst-registration": {
+    "price": 1499
+  },
+  "huf-registration": {
+    "price": 2999
+  },
+  "company-registration": {
+    "price": 6999
+  },
+  "llp-registration": {
+    "price": 4999
+  },
+  "gst-filing": {
+    "price": 999
+  },
+  "tds-filing": {
+    "price": 899
+  },
+  "pf-esic": {
+    "price": 1499
+  },
+  "test-production-plan": {
+    "price": 1
+  }
+}
