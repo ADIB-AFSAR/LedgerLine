@@ -31,13 +31,15 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
     const [couponData, setCouponData] = useState(null);
     const [couponMsg, setCouponMsg] = useState({ text: '', type: '' });
     const [suggestedCoupons, setSuggestedCoupons] = useState([]);
-
+    const [loadingSuggestedPlans,setLoadingSuggestedPlans] = useState(false)
 
     // 2. FETCH suggested coupons for this plan on mount:
-    useEffect(() => {
+    useEffect(() => {    
     if (!planId) return;
+    setLoadingSuggestedPlans(true)
     api.get(`/coupons/suggested?planId=${planId}`)
         .then(({ data }) => setSuggestedCoupons(data.data || []))
+        .then(()=>setLoadingSuggestedPlans(false))
         .catch(() => setSuggestedCoupons([]));
     }, [planId]);
 
@@ -261,12 +263,20 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
 
     const renderCouponBox = () => (
     <div className="mt-4">
+    {loadingSuggestedPlans ? (
+        <div className="mt-6 rounded-xl border border-slate-200 p-4 animate-pulse">
+            <div className="h-5 w-40 bg-slate-200 rounded mb-4" />
+            <div className="space-y-3">
+            <div className="h-20 bg-slate-100 rounded-xl" />
+            <div className="h-20 bg-slate-100 rounded-xl" />
+            </div>
+        </div>
+        ) : (
+        <SuggestedCoupons />
+        )}
         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
             Coupon Code <span className="text-slate-400 font-normal normal-case">(optional)</span>
         </label>
- 
-        <SuggestedCoupons />
- 
         {couponData ? (
             <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-300 rounded-xl">
                 <div>
