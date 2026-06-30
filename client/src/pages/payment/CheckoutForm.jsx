@@ -30,6 +30,42 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
     const [couponValidating, setCouponValidating] = useState(false);
     const [couponData, setCouponData] = useState(null);
     const [couponMsg, setCouponMsg] = useState({ text: '', type: '' });
+    const [suggestedCoupons, setSuggestedCoupons] = useState([]);
+
+
+    // 2. FETCH suggested coupons for this plan on mount:
+    useEffect(() => {
+    if (!planId) return;
+    api.get(`/coupons/suggested?planId=${planId}`)
+        .then(({ data }) => setSuggestedCoupons(data.data || []))
+        .catch(() => setSuggestedCoupons([]));
+    }, [planId]);
+
+    // 3. VALIDATE handler (works for both fixed + percentage, backend returns final values):
+    const handleApplyCoupon = async (codeOverride) => {
+    const codeToApply = codeOverride || couponCode;
+    if (!codeToApply.trim()) return;
+    setCouponValidating(true);
+    setCouponMsg({ text: '', type: '' });
+    try {
+        const { data } = await api.post('/coupons/validate', { code: codeToApply.trim(), planId });
+        if (data.success) {
+            setCouponCode(data.data.code);
+            setCouponData(data.data);
+            setCouponMsg({ text: data.message, type: 'success' });
+        }
+    } catch (err) {
+        setCouponMsg({ text: err.response?.data?.error || 'Invalid coupon code', type: 'error' });
+    } finally {
+        setCouponValidating(false);
+    }
+    };
+ 
+    const handleRemoveCoupon = () => {
+        setCouponData(null);
+        setCouponCode('');
+        setCouponMsg({ text: '', type: '' });
+    };
 
     useEffect(() => {
         const initCashfree = async () => {
@@ -64,41 +100,6 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
         fetchCoins();
     }, []);
 
-    const handleApplyCoupon = async () => {
-        if (!couponCode.trim()) return;
-        setCouponValidating(true);
-        setCouponMsg({ text: '', type: '' });
-        setCouponData(null);
-        try {
-            const { data } = await api.post('/coupons/validate', {
-                code: couponCode.trim(),
-                planId,
-            });
-            if (data.success) {
-                setCouponData(data.data);
-                setCouponMsg({
-                    text: data.data.capped
-                        ? `Coupon applied! ₹${data.data.actualDiscount} off (capped at 50% of plan price)`
-                        : `Coupon applied! ₹${data.data.actualDiscount} off`,
-                    type: 'success',
-                });
-            }
-        } catch (err) {
-            setCouponMsg({
-                text: err.response?.data?.error || err.response?.data?.message || 'Invalid coupon code',
-                type: 'error',
-            });
-        } finally {
-            setCouponValidating(false);
-        }
-    };
-
-    const handleRemoveCoupon = () => {
-        setCouponData(null);
-        setCouponCode('');
-        setCouponMsg({ text: '', type: '' });
-    };
-
     const maxCoinDiscount = Math.floor(planPrice * 0.5);
     const referralCoinsToUse = useReferralCoins ? Math.min(userCoins.referral, maxCoinDiscount) : 0;
     const remainingAfterReferral = maxCoinDiscount - referralCoinsToUse;
@@ -109,6 +110,7 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
     const disableCashback = useReferralCoins && referralCoinsToUse >= maxCoinDiscount;
     const disableReferral = useCashbackCoins && cashbackCoinsToUse >= maxCoinDiscount;
     const finalPrice = Math.max(planPrice - totalCoinDiscount - (couponData?.actualDiscount || 0), 1);
+    console.log(finalPrice)
 
     const handleValidateReferral = async () => {
         if (!referralCode.trim()) return;
@@ -233,6 +235,82 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
         }
     };
 
+    // 4. JSX — Suggested Coupons chips (place above the input box):
+    const SuggestedCoupons = () => (
+        !couponData && suggestedCoupons.length > 0 && (
+            <div className="mb-3">
+                <p className="text-xs font-semibold text-slate-500 mb-2">Suggested Coupons</p>
+                <div className="flex flex-wrap gap-2">
+                    {suggestedCoupons.map(c => (
+                        <button
+                            key={c.code}
+                            type="button"
+                            onClick={() => handleApplyCoupon(c.code)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+                        >
+                            🏷️ {c.code}
+                            <span className="text-blue-500">
+                                ({c.discountType === 'percentage' ? `${c.discountPercent}% off` : `₹${c.discountAmount} off`})
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        )
+    );
+
+    const renderCouponBox = () => (
+    <div className="mt-4">
+        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+            Coupon Code <span className="text-slate-400 font-normal normal-case">(optional)</span>
+        </label>
+ 
+        <SuggestedCoupons />
+ 
+        {couponData ? (
+            <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-300 rounded-xl">
+                <div>
+                    <p className="text-sm font-bold text-green-700">
+                        🎉 {couponData.code} applied — ₹{couponData.actualDiscount} off
+                        {couponData.discountType === 'percentage' ? ` (${couponData.discountPercent}%)` : ''}
+                    </p>
+                </div>
+                <button type="button" onClick={handleRemoveCoupon} className="text-xs text-red-500 hover:text-red-700 font-semibold ml-3">
+                    Remove
+                </button>
+            </div>
+        ) : (
+            <div>
+                <div className="flex gap-2">
+                    <input
+                        type="text"
+                        value={couponCode}
+                        onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponMsg({ text: '', type: '' }); }}
+                        placeholder="Enter coupon code"
+                        className={`flex-1 px-4 py-2.5 bg-slate-50 border rounded-xl text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:bg-white uppercase ${
+                            couponMsg.type === 'error' ? 'border-red-300' : 'border-slate-200'
+                        }`}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => handleApplyCoupon()}
+                        disabled={couponValidating || !couponCode.trim()}
+                        className="px-4 py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-all disabled:opacity-50 whitespace-nowrap"
+                    >
+                        {couponValidating ? 'Checking...' : 'Apply'}
+                    </button>
+                </div>
+                {couponMsg.text && (
+                    <p className={`text-xs mt-1.5 ml-1 font-medium ${couponMsg.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                        {couponMsg.text}
+                    </p>
+                )}
+            </div>
+        )}
+    </div>
+);
+ 
+
     return (
         <form id="payment-form" onSubmit={handleSubmit} className="mt-6 space-y-6">
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
@@ -302,64 +380,7 @@ export default function CheckoutForm({ serviceId, planId, planName, amount: plan
                         )}
                     </>
                 )}
-
-                <div className="mt-4">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                        Coupon Code <span className="text-slate-400 font-normal normal-case">(optional)</span>
-                    </label>
-
-                    {couponData ? (
-                        <div className="flex items-center justify-between px-4 py-3 bg-green-50 border border-green-300 rounded-xl">
-                            <div>
-                                <p className="text-sm font-bold text-green-700">
-                                    {couponData.code} applied — ₹{couponData.actualDiscount} off
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={handleRemoveCoupon}
-                                className="text-xs text-red-500 hover:text-red-700 font-semibold ml-3"
-                            >
-                                Remove
-                            </button>
-                        </div>
-                    ) : (
-                        <div>
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={couponCode}
-                                    onChange={(e) => {
-                                        setCouponCode(e.target.value.toUpperCase());
-                                        setCouponMsg({ text: '', type: '' });
-                                    }}
-                                    placeholder="Enter coupon code"
-                                    className={`flex-1 px-4 py-2.5 bg-slate-50 border rounded-xl text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:bg-white uppercase ${
-                                        couponMsg.type === 'error' ? 'border-red-300' : 'border-slate-200'
-                                    }`}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleApplyCoupon}
-                                    disabled={couponValidating || !couponCode.trim()}
-                                    className="px-4 py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-all disabled:opacity-50 whitespace-nowrap"
-                                >
-                                    {couponValidating ? 'Checking...' : 'Apply'}
-                                </button>
-                            </div>
-                            {couponMsg.text && (
-                                <p
-                                    className={`text-xs mt-1.5 ml-1 font-medium ${
-                                        couponMsg.type === 'success' ? 'text-green-600' : 'text-red-500'
-                                    }`}
-                                >
-                                    {couponMsg.text}
-                                </p>
-                            )}
-                        </div>
-                    )}
-                </div>
-
+                {renderCouponBox()}
                 {(useReferralCoins || useCashbackCoins || couponData || planPrice !== finalPrice) && (
                     <div className="p-3 bg-green-50 border border-green-200 rounded-lg space-y-1 mt-4">
                         <div className="flex justify-between text-sm">

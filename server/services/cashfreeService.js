@@ -45,6 +45,8 @@ export const createCashfreeOrder = async ({
     orderTags,
 }) => {
     const client = cashfreeClient();
+    console.log("Amount received:", amount);
+    console.log("Number(amount):", Number(amount));
 
     const payload = {
         order_id: orderId,
