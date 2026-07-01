@@ -1,5 +1,9 @@
 import 'dotenv/config';
 import express from 'express';
+import fs from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+import Plan from './models/Plan.js';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -25,6 +29,51 @@ import couponRoutes from './routes/couponRoutes.js';
 console.log('Starting connectDB()...');
 // Connect to database
 connectDB();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const syncPlans = async () => {
+    try {
+        const plansConfigPath = join(__dirname, '../client/src/data/plansConfig.json');
+        const plansConfig = JSON.parse(fs.readFileSync(plansConfigPath, 'utf8'));
+        
+        const planIdMapping = {
+            'Salary (Basic) ITR': 'salary-basic-itr',
+            'Salary (Premium)': 'salary-premium',
+            'Capital Gain': 'capital-gain',
+            'Foreign / NRI Income': 'nri-income',
+            'Business & Profession': 'business-profession',
+            'F&O Trading': 'fo-trading',
+            'House Property': 'house-property',
+            'Crypto Trading': 'crypto-trading',
+            'HUF Filing': 'huf-filing',
+            'GST Registration': 'gst-registration',
+            'HUF Registration': 'huf-registration',
+            'Company Registration': 'company-registration',
+            'LLP Registration': 'llp-registration',
+            'GST Return Filing': 'gst-filing',
+            'Form 26QB Filing – TDS on Property Purchase': 'tds-filing',
+            'PF & ESIC Registration': 'pf-esic',
+            'Test Production Plan': 'test-production-plan'
+        };
+
+        const plans = await Plan.find();
+        let updatedCount = 0;
+        for (const plan of plans) {
+            const id = planIdMapping[plan.name];
+            if (id && plansConfig[id] && plan.price !== plansConfig[id].price) {
+                plan.price = plansConfig[id].price;
+                await plan.save();
+                updatedCount++;
+            }
+        }
+        console.log(`Database plans synchronized with plansConfig.json (${updatedCount} updated)`);
+    } catch (error) {
+        console.error('Failed to sync plans:', error);
+    }
+};
+syncPlans();
 
 const app = express();
 

@@ -61,7 +61,10 @@ export const createOrder = asyncHandler(async (req, res, next) => {
     const orderId = generateOrderId(req.user.id);
     const clientUrl = getClientUrl();
     const serverUrl = getServerUrl();
-
+   
+    console.log("Pricing object:", pricing);
+    console.log("Final Amount:", pricing.finalAmountPaid);
+    console.log("Type:", typeof pricing.finalAmountPaid);
     const cashfreeOrder = await createCashfreeOrder({
         orderId,
         amount: pricing.finalAmountPaid,
@@ -143,6 +146,11 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
             referralCoinsUsed,
             cashbackCoinsUsed,
         });
+
+        if (Number.isNaN(pricing.finalAmountPaid)) {
+    console.error("Pricing calculation failed:", pricing);
+    return next(new AppError("Pricing calculation failed", 500));
+}
 
         const purchase = await Purchase.create({
             userId: req.user.id,

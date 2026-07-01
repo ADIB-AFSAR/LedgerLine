@@ -62,11 +62,38 @@ export const calculateOrderPricing = async ({
         if (alreadyUsed) throw new AppError('You have already used this coupon', 400);
 
         const maxCouponDiscount = Math.max(plan.price - coinDiscountApplied - 1, 0);
-        couponDiscount = Math.min(coupon.discountAmount, maxCouponDiscount);
-        validatedCouponCode = coupon.code;
+
+    let calculatedCouponDiscount = 0;
+
+    if (coupon.discountType === 'fixed') {
+        calculatedCouponDiscount = coupon.discountAmount || 0;
+    } else if (coupon.discountType === 'percentage') {
+        calculatedCouponDiscount = Math.floor(
+            (plan.price * (coupon.discountPercent || 0)) / 100
+        );
+
+        // Respect max discount for percentage coupons
+        if (coupon.maxPercentDiscount) {
+            calculatedCouponDiscount = Math.min(
+                calculatedCouponDiscount,
+                coupon.maxPercentDiscount
+            );
+        }
     }
 
+    couponDiscount = Math.min(
+        calculatedCouponDiscount,
+        maxCouponDiscount
+    );
+
+    validatedCouponCode = coupon.code;
+        }
+
     const finalAmountPaid = Math.max(plan.price - coinDiscountApplied - couponDiscount, 1);
+
+     if (!Number.isFinite(finalAmountPaid)) {
+            throw new AppError('Invalid payment calculation', 500);
+        }
 
     return {
         plan,
