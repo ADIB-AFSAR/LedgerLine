@@ -409,6 +409,7 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
       navigate('/dashboard?tab=orders');
     }
   };
+  console.log(order)
 
   const mainContent = (
     <div className={`flex flex-col ${isModal ? '' : 'min-h-screen'} bg-slate-50 font-sans text-slate-900`}>
@@ -434,26 +435,64 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-4xl font-extrabold tracking-tight">Order Details</h1>
-                <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 border border-white/20 uppercase tracking-widest">
-                  #{order.id}
-                </span>
-              </div>
-              <p className="text-blue-100 text-sm flex items-center gap-1.5">
-                <Clock size={13} className="opacity-80" />
-                Placed {formatDate(order.date)}
-              </p>
-            </div>
+  <div>
+    <div className="flex items-center gap-3 mb-2">
+      <h1 className="text-4xl font-extrabold tracking-tight">Order Details</h1>
+      <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 border border-white/20 uppercase tracking-widest">
+        #{order.id}
+      </span>
+    </div>
 
-            {!isAdminOrCA && (
-              <div className="flex items-center gap-2 bg-white/15 border border-white/20 rounded-2xl px-4 py-2.5 self-start">
-                <div className={`w-2 h-2 rounded-full ${(itrData?.status || order.status)?.toLowerCase() === 'completed' ? 'bg-green-400' : 'bg-yellow-300'}`}></div>
-                <span className="font-bold text-sm capitalize">{(itrData?.status || order.status)?.replace('-', ' ')}</span>
-              </div>
-            )}
+    <p className="text-blue-100 text-sm flex items-center gap-1.5">
+      <Clock size={13} className="opacity-80" />
+      Placed {formatDate(order.date)}
+    </p>
+  </div>
+
+  <div className="flex flex-col items-end gap-4">
+    {isAdminOrCA && order.originalData?.userId && (
+      <div className="bg-white/10 border border-white/20 rounded-2xl px-5 py-4 min-w-[300px]">
+        <p className="text-xs uppercase tracking-widest text-blue-200 font-semibold mb-3">
+          Customer Details
+        </p>
+
+        <div className="  flex gap-4 flex-row text-sm">
+          <div>
+            <span className="text-blue-200">Name:</span>{' '}
+            <span className="font-semibold">
+              {order.originalData.userId.name}
+            </span>
           </div>
+
+          <div>
+            <span className="text-blue-200">Email:</span>{' '}
+            <span>{order.originalData.userId.email}</span>
+          </div>
+
+          <div>
+            <span className="text-blue-200">Phone:</span>{' '}
+            <span>{order.originalData.userId.mobile}</span>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* {!isAdminOrCA && (
+      <div className="flex items-center gap-2 bg-white/15 border border-white/20 rounded-2xl px-4 py-2.5">
+        <div
+          className={`w-2 h-2 rounded-full ${
+            (itrData?.status || order.status)?.toLowerCase() === 'completed'
+              ? 'bg-green-400'
+              : 'bg-yellow-300'
+          }`}
+        />
+        <span className="font-bold text-sm capitalize">
+          {(itrData?.status || order.status)?.replace('-', ' ')}
+        </span>
+      </div>
+    )} */}
+  </div>
+</div>
 
           {/* Stats row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-10">
@@ -462,9 +501,22 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
               <p className="font-bold text-lg truncate">{order.service}</p>
             </div>
             <div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
-              <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">Amount Paid</p>
-              <p className="font-extrabold text-2xl">{order.amount}</p>
-            </div>
+  <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">
+    Amount Paid
+  </p>
+
+  <div className="flex items-end gap-2">
+    <p className="font-extrabold text-3xl">
+      ₹{order.originalData.finalAmountPaid}
+    </p>
+
+    {order.originalData.finalAmountPaid < order.originalData.originalPrice && (
+      <p className="text-sm text-blue-200 line-through">
+        ₹{order.originalData.originalPrice}
+      </p>
+    )}
+  </div>
+</div>
             <div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
               <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">Current Status</p>
               {isAdminOrCA ? (

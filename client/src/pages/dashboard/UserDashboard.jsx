@@ -70,7 +70,7 @@ const UserDashboard = () => {
       setLoadingOrders(false);
     }
   };
-
+ 
   const fetchReferral = async () => {
     // console.log('[Referral] called, activeTab:', activeTab);
     // console.log('[Referral] api baseURL:', api.defaults.baseURL);
@@ -640,7 +640,7 @@ const UserDashboard = () => {
                 </div>
                 <div className="flex flex-col items-start md:items-end gap-2">
                   <p className="font-extrabold text-slate-900 text-xl">
-                    {order.amount}
+                    ₹{order.originalData.finalAmountPaid}
                   </p>
                   <div
                     className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${

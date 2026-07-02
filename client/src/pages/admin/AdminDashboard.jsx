@@ -174,8 +174,9 @@ const AdminDashboard = () => {
     };
 
     const calculateStats = (usersList, filingsList, paymentsList) => {
+        console.log(paymentsList)
         const totalRevenue = paymentsList.reduce((acc, payment) => {
-            const price = payment.planId?.price || payment.planPrice || 0;
+            const price =  payment.finalAmountPaid || 0;
             return acc + price;
         }, 0);
         const pendingCount = filingsList.filter(f =>
@@ -570,6 +571,7 @@ const AdminDashboard = () => {
             order.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             order.transactionId.toLowerCase().includes(searchQuery.toLowerCase())
         );
+        console.log(filteredOrders);
 
         return (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -623,7 +625,18 @@ const AdminDashboard = () => {
                                         </td>
                                         <td className="px-6 py-5">
                                             <p className="text-sm text-white font-medium">{order.service}</p>
-                                            <p className="text-[10px] font-bold text-zinc-500 mt-0.5 tracking-wider uppercase">{order.amount}</p>
+                                        <div className="flex align-end items-end gap-1">
+                                            <p className="font-bold text-zinc-200 text-sm">
+                                            ₹{order.originalData.finalAmountPaid}
+                                            </p>
+
+                                            {order.originalData.finalAmountPaid < order.originalData.originalPrice && (
+                                            <p className="text-sm text-zinc-200 line-through opacity-50">
+                                                ₹{order.originalData.originalPrice}
+                                            </p>
+                                            )}
+                                        </div>
+                                            
                                         </td>
                                         <td className="px-6 py-5 text-sm text-zinc-400">{new Date(order.date).toLocaleDateString()}</td>
                                         <td className="px-6 py-5">
@@ -658,6 +671,7 @@ const AdminDashboard = () => {
             filing.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             filing.id.toLowerCase().includes(searchQuery.toLowerCase())
         );
+        console.log(filteredFilings);
 
         return (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -712,8 +726,17 @@ const AdminDashboard = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <p className="text-sm text-white font-medium">{filing.service}</p>
-                                            <p className="text-[10px] font-bold text-zinc-500 mt-0.5 tracking-wider uppercase">{filing.amount}</p>
+                                            <div className="flex items-end gap-1">
+    <p className="font-bold text-zinc-200 text-1xl">
+      ₹{filing.originalData.purchaseId.finalAmountPaid}
+    </p>
+
+    {filing.originalData.purchaseId.finalAmountPaid < filing.originalData.purchaseId.originalPrice && (
+      <p className="text-sm text-zinc-200 line-through">
+        ₹{filing.originalData.purchaseId.originalPrice}
+      </p>
+    )}
+  </div>
                                         </td>
                                         <td className="px-6 py-5 text-sm text-zinc-400">{new Date(filing.date).toLocaleDateString()}</td>
                                         <td className="px-6 py-5">{getStatusBadge(filing.status)}</td>
