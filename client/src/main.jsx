@@ -6,7 +6,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import App from './App';
 import store from './redux/store/store';
 import { Analytics } from "@vercel/analytics/react"
-import CrispChat from './Crisp.utils/Crisp';
+import CrispChat from './crisp.utils/Crisp';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <HelmetProvider>
