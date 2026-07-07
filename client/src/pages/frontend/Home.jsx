@@ -16,12 +16,18 @@ import {
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Link } from "react-router-dom";
+import { individualServices } from "../../data/servicesData";
 
 const Home = () => {
 
   const [selectedIncome, setSelectedIncome] = useState([]);
   const [suggestedITR, setSuggestedITR] = useState(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  const basicPrice = individualServices.find(s => s.id === 'salary-basic-itr')?.price || '₹599';
+  const premiumPrice = individualServices.find(s => s.id === 'salary-premium')?.price || '₹999';
+  const capitalPrice = individualServices.find(s => s.id === 'capital-gain')?.price || '₹1,499';
+  const nriPrice = individualServices.find(s => s.id === 'nri-income')?.price || '₹1,999';
 
   const incomeTypes = [
     { id: "salary", label: "Salary/Pension" },
@@ -251,7 +257,7 @@ const Home = () => {
                       You should file {suggestedITR}
                     </p>
                     <p className="text-blue-700 text-lg">
-                      Our plans start from just <span className="font-bold">₹499</span> for this category.
+                      Our plans start from just <span className="font-bold">{basicPrice}</span> for this category.
                     </p>
                   </div>
                 </div>
@@ -285,7 +291,7 @@ const Home = () => {
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">₹599</span>
+                  <span className="text-4xl font-extrabold text-slate-900">{basicPrice}</span>
                   <span className="text-slate-400 ml-2 font-medium text-sm">/filing</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Up to ₹50 Lakhs income</p>
@@ -330,7 +336,7 @@ const Home = () => {
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">₹999</span>
+                  <span className="text-4xl font-extrabold text-slate-900">{premiumPrice}</span>
                   <span className="text-slate-400 ml-2 font-medium text-sm">/filing</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Salary + investments + property</p>
@@ -371,7 +377,7 @@ const Home = () => {
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">₹1,499</span>
+                  <span className="text-4xl font-extrabold text-slate-900">{capitalPrice}</span>
                   <span className="text-slate-400 ml-2 font-medium text-sm">/filing</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">LTCG, STCG & F&O</p>
@@ -412,7 +418,7 @@ const Home = () => {
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">₹1,999</span>
+                  <span className="text-4xl font-extrabold text-slate-900">{nriPrice}</span>
                   <span className="text-slate-400 ml-2 font-medium text-sm">/filing</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">DTAA, FBAR & FEMA</p>

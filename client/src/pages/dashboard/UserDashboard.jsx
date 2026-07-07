@@ -160,7 +160,7 @@ const UserDashboard = () => {
             <div>
               <p className="text-sm text-slate-600 mb-1">Phone Number</p>
               <p className="font-semibold text-slate-900">
-                {user?.mobile || "Not provided"}
+                {user?.mobile && !user.mobile.startsWith('G-') ? user.mobile : "Not provided"}
               </p>
             </div>
           </div>
