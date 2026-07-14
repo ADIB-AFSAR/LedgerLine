@@ -1,25 +1,26 @@
-import plansConfig from './plansConfig.json';
-import { 
-  User, 
-  TrendingUp, 
-  Globe, 
-  Briefcase, 
-  Home, 
-  Coins, 
+import plansConfig from "./plansConfig.json";
+import {
+  User,
+  TrendingUp,
+  Globe,
+  Briefcase,
+  Home,
+  Coins,
   Users,
   Receipt,
   Building,
   Building2,
   Shield,
-  CreditCard
-} from 'lucide-react';
+  CreditCard,
+} from "lucide-react";
 
 // Individual ITR Services Data
 export const individualServices = [
   {
-    id: 'salary-basic-itr',
+    id: "salary-basic-itr",
     title: "Salary (Basic) ITR",
-    description: "Simple ITR filing for salaried individuals with basic income sources",
+    description:
+      "Simple ITR filing for salaried individuals with basic income sources",
     icon: User,
     bgColor: "bg-blue-100",
     iconColor: "text-blue-600",
@@ -36,7 +37,8 @@ export const individualServices = [
       "Refund Status Assistance",
     ],
     detailContent: {
-      overview: "Perfect for salaried employees with straightforward income sources. Our basic ITR filing service covers all essential requirements for individual taxpayers with income up to ₹50 Lakhs.",
+      overview:
+        "Perfect for salaried employees with straightforward income sources. Our basic ITR filing service covers all essential requirements for individual taxpayers with income up to ₹50 Lakhs.",
       inclusions: [
         "ITR-1 (Sahaj) form preparation and filing",
         "Salary income computation",
@@ -46,20 +48,21 @@ export const individualServices = [
         "Bank interest income reporting",
         "One house property support",
         "Tax computation sheet",
-        "Refund status assistance"
+        "Refund status assistance",
       ],
       documents: [
         "Form 16 from employer",
         "Bank statements",
         "Investment proofs (80C, 80D)",
-        "Aadhaar and PAN card"
-      ]
-    }
+        "Aadhaar and PAN card",
+      ],
+    },
   },
   {
-    id: 'salary-premium',
+    id: "salary-premium",
     title: "Salary (Premium)",
-    description: "Comprehensive ITR filing for professionals with multiple income sources",
+    description:
+      "Comprehensive ITR filing for professionals with multiple income sources",
     icon: User,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -75,7 +78,8 @@ export const individualServices = [
       "Expert Consultation Support",
     ],
     detailContent: {
-      overview: "Comprehensive tax filing for professionals with multiple income streams including salary, house property, capital gains, and investments.",
+      overview:
+        "Comprehensive tax filing for professionals with multiple income streams including salary, house property, capital gains, and investments.",
       inclusions: [
         "ITR-2 form preparation and filing",
         "Multiple income sources handling",
@@ -86,18 +90,18 @@ export const individualServices = [
         "Tax saving review",
         "Deduction optimization",
         "Advance tax guidance",
-        "Expert consultation support"
+        "Expert consultation support",
       ],
       documents: [
         "Form 16 from all employers",
         "Property rental agreements",
         "Investment statements",
-        "Capital gains documents"
-      ]
-    }
+        "Capital gains documents",
+      ],
+    },
   },
   {
-    id: 'capital-gain',
+    id: "capital-gain",
     title: "Capital Gain",
     description: "Specialized filing for stock market and investment gains",
     icon: TrendingUp,
@@ -116,7 +120,8 @@ export const individualServices = [
       "Tax Planning Support",
     ],
     detailContent: {
-      overview: "Expert handling of capital gains from stocks, mutual funds, property transactions, and F&O trading with optimal tax planning and loss optimization.",
+      overview:
+        "Expert handling of capital gains from stocks, mutual funds, property transactions, and F&O trading with optimal tax planning and loss optimization.",
       inclusions: [
         "LTCG & STCG computation",
         "Equity & mutual fund gains",
@@ -127,18 +132,18 @@ export const individualServices = [
         "Capital loss set-off",
         "Carry forward of losses",
         "AIS/TIS reconciliation",
-        "Tax planning support"
+        "Tax planning support",
       ],
       documents: [
         "Trading account statements",
         "Mutual fund statements",
         "Property sale deed",
-        "Purchase invoices and receipts"
-      ]
-    }
+        "Purchase invoices and receipts",
+      ],
+    },
   },
   {
-    id: 'nri-income',
+    id: "nri-income",
     title: "Foreign / NRI Income",
     description: "ITR filing for NRIs and foreign income sources",
     icon: Globe,
@@ -157,7 +162,8 @@ export const individualServices = [
       "NRE / NRO Income Tax Guidance ",
     ],
     detailContent: {
-      overview: "Specialized NRI tax services covering foreign income, DTAA benefits, and compliance requirements for Non-Resident Indians with Indian income sources.",
+      overview:
+        "Specialized NRI tax services covering foreign income, DTAA benefits, and compliance requirements for Non-Resident Indians with Indian income sources.",
       inclusions: [
         "NRI ITR filing",
         "Foreign salary income reporting",
@@ -168,24 +174,25 @@ export const individualServices = [
         "FBAR compliance guidance",
         "Rental income in India",
         "Capital gain for NRI",
-        "FEMA basic compliance support"
+        "FEMA basic compliance support",
       ],
       documents: [
         "Passport and visa copies",
         "Foreign salary certificates",
         "Bank statements (India & abroad)",
-        "Tax paid certificates abroad"
-      ]
-    }
-  }
+        "Tax paid certificates abroad",
+      ],
+    },
+  },
 ];
 
 // Business ITR Services Data
 export const businessServices = [
   {
-    id: 'business-profession',
+    id: "business-profession",
     title: "Business & Profession",
-    description: "Comprehensive ITR filing for business owners and professionals",
+    description:
+      "Comprehensive ITR filing for business owners and professionals",
     icon: Briefcase,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -202,7 +209,8 @@ export const businessServices = [
       "Tax Planning Support",
     ],
     detailContent: {
-      overview: "Complete business tax filing for proprietors, professionals, and small businesses with comprehensive income and expense management under presumptive and regular taxation schemes.",
+      overview:
+        "Complete business tax filing for proprietors, professionals, and small businesses with comprehensive income and expense management under presumptive and regular taxation schemes.",
       inclusions: [
         "ITR-3 / ITR-4 form selection and filing",
         "Business income reporting",
@@ -213,19 +221,19 @@ export const businessServices = [
         "GST turnover reconciliation",
         "Advance tax guidance",
         "Deduction optimization",
-        "Tax planning support"
+        "Tax planning support",
       ],
       documents: [
         "Books of accounts",
         "Bank statements",
         "Purchase and sales invoices",
         "GST returns (if applicable)",
-        "Expense receipts and bills"
-      ]
-    }
+        "Expense receipts and bills",
+      ],
+    },
   },
   {
-    id: 'fo-trading',
+    id: "fo-trading",
     title: "F&O Trading",
     description: "Specialized filing for futures and options trading income",
     icon: TrendingUp,
@@ -244,7 +252,8 @@ export const businessServices = [
       "Advance Tax Support",
     ],
     detailContent: {
-      overview: "Expert F&O trading tax services with proper classification of speculative vs business income, turnover calculation, loss optimization, and audit applicability check.",
+      overview:
+        "Expert F&O trading tax services with proper classification of speculative vs business income, turnover calculation, loss optimization, and audit applicability check.",
       inclusions: [
         "F&O trading income reporting",
         "Intraday & speculative income",
@@ -255,18 +264,18 @@ export const businessServices = [
         "Audit applicability check",
         "AIS/TIS reconciliation",
         "Broker statement review",
-        "Advance tax support"
+        "Advance tax support",
       ],
       documents: [
         "Trading account statements",
         "Contract notes",
         "P&L statements from broker",
-        "Bank statements"
-      ]
-    }
+        "Bank statements",
+      ],
+    },
   },
   {
-    id: 'house-property',
+    id: "house-property",
     title: "House Property",
     description: "ITR filing for rental income and property investments",
     icon: Home,
@@ -285,7 +294,8 @@ export const businessServices = [
       "Tax Saving Review",
     ],
     detailContent: {
-      overview: "Comprehensive house property income filing with rental income optimization, home loan benefits, and maximum deduction claims for single or multiple properties.",
+      overview:
+        "Comprehensive house property income filing with rental income optimization, home loan benefits, and maximum deduction claims for single or multiple properties.",
       inclusions: [
         "Rental income reporting",
         "House property income filing",
@@ -296,19 +306,19 @@ export const businessServices = [
         "Self-occupied + let-out property",
         "Co-owner property support",
         "Municipal tax adjustment",
-        "Tax saving review"
+        "Tax saving review",
       ],
       documents: [
         "Rental agreements",
         "Property tax receipts",
         "Home loan statements",
         "Maintenance bills",
-        "Co-ownership documents (if applicable)"
-      ]
-    }
+        "Co-ownership documents (if applicable)",
+      ],
+    },
   },
   {
-    id: 'crypto-trading',
+    id: "crypto-trading",
     title: "Crypto Trading",
     description: "ITR filing for cryptocurrency trading and investments",
     icon: Coins,
@@ -327,7 +337,8 @@ export const businessServices = [
       "Expert Consultation Support",
     ],
     detailContent: {
-      overview: "Specialized cryptocurrency tax filing with proper VDA classification, 30% tax computation, exchange reconciliation, and compliance with the latest crypto tax regulations.",
+      overview:
+        "Specialized cryptocurrency tax filing with proper VDA classification, 30% tax computation, exchange reconciliation, and compliance with the latest crypto tax regulations.",
       inclusions: [
         "Crypto trading income reporting",
         "Virtual digital asset (VDA) reporting",
@@ -338,18 +349,18 @@ export const businessServices = [
         "Wallet transaction support",
         "Foreign exchange reporting (basic)",
         "AIS reconciliation",
-        "Expert consultation support"
+        "Expert consultation support",
       ],
       documents: [
         "Exchange trading statements",
         "Wallet transaction history",
         "Purchase receipts",
-        "TDS certificates (if any)"
-      ]
-    }
+        "TDS certificates (if any)",
+      ],
+    },
   },
   {
-    id: 'huf-filing',
+    id: "huf-filing",
     title: "HUF Filing",
     description: "Hindu Undivided Family tax return filing",
     icon: Users,
@@ -368,7 +379,8 @@ export const businessServices = [
       "Compliance Review",
     ],
     detailContent: {
-      overview: "Complete HUF tax filing services covering family business income, property investments, capital gains, and tax optimization strategies for Hindu Undivided Families.",
+      overview:
+        "Complete HUF tax filing services covering family business income, property investments, capital gains, and tax optimization strategies for Hindu Undivided Families.",
       inclusions: [
         "HUF ITR filing",
         "Family business income",
@@ -379,23 +391,23 @@ export const businessServices = [
         "Deduction claims",
         "Tax planning for HUF",
         "Partition / coparcener basic guidance",
-        "Compliance review"
+        "Compliance review",
       ],
       documents: [
         "HUF deed / declaration",
         "Business partnership deeds",
         "Property documents",
         "Investment statements",
-        "Bank statements"
-      ]
-    }
-  }
+        "Bank statements",
+      ],
+    },
+  },
 ];
 
 // Registration Services Data
 export const registrationServices = [
   {
-    id: 'gst-registration',
+    id: "gst-registration",
     title: "GST Registration",
     description: "Complete GST registration for businesses and professionals",
     icon: Receipt,
@@ -416,7 +428,8 @@ export const registrationServices = [
       "ARN Tracking & Status Updates",
     ],
     detailContent: {
-      overview: "Complete GST registration service for businesses, freelancers, and professionals — covering document preparation, portal setup, and post-registration compliance guidance.",
+      overview:
+        "Complete GST registration service for businesses, freelancers, and professionals — covering document preparation, portal setup, and post-registration compliance guidance.",
       inclusions: [
         "Online GST registration on GST portal",
         "GSTIN certificate",
@@ -427,7 +440,7 @@ export const registrationServices = [
         "GST portal setup",
         "Login credentials assistance",
         "Post-registration compliance guidance",
-        "Filing acknowledgement support"
+        "Filing acknowledgement support",
       ],
       documents: [
         "PAN card of business / proprietor",
@@ -435,12 +448,12 @@ export const registrationServices = [
         "Address proof of business (electricity bill / rent agreement)",
         "Bank account details (cancelled cheque)",
         "Passport-size photograph",
-        "Business registration certificate (if applicable)"
-      ]
-    }
+        "Business registration certificate (if applicable)",
+      ],
+    },
   },
   {
-    id: 'huf-registration',
+    id: "huf-registration",
     title: "HUF Registration",
     description: "Hindu Undivided Family registration and setup services",
     icon: Users,
@@ -461,7 +474,8 @@ export const registrationServices = [
       "Post-Registration Support",
     ],
     detailContent: {
-      overview: "Complete HUF registration and setup service — covering deed preparation, PAN application, bank account opening, and tax planning to maximize HUF benefits.",
+      overview:
+        "Complete HUF registration and setup service — covering deed preparation, PAN application, bank account opening, and tax planning to maximize HUF benefits.",
       inclusions: [
         "HUF deed preparation",
         "PAN application for HUF",
@@ -472,7 +486,7 @@ export const registrationServices = [
         "HUF income planning",
         "Deduction optimization",
         "Compliance setup",
-        "Post-registration support"
+        "Post-registration support",
       ],
       documents: [
         "PAN card of Karta",
@@ -480,14 +494,15 @@ export const registrationServices = [
         "Address proof",
         "Details of all coparceners",
         "Marriage certificate of Karta",
-        "Bank account details"
-      ]
-    }
+        "Bank account details",
+      ],
+    },
   },
   {
-    id: 'company-registration',
+    id: "company-registration",
     title: "Company Registration",
-    description: "Private Limited Company incorporation with full compliance setup",
+    description:
+      "Private Limited Company incorporation with full compliance setup",
     icon: Building,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -506,7 +521,8 @@ export const registrationServices = [
       "Govt fees upto 2000INR",
     ],
     detailContent: {
-      overview: "End-to-end Private Limited Company incorporation service — from name reservation and DSC to ROC filing, certificate of incorporation, and post-incorporation compliance setup.",
+      overview:
+        "End-to-end Private Limited Company incorporation service — from name reservation and DSC to ROC filing, certificate of incorporation, and post-incorporation compliance setup.",
       inclusions: [
         "Private limited company incorporation",
         "ROC filing (MCA portal)",
@@ -517,7 +533,7 @@ export const registrationServices = [
         "Company PAN & TAN application",
         "Registered office setup",
         "Compliance calendar",
-        "Post-incorporation guidance"
+        "Post-incorporation guidance",
       ],
       documents: [
         "PAN card of all directors",
@@ -525,14 +541,15 @@ export const registrationServices = [
         "Address proof of directors",
         "Passport-size photographs",
         "Registered office address proof",
-        "NOC from property owner (if rented)"
-      ]
-    }
+        "NOC from property owner (if rented)",
+      ],
+    },
   },
   {
-    id: 'llp-registration',
+    id: "llp-registration",
     title: "LLP Registration",
-    description: "Limited Liability Partnership registration and compliance setup",
+    description:
+      "Limited Liability Partnership registration and compliance setup",
     planId: "699747cb583ee92f4aed58a3",
     icon: Building2,
     bgColor: "bg-blue-50",
@@ -552,7 +569,8 @@ export const registrationServices = [
       "Govt fees upto 1000INR",
     ],
     detailContent: {
-      overview: "Complete LLP registration service — covering MCA filing, LLP agreement drafting, DSC, DPIN, PAN/TAN application, and post-registration compliance setup.",
+      overview:
+        "Complete LLP registration service — covering MCA filing, LLP agreement drafting, DSC, DPIN, PAN/TAN application, and post-registration compliance setup.",
       inclusions: [
         "LLP incorporation (MCA portal)",
         "LLP agreement drafting",
@@ -563,7 +581,7 @@ export const registrationServices = [
         "Partner certificates",
         "Registered office setup",
         "Compliance setup",
-        "Post-registration support"
+        "Post-registration support",
       ],
       documents: [
         "PAN card of all partners",
@@ -571,18 +589,19 @@ export const registrationServices = [
         "Address proof of partners",
         "Passport-size photographs",
         "Registered office address proof",
-        "NOC from property owner (if rented)"
-      ]
-    }
-  }
+        "NOC from property owner (if rented)",
+      ],
+    },
+  },
 ];
 
 // Other Filing Services Data
 export const otherServices = [
   {
-    id: 'gst-filing',
+    id: "gst-filing",
     title: "GST Return Filing",
-    description: "Complete GST return filing and compliance support for businesses",
+    description:
+      "Complete GST return filing and compliance support for businesses",
     planId: "699747cb583ee92f4aed58a4",
     icon: Receipt,
     bgColor: "bg-blue-100",
@@ -602,7 +621,8 @@ export const otherServices = [
       "Post-Registration Compliance Guidance",
     ],
     detailContent: {
-      overview: "Complete GST return filing and compliance support for businesses — covering monthly, quarterly, and NIL returns with ITC review and reconciliation.",
+      overview:
+        "Complete GST return filing and compliance support for businesses — covering monthly, quarterly, and NIL returns with ITC review and reconciliation.",
       inclusions: [
         "GSTR-1 return filing",
         "GSTR-3B return filing",
@@ -614,21 +634,22 @@ export const otherServices = [
         "Late fee & interest guidance",
         "GST portal support",
         "Basic notice assistance",
-        "Filing confirmation & acknowledgement"
+        "Filing confirmation & acknowledgement",
       ],
       documents: [
         "Sales invoices",
         "Purchase invoices",
         "Bank statements",
         "Previous GST returns (if any)",
-        "GSTIN certificate"
-      ]
-    }
+        "GSTIN certificate",
+      ],
+    },
   },
   {
-    id: 'tds-filing',
+    id: "tds-filing",
     title: "Form 26QB Filing – TDS on Property Purchase",
-    description: "Complete TDS return filing and compliance support for businesses & professionals",
+    description:
+      "Complete TDS return filing and compliance support for businesses & professionals",
     planId: "699747cb583ee92f4aed58a5",
     icon: CreditCard,
     bgColor: "bg-blue-50",
@@ -643,7 +664,8 @@ export const otherServices = [
       "Expert Assistance for Section 194IA Compliance",
     ],
     detailContent: {
-      overview: "Complete TDS return filing and compliance support covering all TDS forms — salary, non-salary, NRI payments, and TCS returns with challan verification.",
+      overview:
+        "Complete TDS return filing and compliance support covering all TDS forms — salary, non-salary, NRI payments, and TCS returns with challan verification.",
       inclusions: [
         "Quarterly TDS return filing",
         "Form 24Q filing (salary TDS)",
@@ -656,21 +678,22 @@ export const otherServices = [
         "Late fee & interest calculation",
         "TDS payment guidance",
         "Filing acknowledgement support",
-        "Basic compliance consultation"
+        "Basic compliance consultation",
       ],
       documents: [
         "Salary register / payroll data",
         "TDS challan details",
         "Deductee PAN details",
         "Payment vouchers",
-        "Previous TDS returns (if any)"
-      ]
-    }
+        "Previous TDS returns (if any)",
+      ],
+    },
   },
   {
-    id: 'pf-esic',
+    id: "pf-esic",
     title: "PF & ESIC Registration",
-    description: "Complete employee compliance setup for businesses and employers",
+    description:
+      "Complete employee compliance setup for businesses and employers",
     planId: "699747cb583ee92f4aed58a6",
     icon: Shield,
     bgColor: "bg-blue-50",
@@ -690,7 +713,8 @@ export const otherServices = [
       "Post Registration Assistance",
     ],
     detailContent: {
-      overview: "Complete employee compliance setup for businesses — covering PF and ESIC registration, employer setup, employee code generation, and post-registration support.",
+      overview:
+        "Complete employee compliance setup for businesses — covering PF and ESIC registration, employer setup, employee code generation, and post-registration support.",
       inclusions: [
         "PF registration (EPFO)",
         "ESIC registration (ESIC portal)",
@@ -703,17 +727,92 @@ export const otherServices = [
         "Basic compliance guidance",
         "Registration certificate support",
         "Payroll compliance consultation",
-        "Post registration assistance"
+        "Post registration assistance",
       ],
       documents: [
         "Business registration certificate",
         "PAN card of business",
         "Address proof of establishment",
         "Employee details (name, DOB, Aadhaar)",
-        "Bank account details"
-      ]
-    }
+        "Bank account details",
+      ],
+    },
   },
+  {
+    id: "roc-filing",
+    title: "ROC Filing",
+    description:
+      "For Private Limited Companies, OPCs & LLPs requiring annual statutory compliance.",
+    planId: "",
+    icon: Receipt,
+    bgColor: "bg-blue-100",
+    iconColor: "text-blue-600",
+    features: [
+      "Form 11 (Annual Return) Filing",
+      "Form 8 (Statement of Accounts & Solvency) Filing",
+      "MGT-7A and AOC-4, ADT-1 filing",
+      "MCA Portal Filing",
+      "DSC Validation & Assistance",
+      "Partner KYC Verification",
+      "Financial Statement Review",
+      "Compliance Due Date Review",
+      "Filing Acknowledgement & SRN Support",
+      "Post-Filing Compliance Guidance",
+    ],
+    detailContent: [
+
+    ],
+  },
+  {
+    id: "dsc",
+    title: "Digital Signature Certificate (DSC)",
+    description: "For Company Directors, LLP Partners, Proprietors, Professionals & Individuals requiring a Class 3 Digital Signature Certificate.",
+    plan: "",
+    icon: Receipt,
+    bgColor: "bg-blue-100",
+    iconColor: "text-blue-600",
+    features: [
+      "Class 3 Digital Signature Certificate (DSC)",
+      "Validity up to 2 Years",
+      "Individual Identity Verification",
+      "Document Verification & Processing",
+      "Video Verification Assistance (if required)",
+      "Aadhaar & PAN Verification Support",
+      "DSC Application Filing",
+      "Installation & Activation Support",
+      "MCA / Income Tax Portal Compatibility",
+      "Email & Mobile Verification Assistance",
+      "Dedicated Customer Support Until Issuance"
+    ],
+    detailContent: []
+  },
+
+  {
+    id: "startup-india-registration",
+    title: "Startup India Registration",
+    description: "For Startups seeking DPIIT recognition to access government benefits, tax exemptions, funding opportunities, and startup support.",
+    plan: "",
+    icon: Receipt,
+    bgColor: "bg-blue-100",
+    iconColor: "text-blue-600",
+    features: [
+      "DPIIT Startup Recognition Registration",
+      "Eligibility Assessment",
+      "Startup India Portal Registration",
+      "Document Preparation & Verification",
+      "Business Entity Eligibility Review",
+      "Application Filing & Submission",
+      "Startup Recognition Certificate Assistance",
+      "Government Portal Profile Setup",
+      "Application Status Tracking",
+      "Startup India Benefits Guidance",
+      "Dedicated Registration Support",
+      "Post-Registration Consultation",
+    ],
+    detailContent: []
+  },
+
+  
   // {
   //   id: 'test-production-plan',
   //   title: "Test Production Plan",
@@ -748,19 +847,21 @@ export const otherServices = [
 export const serviceCategories = {
   individual: {
     title: "Individual ITR Filing Services",
-    description: "Choose the perfect ITR filing service based on your income sources and requirements",
+    description:
+      "Choose the perfect ITR filing service based on your income sources and requirements",
     icon: User,
     bgColor: "bg-blue-100",
     iconColor: "text-blue-600",
-    services: individualServices
+    services: individualServices,
   },
   business: {
-    title: "Business ITR Filing Services", 
-    description: "Professional tax filing services for businesses, traders, and specialized income sources",
+    title: "Business ITR Filing Services",
+    description:
+      "Professional tax filing services for businesses, traders, and specialized income sources",
     icon: Briefcase,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
-    services: businessServices
+    services: businessServices,
   },
   registration: {
     title: "Registration Services",
@@ -768,24 +869,29 @@ export const serviceCategories = {
     icon: Building,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
-    services: registrationServices
+    services: registrationServices,
   },
   other: {
     title: "Other Filing Services",
     description: "Additional compliance and filing services for businesses",
     icon: Receipt,
     bgColor: "bg-blue-50",
-    iconColor: "text-blue-600", 
-    services: otherServices
-  }
+    iconColor: "text-blue-600",
+    services: otherServices,
+  },
 };
 
-const formatPrice = (price) => `₹${price.toLocaleString('en-IN')}`;
+const formatPrice = (price) => `₹${price.toLocaleString("en-IN")}`;
 
-[...individualServices, ...businessServices, ...registrationServices, ...otherServices].forEach(service => {
+[
+  ...individualServices,
+  ...businessServices,
+  ...registrationServices,
+  ...otherServices,
+].forEach((service) => {
   if (plansConfig[service.id]) {
     service.numericPrice = plansConfig[service.id].price;
-    if (service.price && service.price.startsWith('Starting')) {
+    if (service.price && service.price.startsWith("Starting")) {
       service.price = `Starting ${formatPrice(service.numericPrice)}`;
     } else {
       service.price = formatPrice(service.numericPrice);
