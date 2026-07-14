@@ -17,6 +17,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Link } from "react-router-dom";
 import plansConfig from "../../data/plansConfig.json";
+import { individualServices } from "../../data/servicesData";
 
 const Home = () => {
 
