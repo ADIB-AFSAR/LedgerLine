@@ -16,7 +16,7 @@ import {
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Link } from "react-router-dom";
-import { individualServices } from "../../data/servicesData";
+import plansConfig from "../../data/plansConfig.json";
 
 const Home = () => {
 
@@ -291,7 +291,7 @@ const Home = () => {
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">{basicPrice}</span>
+                  <span className="text-4xl font-extrabold text-slate-900">₹{plansConfig["salary-basic-itr"].price.toLocaleString("en-IN")}</span>
                   <span className="text-slate-400 ml-2 font-medium text-sm">/filing</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Up to ₹50 Lakhs income</p>
@@ -336,7 +336,7 @@ const Home = () => {
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">{premiumPrice}</span>
+                  <span className="text-4xl font-extrabold text-slate-900">₹{plansConfig["salary-premium"].price.toLocaleString("en-IN")}</span>
                   <span className="text-slate-400 ml-2 font-medium text-sm">/filing</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Salary + investments + property</p>
@@ -377,7 +377,7 @@ const Home = () => {
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">{capitalPrice}</span>
+                  <span className="text-4xl font-extrabold text-slate-900">₹{plansConfig["capital-gain"].price.toLocaleString("en-IN")}</span>
                   <span className="text-slate-400 ml-2 font-medium text-sm">/filing</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">LTCG, STCG & F&O</p>
@@ -418,7 +418,7 @@ const Home = () => {
               </div>
               <div className="mb-8">
                 <div className="flex items-baseline">
-                  <span className="text-4xl font-extrabold text-slate-900">{nriPrice}</span>
+                  <span className="text-4xl font-extrabold text-slate-900">₹{plansConfig["nri-income"].price.toLocaleString("en-IN")}</span>
                   <span className="text-slate-400 ml-2 font-medium text-sm">/filing</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">DTAA, FBAR & FEMA</p>
