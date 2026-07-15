@@ -55,7 +55,10 @@ const syncPlans = async () => {
             'GST Return Filing': 'gst-filing',
             'Form 26QB Filing – TDS on Property Purchase': 'tds-filing',
             'PF & ESIC Registration': 'pf-esic',
-            'Test Production Plan': 'test-production-plan'
+            'Test Production Plan': 'test-production-plan',
+            'ROC Filing': 'roc-filing',
+            'Digital Signature Certificate (DSC)': 'dsc',
+            'Startup India Registration': 'startup-india-registration'
         };
 
         const plans = await Plan.find();

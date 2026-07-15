@@ -49,6 +49,14 @@
   },
   "test-production-plan": {
     "price": 1
-  } 
+  },
+  "roc-filing": {
+    "price": 5999
+  },
+  "dsc": {
+    "price": 1499
+  },
+  "startup-india-registration": {
+    "price": 4999
+  }
 }
-
