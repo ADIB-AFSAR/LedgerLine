@@ -16,6 +16,10 @@ import {
   LogOut,
   LayoutDashboard,
   BookOpen,
+  icons,
+  FileBadge,
+  PenLine,
+  Rocket,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -107,6 +111,21 @@ const Navbar = () => {
             //   icon: <Shield size={14} />,
             //   path: "/services/test-production-plan",
             // },
+            {
+              name:"ROC Filing",
+              icon: <FileBadge size={14} />,
+              path: "/services/roc-filing",
+            },
+            {
+              name:"Digital Signature Certificate",
+              icon: <PenLine size={14} />,
+              path: "/services/dsc",
+            },
+            {
+              name:"Startup India Registration",
+              icon: <Rocket size={14} />,
+              path: "/services/startup-india-registration",
+            }
           ],
         },
       ],
