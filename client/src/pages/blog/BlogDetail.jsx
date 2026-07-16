@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Clock, Tag, ArrowLeft, ChevronRight, User, CalendarDays, Link2 } from "lucide-react";
+import { Clock, Tag, ArrowLeft, ChevronRight, User, CalendarDays, Link2, ArrowUp } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "../frontend/Navbar";
 import Footer from "../frontend/Footer";
@@ -10,6 +10,7 @@ const BlogDetail = () => {
   const { id } = useParams();
   const blog = blogs.find((b) => b.id === id);
   const [readingProgress, setReadingProgress] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const slugify = (value) =>
     value
@@ -34,6 +35,7 @@ const BlogDetail = () => {
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       setReadingProgress(docHeight > 0 ? Math.min(100, Math.round((scrollTop / docHeight) * 100)) : 0);
+      setShowScrollTop(scrollTop > 300);
     };
 
     handleScroll();
@@ -326,6 +328,17 @@ const BlogDetail = () => {
       </main>
 
       <Footer />
+
+      {/* Scroll to top button */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className={`fixed bottom-6 right-6 z-50 p-3 rounded-full bg-blue-600 text-white shadow-lg transition-all duration-300 hover:bg-blue-700 hover:scale-110 hover:shadow-blue-400/40 hover:shadow-xl ${
+          showScrollTop ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"
+        }`}
+        aria-label="Scroll to top"
+      >
+        <ArrowUp size={18} />
+      </button>
     </>
   );
 };
