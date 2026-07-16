@@ -125,6 +125,11 @@ const Navbar = () => {
               name:"Startup India Registration",
               icon: <Rocket size={14} />,
               path: "/services/startup-india-registration",
+            },
+            {
+              name:"Annual Compliance Filing",
+              icon: <FileBadge size={14} />,
+              path: "/services/annual-compliance-filing",
             }
           ],
         },
