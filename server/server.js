@@ -58,7 +58,8 @@ const syncPlans = async () => {
             'Test Production Plan': 'test-production-plan',
             'ROC Filing': 'roc-filing',
             'Digital Signature Certificate (DSC)': 'dsc',
-            'Startup India Registration': 'startup-india-registration'
+            'Startup India Registration': 'startup-india-registration',
+            'Annual Compliance Filing': 'annual-compliance-filing'
         };
 
         const plans = await Plan.find();

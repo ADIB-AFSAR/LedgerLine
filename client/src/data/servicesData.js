@@ -768,7 +768,8 @@ export const otherServices = [
     id: "annual-compliance-filing",
     title: "Annual Compliance Filing",
     description: "For Private Limited Companies, OPCs & LLPs requiring annual statutory compliance.",
-    // planId: "6a57c20a36af9ce7777447f8",
+    planId: "6a57c20a36af9ce7777447fa",
+    price: " / Year",
     icon: Receipt,
     bgColor: "bg-blue-100",
     iconColor: "text-blue-600",
@@ -923,6 +924,8 @@ const formatPrice = (price) => `₹${price.toLocaleString("en-IN")}`;
     service.numericPrice = plansConfig[service.id].price;
     if (service.price && service.price.startsWith("Starting")) {
       service.price = `Starting ${formatPrice(service.numericPrice)}`;
+    } else if (service.price && service.price.includes("/ Year")) {
+      service.price = `${formatPrice(service.numericPrice)} / Year`;
     } else {
       service.price = formatPrice(service.numericPrice);
     }
