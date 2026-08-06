@@ -5,6 +5,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "../frontend/Navbar";
 import Footer from "../frontend/Footer";
 import blogs from "../../data/blogsData";
+import ScrollAdModal from "../../components/ScrollAdModal";
 
 const BlogDetail = () => {
   const { id } = useParams();
@@ -34,7 +35,8 @@ const BlogDetail = () => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      setReadingProgress(docHeight > 0 ? Math.min(100, Math.round((scrollTop / docHeight) * 100)) : 0);
+      const progress = docHeight > 0 ? Math.min(100, Math.round((scrollTop / docHeight) * 100)) : 0;
+      setReadingProgress(progress);
       setShowScrollTop(scrollTop > 300);
     };
 
@@ -328,6 +330,8 @@ const BlogDetail = () => {
       </main>
 
       <Footer />
+
+      <ScrollAdModal triggerPercent={40} />
 
       {/* Scroll to top button */}
       <button
