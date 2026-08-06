@@ -46,7 +46,11 @@ const plans = [
     { name: 'GST Return Filing', features: ['GSTR-1 Filing', 'GSTR-3B Filing', 'Input Tax Credit'], type: 'Business', formType: 'GST' },
     { name: 'Form 26QB Filing – TDS on Property Purchase', features: ['TDS Return Filing', 'Certificate Generation', 'Compliance Tracking'], type: 'Business', formType: 'OTHER' },
     { name: 'PF & ESIC Registration', features: ['PF Registration', 'ESIC Registration', 'Monthly Returns'], type: 'Business', formType: 'OTHER' },
-    { name: 'Test Production Plan', features: ['Production Test', 'Real Payment Verification'], type: 'Basic', formType: 'OTHER' }
+    { name: 'ROC Filing', features: ['Form 11', 'Form 8', 'MGT-7A', 'AOC-4', 'ADT-1'], type: 'Business', formType: 'OTHER' },
+    { name: 'Digital Signature Certificate (DSC)', features: ['Class 3 DSC', 'Validity up to 2 Years'], type: 'Business', formType: 'OTHER' },
+    { name: 'Startup India Registration', features: ['DPIIT Startup Recognition', 'Startup India Portal'], type: 'Business', formType: 'OTHER' },
+    { name: 'Test Production Plan', features: ['Production Test', 'Real Payment Verification'], type: 'Basic', formType: 'OTHER' },
+    { name: 'Annual Compliance Filing', features: ['Annual ROC Compliance Management', 'AOC-4 Filing', 'MGT-7 Filing'], type: 'Business', formType: 'OTHER' }
 ];
 
 const plansConfigPath = join(__dirname, '../client/src/data/plansConfig.json');
@@ -69,7 +73,11 @@ const planIdMapping = {
     'GST Return Filing': 'gst-filing',
     'Form 26QB Filing – TDS on Property Purchase': 'tds-filing',
     'PF & ESIC Registration': 'pf-esic',
-    'Test Production Plan': 'test-production-plan'
+    'Test Production Plan': 'test-production-plan',
+    'ROC Filing': 'roc-filing',
+    'Digital Signature Certificate (DSC)': 'dsc',
+    'Startup India Registration': 'startup-india-registration',
+    'Annual Compliance Filing': 'annual-compliance-filing'
 };
 
 plans.forEach(plan => {

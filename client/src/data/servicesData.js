@@ -743,7 +743,7 @@ export const otherServices = [
     title: "ROC Filing",
     description:
       "For Private Limited Companies, OPCs & LLPs requiring annual statutory compliance.",
-    planId: "",
+    planId: "6a57c20a36af9ce7777447f2",
     icon: Receipt,
     bgColor: "bg-blue-100",
     iconColor: "text-blue-600",
@@ -763,11 +763,42 @@ export const otherServices = [
 
     ],
   },
+  
+  {
+    id: "annual-compliance-filing",
+    title: "Annual Compliance Filing",
+    description: "For Private Limited Companies, OPCs & LLPs requiring annual statutory compliance.",
+    planId: "6a57c20a36af9ce7777447fa",
+    price: " / Year",
+    icon: Receipt,
+    bgColor: "bg-blue-100",
+    iconColor: "text-blue-600",
+    features: [
+      "Annual ROC Compliance Management ",
+      "AOC-4 Filing (Companies)",
+      "MGT-7 / MGT-7A Filing (Companies) ",
+      "Form 8 Filing (LLPs)",
+      "Form 11 Filing (LLPs)",
+      "DIR-3 KYC Filing (Two Director/Designated Partner) ",
+      "Preparation & Filing of MCA Forms",
+      "Annual Return Preparation",
+      "Financial Statement Upload on MCA Portal",
+      "MCA Master Data Verification",
+      "Compliance Due Date Monitoring",
+      "DSC Validation & Filing Assistance",
+      "Filing Acknowledgement & SRN Support",
+      "Dedicated Compliance Executive", 
+      "Post-Filing Compliance Guidance" ,
+      "Excludes Book Keeping And Audit Fees",
+    ],
+    detailContent: []
+  },
+
   {
     id: "dsc",
     title: "Digital Signature Certificate (DSC)",
     description: "For Company Directors, LLP Partners, Proprietors, Professionals & Individuals requiring a Class 3 Digital Signature Certificate.",
-    plan: "",
+    planId: "6a57c20a36af9ce7777447f5",
     icon: Receipt,
     bgColor: "bg-blue-100",
     iconColor: "text-blue-600",
@@ -791,7 +822,7 @@ export const otherServices = [
     id: "startup-india-registration",
     title: "Startup India Registration",
     description: "For Startups seeking DPIIT recognition to access government benefits, tax exemptions, funding opportunities, and startup support.",
-    plan: "",
+    planId: "6a57c20a36af9ce7777447f8",
     icon: Receipt,
     bgColor: "bg-blue-100",
     iconColor: "text-blue-600",
@@ -893,6 +924,8 @@ const formatPrice = (price) => `₹${price.toLocaleString("en-IN")}`;
     service.numericPrice = plansConfig[service.id].price;
     if (service.price && service.price.startsWith("Starting")) {
       service.price = `Starting ${formatPrice(service.numericPrice)}`;
+    } else if (service.price && service.price.includes("/ Year")) {
+      service.price = `${formatPrice(service.numericPrice)} / Year`;
     } else {
       service.price = formatPrice(service.numericPrice);
     }
