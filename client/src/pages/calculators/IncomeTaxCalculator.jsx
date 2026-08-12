@@ -7,10 +7,14 @@ import Footer from "../frontend/Footer";
 // ─── Tax engine ───────────────────────────────────────────────────────────────
 
 const STD_DEDUCTION_OLD = 50000;
-const STD_DEDUCTION_NEW = 75000; // Budget 2024
+const STD_DEDUCTION_NEW = 75000; // Budget 2025
 
-function calcOldRegime(gross, d) {
-  // taxable = gross - std deduction - 80C - 80D - HRA - homeLoanSelf - other
+// Old regime — age-aware basic exemption limits
+function calcOldRegime(gross, d, ageGroup) {
+  const basicExemption =
+    ageGroup === "above80" ? 500000 :
+    ageGroup === "60to80"  ? 300000 : 250000;
+
   const taxable = Math.max(
     0,
     gross -
@@ -24,35 +28,49 @@ function calcOldRegime(gross, d) {
   );
 
   let tax = 0;
-  if (taxable <= 250000) tax = 0;
-  else if (taxable <= 500000) tax = (taxable - 250000) * 0.05;
-  else if (taxable <= 1000000) tax = 12500 + (taxable - 500000) * 0.2;
-  else tax = 112500 + (taxable - 1000000) * 0.3;
+  if (taxable <= basicExemption) {
+    tax = 0;
+  } else if (ageGroup === "above80") {
+    // Super senior: 0 up to 5L, 20% 5L–10L, 30% above 10L
+    if (taxable <= 1000000) tax = (taxable - 500000) * 0.2;
+    else tax = 100000 + (taxable - 1000000) * 0.3;
+  } else if (ageGroup === "60to80") {
+    // Senior: 0 up to 3L, 5% 3L–5L, 20% 5L–10L, 30% above 10L
+    if (taxable <= 500000)       tax = (taxable - 300000) * 0.05;
+    else if (taxable <= 1000000) tax = 10000 + (taxable - 500000) * 0.2;
+    else                         tax = 110000 + (taxable - 1000000) * 0.3;
+  } else {
+    // Below 60: 0 up to 2.5L, 5% 2.5L–5L, 20% 5L–10L, 30% above 10L
+    if (taxable <= 500000)       tax = (taxable - 250000) * 0.05;
+    else if (taxable <= 1000000) tax = 12500 + (taxable - 500000) * 0.2;
+    else                         tax = 112500 + (taxable - 1000000) * 0.3;
+  }
 
-  // 87A rebate – if taxable ≤ 5L, tax = 0
+  // 87A rebate — old regime: taxable ≤ 5L → full rebate
   if (taxable <= 500000) tax = 0;
 
   const cess = tax * 0.04;
-  return { taxable, tax, cess, total: tax + cess };
+  return { taxable, tax, cess, total: Math.round(tax + cess) };
 }
 
-function calcNewRegime(gross, i) {
-  // Deductions allowed: std deduction only
+// New regime — FY 2025-26 (Budget 2025) 7-slab structure, same for all ages
+function calcNewRegime(gross) {
   const taxable = Math.max(0, gross - STD_DEDUCTION_NEW);
 
   let tax = 0;
-  if (taxable <= 300000) tax = 0;
-  else if (taxable <= 700000) tax = (taxable - 300000) * 0.05;
-  else if (taxable <= 1000000) tax = 20000 + (taxable - 700000) * 0.1;
-  else if (taxable <= 1200000) tax = 50000 + (taxable - 1000000) * 0.15;
-  else if (taxable <= 1500000) tax = 80000 + (taxable - 1200000) * 0.2;
-  else tax = 140000 + (taxable - 1500000) * 0.3;
+  if      (taxable <= 400000)  tax = 0;
+  else if (taxable <= 800000)  tax = (taxable - 400000) * 0.05;
+  else if (taxable <= 1200000) tax = 20000  + (taxable - 800000)  * 0.10;
+  else if (taxable <= 1600000) tax = 60000  + (taxable - 1200000) * 0.15;
+  else if (taxable <= 2000000) tax = 120000 + (taxable - 1600000) * 0.20;
+  else if (taxable <= 2400000) tax = 200000 + (taxable - 2000000) * 0.25;
+  else                         tax = 300000 + (taxable - 2400000) * 0.30;
 
-  // 87A rebate – if taxable ≤ 7L, tax = 0
-  if (taxable <= 700000) tax = 0;
+  // 87A rebate — new regime: taxable ≤ 12L → full rebate (effectively ₹0 tax)
+  if (taxable <= 1200000) tax = 0;
 
   const cess = tax * 0.04;
-  return { taxable, tax, cess, total: tax + cess };
+  return { taxable, tax, cess, total: Math.round(tax + cess) };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -161,8 +179,8 @@ const IncomeTaxCalculator = () => {
 
   const deductionsObj = { sec80C, sec80D, hra, homeLoanSelf: homeLoanSelfOccupied, nps, otherDeductions };
 
-  const oldResult = useMemo(() => calcOldRegime(grossIncome, deductionsObj), [
-    grossIncome, sec80C, sec80D, hra, homeLoanSelfOccupied, nps, otherDeductions,
+  const oldResult = useMemo(() => calcOldRegime(grossIncome, deductionsObj, ageGroup), [
+    grossIncome, sec80C, sec80D, hra, homeLoanSelfOccupied, nps, otherDeductions, ageGroup,
   ]);
   const newResult = useMemo(() => calcNewRegime(grossIncome), [grossIncome]);
 
@@ -192,9 +210,9 @@ const IncomeTaxCalculator = () => {
                   Income Tax Calculator – FY {assessmentYear === "2026-27" ? "2026-2027" : "2025-2026"}
                 </h1>
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className="text-xs text-slate-400">Last updated on 1 Feb 2026</span>
+                  <span className="text-xs text-slate-400">Last updated on 1 Feb 2025</span>
                   <span className="text-[11px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                    Latest Budget
+                    Budget 2025 · FY 2025-26
                   </span>
                 </div>
               </div>
