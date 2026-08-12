@@ -28,6 +28,11 @@ import PaymentFailure from '../pages/payment/PaymentFailure';
 
 import CalculatorHub from '../pages/calculators/CalculatorHub';
 import IncomeTaxCalculator from '../pages/calculators/IncomeTaxCalculator';
+import OldVsNewRegimeCalculator from '../pages/calculators/OldVsNewRegimeCalculator';
+import SalaryTaxCalculator from '../pages/calculators/SalaryTaxCalculator';
+import CapitalGainTaxCalculator from '../pages/calculators/CapitalGainTaxCalculator';
+import HRACalculator from '../pages/calculators/HRACalculator';
+import TDSCalculator from '../pages/calculators/TDSCalculator';
 import HomeLoanEMICalculator from '../pages/calculators/HomeLoanEMICalculator';
 import CarLoanEMICalculator from '../pages/calculators/CarLoanEMICalculator';
 import PersonalLoanEMICalculator from '../pages/calculators/PersonalLoanEMICalculator';
@@ -67,11 +72,11 @@ export default function AppRoutes() {
 
       <Route path="/calculators" element={<CalculatorHub />} />
       <Route path="/calculators/income-tax" element={<IncomeTaxCalculator />} />
-      <Route path="/calculators/old-new-regime" element={<IncomeTaxCalculator />} />
-      <Route path="/calculators/salary-tax" element={<IncomeTaxCalculator />} />
-      <Route path="/calculators/capital-gain-tax" element={<IncomeTaxCalculator />} />
-      <Route path="/calculators/hra-calculator" element={<IncomeTaxCalculator />} />
-      <Route path="/calculators/tds-calculator" element={<IncomeTaxCalculator />} />
+      <Route path="/calculators/old-new-regime" element={<OldVsNewRegimeCalculator />} />
+      <Route path="/calculators/salary-tax" element={<SalaryTaxCalculator />} />
+      <Route path="/calculators/capital-gain-tax" element={<CapitalGainTaxCalculator />} />
+      <Route path="/calculators/hra-calculator" element={<HRACalculator />} />
+      <Route path="/calculators/tds-calculator" element={<TDSCalculator />} />
       <Route path="/calculators/home-loan-emi" element={<HomeLoanEMICalculator />} />
       <Route path="/calculators/car-loan-emi" element={<CarLoanEMICalculator />} />
       <Route path="/calculators/personal-loan-emi" element={<PersonalLoanEMICalculator />} />
