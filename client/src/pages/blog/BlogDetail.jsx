@@ -12,6 +12,13 @@ const BlogDetail = () => {
   const blog = blogs.find((b) => b.id === id);
   const [readingProgress, setReadingProgress] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+
+  // Show announcement bar after 3 seconds
+  useEffect(() => {
+    const t = setTimeout(() => setShowBanner(true), 3000);
+    return () => clearTimeout(t);
+  }, []);
 
   const slugify = (value) =>
     value
@@ -214,38 +221,89 @@ const BlogDetail = () => {
       </Helmet>
       <Navbar />
 
+      {/* Announcement bar — slides in after 3 seconds */}
+      <div
+        className={`bg-slate-900 text-white overflow-hidden transition-all duration-700 ease-out ${
+          showBanner ? "max-h-24 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5">
+          {/* Left text */}
+          <p className="text-sm sm:text-base font-medium text-slate-200 text-center sm:text-left">
+            📅 Deadline for ITR 3 & 4 is{" "}
+            <strong className="text-white text-base sm:text-lg">31st August</strong>{" "}
+            — Don't miss it!
+          </p>
+
+          {/* Divider */}
+          <span className="hidden sm:block w-px h-6 bg-slate-600" />
+
+          {/* CTA button */}
+          <Link
+            to="/services/individual"
+            className="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold px-6 py-2 rounded-full text-sm transition-all whitespace-nowrap shadow-lg shadow-blue-900/40"
+          >
+            File Now
+          </Link>
+
+          {/* Divider */}
+          <span className="hidden sm:block w-px h-6 bg-slate-600" />
+
+          {/* Phone */}
+          <p className="text-sm text-slate-300 text-center">
+            To Book a CA —{" "}
+            <a
+              href="tel:+919784799904"
+              className="text-white font-bold text-base hover:text-blue-300 transition-colors"
+            >
+             97847 99904
+            </a>
+          </p>
+        </div>
+      </div>
+
       <main className="bg-slate-50 min-h-screen">
         <div className="fixed left-0 top-0 z-40 h-1 bg-blue-500 transition-all duration-150" style={{ width: `${readingProgress}%` }} />
 
-        {/* Hero */}
-        <div className="bg-gradient-to-br from-slate-900 to-blue-900 text-white py-14 sm:py-16 px-4">
-          <div className="max-w-5xl mx-auto">
+        {/* Hero Banner */}
+        <div className="relative text-white overflow-hidden">
+          <img
+            src="/blog_banner.png"
+            alt="Blog Banner"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+          />
+          {/* dark overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/55 to-black/35" />
+
+          <div className="relative max-w-5xl mx-auto px-4 py-14 sm:py-20">
             <Link
               to="/blog"
-              className="inline-flex items-center gap-1.5 text-blue-300 hover:text-white text-sm mb-5 transition-colors"
+              className="inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm mb-5 transition-colors"
             >
               <ArrowLeft size={15} />
               Back to Blog
             </Link>
             <div className="mb-4">
-              <span className="inline-block bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-semibold px-3 py-1 rounded-full">
+              <span className="inline-block bg-white/15 border border-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-sm">
                 {blog.category}
               </span>
             </div>
-            <h1 className="max-w-4xl text-3xl sm:text-5xl font-bold leading-tight mb-5">{blog.title}</h1>
-            <p className="max-w-3xl text-sm sm:text-base text-slate-300 leading-7 mb-6">
+            <h1 className="max-w-4xl text-3xl sm:text-5xl font-bold leading-tight mb-5 drop-shadow-lg">
+              {blog.title}
+            </h1>
+            <p className="max-w-3xl text-sm sm:text-base text-white/75 leading-7 mb-6">
               {blog.excerpt}
             </p>
-            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-300">
-              <span className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/10 px-3 py-1.5">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
+              <span className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-3 py-1.5 backdrop-blur-sm">
                 <User size={14} />
                 {blog.author}
               </span>
-              <span className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/10 px-3 py-1.5">
+              <span className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-3 py-1.5 backdrop-blur-sm">
                 <CalendarDays size={14} />
                 {blog.date}
               </span>
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-3 py-1.5 backdrop-blur-sm">
                 <Clock size={14} />
                 {blog.readTime}
               </span>

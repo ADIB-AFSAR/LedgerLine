@@ -46,11 +46,16 @@ function calcOldRegime(gross, d, ageGroup) {
     else                         tax = 112500 + (taxable - 1000000) * 0.3;
   }
 
-  // 87A rebate — old regime: taxable ≤ 5L → full rebate
-  if (taxable <= 500000) tax = 0;
+  // 87A rebate — old regime: taxable ≤ 5L → full rebate (max ₹12,500)
+  // Super senior (above80) has no 5% slab, so no rebate scenario applies
+  let rebate87A = 0;
+  if (ageGroup !== "above80" && taxable <= 500000) {
+    rebate87A = tax;
+    tax = 0;
+  }
 
   const cess = tax * 0.04;
-  return { taxable, tax, cess, total: Math.round(tax + cess) };
+  return { taxable, tax, rebate87A, cess, total: Math.round(tax + cess) };
 }
 
 // New regime — FY 2025-26 (Budget 2025) 7-slab structure, same for all ages
@@ -66,11 +71,15 @@ function calcNewRegime(gross) {
   else if (taxable <= 2400000) tax = 200000 + (taxable - 2000000) * 0.25;
   else                         tax = 300000 + (taxable - 2400000) * 0.30;
 
-  // 87A rebate — new regime: taxable ≤ 12L → full rebate (effectively ₹0 tax)
-  if (taxable <= 1200000) tax = 0;
+  // 87A rebate — new regime: taxable ≤ 12L → rebate up to ₹60,000 (effectively ₹0 tax)
+  let rebate87A = 0;
+  if (taxable <= 1200000) {
+    rebate87A = tax;
+    tax = 0;
+  }
 
   const cess = tax * 0.04;
-  return { taxable, tax, cess, total: Math.round(tax + cess) };
+  return { taxable, tax, rebate87A, cess, total: Math.round(tax + cess) };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -486,19 +495,49 @@ const IncomeTaxCalculator = () => {
               {/* Breakdown card */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
                 <h3 className="text-sm font-bold text-slate-700 mb-3">Detailed Breakdown</h3>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-0.5 text-sm">
                   {[
                     { label: "Gross Income", value: fmt(grossIncome) },
                     { label: "Std. Deduction (Old)", value: `–${fmt(STD_DEDUCTION_OLD)}` },
                     { label: "Std. Deduction (New)", value: `–${fmt(STD_DEDUCTION_NEW)}` },
-                    { label: "Taxable (Old)", value: fmt(oldResult.taxable), muted: false },
-                    { label: "Taxable (New)", value: fmt(newResult.taxable), muted: false },
-                    { label: "Tax (Old)", value: fmt(oldResult.tax) },
-                    { label: "Tax (New)", value: fmt(newResult.tax) },
+                    { label: "Taxable Income (Old)", value: fmt(oldResult.taxable) },
+                    { label: "Taxable Income (New)", value: fmt(newResult.taxable) },
+                    { label: "Tax Before Rebate (Old)", value: fmt(oldResult.tax + oldResult.rebate87A) },
+                    { label: "Tax Before Rebate (New)", value: fmt(newResult.tax + newResult.rebate87A) },
+                  ].map((row) => (
+                    <div key={row.label} className="flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0">
+                      <span className="text-slate-500 text-xs">{row.label}</span>
+                      <span className="font-semibold text-slate-700 text-xs">{row.value}</span>
+                    </div>
+                  ))}
+
+                  {/* 87A Rebate rows — only shown when applicable */}
+                  {oldResult.rebate87A > 0 && (
+                    <div className="flex justify-between items-center py-1.5 border-b border-green-100 bg-green-50 px-2 rounded-lg">
+                      <div>
+                        <span className="text-green-700 text-xs font-semibold">Rebate u/s 87A (Old)</span>
+                        <p className="text-[10px] text-green-500">Taxable ≤ ₹5L → full rebate</p>
+                      </div>
+                      <span className="font-bold text-green-700 text-xs">–{fmt(oldResult.rebate87A)}</span>
+                    </div>
+                  )}
+                  {newResult.rebate87A > 0 && (
+                    <div className="flex justify-between items-center py-1.5 border-b border-green-100 bg-green-50 px-2 rounded-lg">
+                      <div>
+                        <span className="text-green-700 text-xs font-semibold">Rebate u/s 87A (New)</span>
+                        <p className="text-[10px] text-green-500">Taxable ≤ ₹12L → full rebate</p>
+                      </div>
+                      <span className="font-bold text-green-700 text-xs">–{fmt(newResult.rebate87A)}</span>
+                    </div>
+                  )}
+
+                  {[
+                    { label: "Tax After Rebate (Old)", value: fmt(oldResult.tax) },
+                    { label: "Tax After Rebate (New)", value: fmt(newResult.tax) },
                     { label: "4% Cess (Old)", value: fmt(oldResult.cess) },
                     { label: "4% Cess (New)", value: fmt(newResult.cess) },
                   ].map((row) => (
-                    <div key={row.label} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
+                    <div key={row.label} className="flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0">
                       <span className="text-slate-500 text-xs">{row.label}</span>
                       <span className="font-semibold text-slate-700 text-xs">{row.value}</span>
                     </div>
