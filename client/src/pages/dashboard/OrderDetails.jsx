@@ -10,7 +10,7 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
   const { orderId: paramOrderId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   // Detect if we are in "Modal Mode" (used in Admin Dashboard)
   const isModal = !!propOrder;
   const orderId = isModal ? propOrder.id : paramOrderId;
@@ -287,10 +287,10 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
     const isSharedUpload = uploadingRequestId === 'shared-by-admin';
 
     // Resolve the user ID to share with
-    const targetUserId = (typeof itrData?.userId === 'object' ? itrData?.userId?._id : itrData?.userId) || 
-                         (typeof order?.userId === 'object' ? order?.userId?._id : order?.userId) || 
-                         order?.originalData?.userId?._id || 
-                         order?.originalData?.userId;
+    const targetUserId = (typeof itrData?.userId === 'object' ? itrData?.userId?._id : itrData?.userId) ||
+      (typeof order?.userId === 'object' ? order?.userId?._id : order?.userId) ||
+      order?.originalData?.userId?._id ||
+      order?.originalData?.userId;
 
     const formIdToUse = itrData?._id || order?.itrId || order?.originalData?.itrId;
 
@@ -308,7 +308,7 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
       setLoadingItr(true);
       const formData = new FormData();
       formData.append('file', file);
-      
+
       if (isSharedUpload) {
         formData.append('sharedWith', targetUserId);
         formData.append('isShared', 'true');
@@ -409,14 +409,13 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
       navigate('/dashboard?tab=orders');
     }
   };
-  console.log(order)
 
   const mainContent = (
     <div className={`flex flex-col ${isModal ? '' : 'min-h-screen'} bg-slate-50 font-sans text-slate-900`}>
       {/* Hero Header */}
       <section className={`${isModal ? 'py-6' : 'py-8'} bg-white border-b border-slate-200 relative`}>
         {(isModal || isAdminOrCA) && (
-          <button 
+          <button
             onClick={handleBack}
             className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all z-20"
           >
@@ -435,101 +434,46 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-<div>
-  <div className="flex items-center gap-3 mb-2">
-    <h1 className="text-4xl font-extrabold tracking-tight">Order Details</h1>
-    <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 border border-white/20 uppercase tracking-widest">
-      #{order.id}
-    </span>
-  </div>
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Order Details</h1>
+                <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-widest">
+                  #{order.id}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <p className="text-slate-500 text-sm flex items-center gap-1.5">
+                  <Clock size={13} className="opacity-80" />
+                  Placed {formatDate(order.date)}
+                </p>
+                {isAdminOrCA && (
+                  <>
+                    {(itrData?.personalInfo?.email || order.originalData?.userId?.email) && (
+                      <p className="text-slate-600 text-sm flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block"></span>
+                        <span className="font-semibold text-slate-800">Email:</span>
+                        {itrData?.personalInfo?.email || order.originalData?.userId?.email}
+                      </p>
+                    )}
+                    {(itrData?.personalInfo?.mobile || itrData?.personalInfo?.phoneNumber || order.originalData?.userId?.mobile) && (
+                      <p className="text-slate-600 text-sm flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block"></span>
+                        <span className="font-semibold text-slate-800">Phone:</span>
+                        {itrData?.personalInfo?.mobile || itrData?.personalInfo?.phoneNumber || order.originalData?.userId?.mobile}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
 
-  <p className="text-blue-100 text-sm flex items-center gap-1.5">
-    <Clock size={13} className="opacity-80" />
-    Placed {formatDate(order.date)}
-  </p>
-
-  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
-    {isAdminOrCA && (
-      <>
-        {(itrData?.personalInfo?.email || order.originalData?.userId?.email) && (
-          <p className="text-blue-100 text-sm flex items-center gap-1.5">
-            <span className="font-semibold text-blue-50">Email:</span>
-            {itrData?.personalInfo?.email || order.originalData?.userId?.email}
-          </p>
-        )}
-        {(itrData?.personalInfo?.mobile || itrData?.personalInfo?.phoneNumber || order.originalData?.userId?.mobile) && (
-          <p className="text-blue-100 text-sm flex items-center gap-1.5">
-            <span className="font-semibold text-blue-50">Phone:</span>
-            {itrData?.personalInfo?.mobile || itrData?.personalInfo?.phoneNumber || order.originalData?.userId?.mobile}
-          </p>
-        )}
-      </>
-    )}
-  </div>
-</div>
-
-<div className="flex flex-col items-end gap-4">
-  {isAdminOrCA && order.originalData?.userId && (
-    <div className="bg-white/10 border border-white/20 rounded-2xl px-5 py-4 min-w-[300px]">
-      <p className="text-xs uppercase tracking-widest text-blue-200 font-semibold mb-3">
-        Customer Details
-      </p>
-
-      <div className="  flex gap-4 flex-row text-sm">
-        <div>
-          <span className="text-blue-200">Name:</span>{' '}
-          <span className="font-semibold">
-            {order.originalData.userId.name}
-          </span>
-        </div>
-        {order.originalData.userId.email && (
-          <div>
-            <span className="text-blue-200">Email:</span>{' '}
-            <span className="font-semibold">{order.originalData.userId.email}</span>
+            {!isAdminOrCA && (
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 self-start">
+                <div className={`w-2 h-2 rounded-full ${(itrData?.status || order.status)?.toLowerCase() === 'completed' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                <span className="font-semibold text-sm text-slate-700 capitalize">{(itrData?.status || order.status)?.replace('-', ' ')}</span>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
-  )}
-
-  {!isAdminOrCA && (
-    <div className="flex items-center gap-2 bg-white/8 border border-white/10 rounded-lg px-4 py-2 self-start">
-      <div className={`w-2 h-2 rounded-full ${(itrData?.status || order.status)?.toLowerCase() === 'completed' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-      <span className="font-semibold text-sm text-blue-100 capitalize">{(itrData?.status || order.status)?.replace('-', ' ')}</span>
-    </div>
-  )}
-</div>
-          </div>
-
-          <div>
-            <span className="text-blue-200">Email:</span>{' '}
-            <span>{order.originalData.userId.email}</span>
-          </div>
-
-          <div>
-            <span className="text-blue-200">Phone:</span>{' '}
-            <span>{order.originalData.userId.mobile}</span>
-          </div>
-        </div>
-      </div>
-    )}
-
-    {/* {!isAdminOrCA && (
-      <div className="flex items-center gap-2 bg-white/15 border border-white/20 rounded-2xl px-4 py-2.5">
-        <div
-          className={`w-2 h-2 rounded-full ${
-            (itrData?.status || order.status)?.toLowerCase() === 'completed'
-              ? 'bg-green-400'
-              : 'bg-yellow-300'
-          }`}
-        />
-        <span className="font-bold text-sm capitalize">
-          {(itrData?.status || order.status)?.replace('-', ' ')}
-        </span>
-      </div>
-    )} */}
-  </div>
-</div>
 
           {/* Stats row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-8">
@@ -537,25 +481,12 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
               <p className="text-slate-500 text-xs uppercase font-semibold tracking-wider mb-1">Plan</p>
               <p className="font-semibold text-slate-900 text-lg truncate">{order.service}</p>
             </div>
-<div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
-  <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">
-    Amount Paid
-  </p>
-
-  <div className="flex items-end gap-2">
-    <p className="font-extrabold text-3xl">
-      ₹{order.originalData?.finalAmountPaid ?? order.amount}
-    </p>
-
-    {order.originalData?.finalAmountPaid != null && order.originalData.finalAmountPaid < order.originalData.originalPrice && (
-      <p className="text-sm text-blue-200 line-through">
-        ₹{order.originalData.originalPrice}
-      </p>
-    )}
-  </div>
-</div>
-<div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
-  <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">Current Status</p>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-4">
+              <p className="text-slate-500 text-xs uppercase font-semibold tracking-wider mb-1">Amount Paid</p>
+              <p className="font-bold text-slate-900 text-xl">{order.amount}</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-4">
+              <p className="text-slate-500 text-xs uppercase font-semibold tracking-wider mb-1">Current Status</p>
               {isAdminOrCA ? (
                 <div className="flex flex-col gap-2 mt-1">
                   <div className="relative" ref={statusDropdownRef}>
@@ -766,85 +697,85 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
                   ) : (
                     <>
                       {isAdminOrCA && (
-                    <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6">
-                      <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Upload size={14} className="text-blue-600" />
-                        </div>
-                        New Document Request
-                      </h4>
-                      <div className="space-y-4">
-                        <textarea
-                          rows={4}
-                          value={requestMessage}
-                          onChange={(e) => setRequestMessage(e.target.value)}
-                          placeholder="Type the list of documents you need from the user (e.g., 1. Form 16, 2. Bank Statements...)"
-                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none transition-all"
-                        />
-                        <div className="flex justify-end">
-                          <button
-                            onClick={handleSendRequest}
-                            disabled={requesting || !requestMessage.trim()}
-                            className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                          >
-                            {requesting ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <Send size={14} />}
-                            Send Request to User
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                      <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <FileText size={14} className="text-blue-600" />
-                      </div>
-                      {isAdminOrCA ? 'Request History' : 'Active Requests'}
-                    </h4>
-
-                    {itrData?.documentRequests && itrData.documentRequests.length > 0 ? (
-                      [...itrData.documentRequests].reverse().map((req, idx) => (
-                        <div key={req._id || idx} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md hover:border-blue-100 transition-all">
-                          <div className="flex justify-between items-center mb-3">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                              Requested {formatDate(req.requestedAt)}
-                            </p>
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${req.status === 'Fulfilled' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                              {req.status}
-                            </span>
-                          </div>
-                          <p className="text-sm text-slate-700 font-medium mb-4 leading-relaxed whitespace-pre-wrap">{req.message}</p>
-
-                          {!isAdminOrCA && req.status !== 'Fulfilled' && (
-                            <button
-                              onClick={() => triggerUpload(req._id)}
-                              className="w-full py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all border border-blue-200/60"
-                            >
-                              <Paperclip size={14} />
-                              Upload Requested Document
-                            </button>
-                          )}
-
-                          {req.status === 'Fulfilled' && (
-                            <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
-                              <CheckCircle size={14} />
-                              <span className="text-xs font-bold">Document successfully submitted</span>
+                        <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6">
+                          <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Upload size={14} className="text-blue-600" />
                             </div>
-                          )}
+                            New Document Request
+                          </h4>
+                          <div className="space-y-4">
+                            <textarea
+                              rows={4}
+                              value={requestMessage}
+                              onChange={(e) => setRequestMessage(e.target.value)}
+                              placeholder="Type the list of documents you need from the user (e.g., 1. Form 16, 2. Bank Statements...)"
+                              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none transition-all"
+                            />
+                            <div className="flex justify-end">
+                              <button
+                                onClick={handleSendRequest}
+                                disabled={requesting || !requestMessage.trim()}
+                                className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                              >
+                                {requesting ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <Send size={14} />}
+                                Send Request to User
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-14 gap-3 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
-                        <FileText className="w-12 h-12 text-slate-300" />
-                        <p className="text-slate-500 font-medium text-sm">No active requests found.</p>
+                      )}
+
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                          <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <FileText size={14} className="text-blue-600" />
+                          </div>
+                          {isAdminOrCA ? 'Request History' : 'Active Requests'}
+                        </h4>
+
+                        {itrData?.documentRequests && itrData.documentRequests.length > 0 ? (
+                          [...itrData.documentRequests].reverse().map((req, idx) => (
+                            <div key={req._id || idx} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md hover:border-blue-100 transition-all">
+                              <div className="flex justify-between items-center mb-3">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                  Requested {formatDate(req.requestedAt)}
+                                </p>
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${req.status === 'Fulfilled' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                  {req.status}
+                                </span>
+                              </div>
+                              <p className="text-sm text-slate-700 font-medium mb-4 leading-relaxed whitespace-pre-wrap">{req.message}</p>
+
+                              {!isAdminOrCA && req.status !== 'Fulfilled' && (
+                                <button
+                                  onClick={() => triggerUpload(req._id)}
+                                  className="w-full py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all border border-blue-200/60"
+                                >
+                                  <Paperclip size={14} />
+                                  Upload Requested Document
+                                </button>
+                              )}
+
+                              {req.status === 'Fulfilled' && (
+                                <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                                  <CheckCircle size={14} />
+                                  <span className="text-xs font-bold">Document successfully submitted</span>
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-14 gap-3 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+                            <FileText className="w-12 h-12 text-slate-300" />
+                            <p className="text-slate-500 font-medium text-sm">No active requests found.</p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </>
+                    </>
+                  )}
+                </div>
               )}
-            </div>
-          )}
 
               {/* ── Shared Documents Tab ── */}
               {activeTab === 'shared' && (
@@ -867,7 +798,7 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
                               </h4>
                               <p className="text-blue-100 text-sm font-medium">Upload final ITR copies, computation sheets, or payment receipts for the client.</p>
                             </div>
-                            <button 
+                            <button
                               onClick={() => triggerUpload('shared-by-admin')}
                               className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg active:scale-95"
                             >
@@ -888,7 +819,7 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
                               const allShared = [
                                 ...(itrData?.sharedDocuments || []),
                                 ...standaloneSharedDocs
-                              ].filter((doc, index, self) => 
+                              ].filter((doc, index, self) =>
                                 index === self.findIndex((d) => d._id === doc._id)
                               );
 
@@ -905,9 +836,9 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
                                       </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <a 
-                                        href={doc.fileUrl} 
-                                        target="_blank" 
+                                      <a
+                                        href={doc.fileUrl}
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="p-3 bg-slate-50 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-xl transition-all"
                                         title="View Document"
@@ -936,8 +867,8 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
                 </div>
               )}
 
-            {/* ── Chat Tab ── */}
-            {activeTab === 'chat' && (
+              {/* ── Chat Tab ── */}
+              {activeTab === 'chat' && (
                 <div className="flex flex-col h-[420px] animate-in fade-in duration-300">
                   <div className="flex-1 bg-slate-50 rounded-2xl border border-slate-100 p-4 overflow-y-auto mb-4 flex items-center justify-center">
                     <div className="flex flex-col items-center gap-3 opacity-40">
