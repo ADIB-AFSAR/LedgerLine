@@ -414,11 +414,11 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
   const mainContent = (
     <div className={`flex flex-col ${isModal ? '' : 'min-h-screen'} bg-slate-50 font-sans text-slate-900`}>
       {/* Hero Header */}
-      <section className={`${isModal ? 'py-8' : 'py-14'} bg-blue-600 text-white relative`}>
+      <section className={`${isModal ? 'py-6' : 'py-8'} bg-white border-b border-slate-200 relative`}>
         {(isModal || isAdminOrCA) && (
           <button 
             onClick={handleBack}
-            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all text-white z-20"
+            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all z-20"
           >
             <X size={24} />
           </button>
@@ -427,7 +427,7 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
           <div className="flex items-center gap-3 mb-6">
             <button
               onClick={handleBack}
-              className="flex items-center gap-2 text-blue-100 hover:text-white font-semibold transition-colors text-sm"
+              className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-medium transition-colors text-sm"
             >
               <ArrowLeft size={16} />
               Back to {isAdminOrCA ? 'Dashboard' : 'Orders'}
@@ -435,33 +435,70 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-  <div>
-    <div className="flex items-center gap-3 mb-2">
-      <h1 className="text-4xl font-extrabold tracking-tight">Order Details</h1>
-      <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 border border-white/20 uppercase tracking-widest">
-        #{order.id}
-      </span>
-    </div>
-
-    <p className="text-blue-100 text-sm flex items-center gap-1.5">
-      <Clock size={13} className="opacity-80" />
-      Placed {formatDate(order.date)}
-    </p>
+<div>
+  <div className="flex items-center gap-3 mb-2">
+    <h1 className="text-4xl font-extrabold tracking-tight">Order Details</h1>
+    <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 border border-white/20 uppercase tracking-widest">
+      #{order.id}
+    </span>
   </div>
 
-  <div className="flex flex-col items-end gap-4">
-    {isAdminOrCA && order.originalData?.userId && (
-      <div className="bg-white/10 border border-white/20 rounded-2xl px-5 py-4 min-w-[300px]">
-        <p className="text-xs uppercase tracking-widest text-blue-200 font-semibold mb-3">
-          Customer Details
-        </p>
+  <p className="text-blue-100 text-sm flex items-center gap-1.5">
+    <Clock size={13} className="opacity-80" />
+    Placed {formatDate(order.date)}
+  </p>
 
-        <div className="  flex gap-4 flex-row text-sm">
+  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+    {isAdminOrCA && (
+      <>
+        {(itrData?.personalInfo?.email || order.originalData?.userId?.email) && (
+          <p className="text-blue-100 text-sm flex items-center gap-1.5">
+            <span className="font-semibold text-blue-50">Email:</span>
+            {itrData?.personalInfo?.email || order.originalData?.userId?.email}
+          </p>
+        )}
+        {(itrData?.personalInfo?.mobile || itrData?.personalInfo?.phoneNumber || order.originalData?.userId?.mobile) && (
+          <p className="text-blue-100 text-sm flex items-center gap-1.5">
+            <span className="font-semibold text-blue-50">Phone:</span>
+            {itrData?.personalInfo?.mobile || itrData?.personalInfo?.phoneNumber || order.originalData?.userId?.mobile}
+          </p>
+        )}
+      </>
+    )}
+  </div>
+</div>
+
+<div className="flex flex-col items-end gap-4">
+  {isAdminOrCA && order.originalData?.userId && (
+    <div className="bg-white/10 border border-white/20 rounded-2xl px-5 py-4 min-w-[300px]">
+      <p className="text-xs uppercase tracking-widest text-blue-200 font-semibold mb-3">
+        Customer Details
+      </p>
+
+      <div className="  flex gap-4 flex-row text-sm">
+        <div>
+          <span className="text-blue-200">Name:</span>{' '}
+          <span className="font-semibold">
+            {order.originalData.userId.name}
+          </span>
+        </div>
+        {order.originalData.userId.email && (
           <div>
-            <span className="text-blue-200">Name:</span>{' '}
-            <span className="font-semibold">
-              {order.originalData.userId.name}
-            </span>
+            <span className="text-blue-200">Email:</span>{' '}
+            <span className="font-semibold">{order.originalData.userId.email}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+
+  {!isAdminOrCA && (
+    <div className="flex items-center gap-2 bg-white/8 border border-white/10 rounded-lg px-4 py-2 self-start">
+      <div className={`w-2 h-2 rounded-full ${(itrData?.status || order.status)?.toLowerCase() === 'completed' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+      <span className="font-semibold text-sm text-blue-100 capitalize">{(itrData?.status || order.status)?.replace('-', ' ')}</span>
+    </div>
+  )}
+</div>
           </div>
 
           <div>
@@ -495,42 +532,42 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
 </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-10">
-            <div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
-              <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">Plan</p>
-              <p className="font-bold text-lg truncate">{order.service}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-8">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-4">
+              <p className="text-slate-500 text-xs uppercase font-semibold tracking-wider mb-1">Plan</p>
+              <p className="font-semibold text-slate-900 text-lg truncate">{order.service}</p>
             </div>
-            <div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
+<div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
   <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">
     Amount Paid
   </p>
 
   <div className="flex items-end gap-2">
     <p className="font-extrabold text-3xl">
-      ₹{order.originalData.finalAmountPaid}
+      ₹{order.originalData?.finalAmountPaid ?? order.amount}
     </p>
 
-    {order.originalData.finalAmountPaid < order.originalData.originalPrice && (
+    {order.originalData?.finalAmountPaid != null && order.originalData.finalAmountPaid < order.originalData.originalPrice && (
       <p className="text-sm text-blue-200 line-through">
         ₹{order.originalData.originalPrice}
       </p>
     )}
   </div>
 </div>
-            <div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
-              <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">Current Status</p>
+<div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
+  <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">Current Status</p>
               {isAdminOrCA ? (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 mt-1">
                   <div className="relative" ref={statusDropdownRef}>
                     <div
                       onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                      className="flex items-center justify-between bg-white/15 border border-white/20 rounded-xl px-3 py-2 hover:bg-white/25 transition-all cursor-pointer"
+                      className="flex items-center justify-between bg-white border border-slate-300 rounded-lg px-3 py-2 hover:border-slate-400 transition-all cursor-pointer"
                     >
-                      <span className="text-white text-sm font-bold uppercase tracking-wide">{selectedStatus}</span>
-                      <ChevronDown size={14} className={`text-white/70 transition-transform duration-300 ${showStatusDropdown ? 'rotate-180' : ''}`} />
+                      <span className="text-slate-800 text-sm font-semibold uppercase tracking-wide">{selectedStatus}</span>
+                      <ChevronDown size={14} className={`text-slate-500 transition-transform duration-300 ${showStatusDropdown ? 'rotate-180' : ''}`} />
                     </div>
                     {showStatusDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl py-1 z-[100] border border-slate-200 overflow-hidden">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl py-1 z-[100] border border-slate-200 overflow-hidden">
                         {['Pending', 'CA Reviewing', 'Filed', 'Completed', 'Rejected'].map((status) => (
                           <div
                             key={status}
@@ -539,7 +576,7 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
                               setStatusChanged(status !== (itrData?.status || order.status));
                               setShowStatusDropdown(false);
                             }}
-                            className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2 ${selectedStatus === status ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                            className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2 ${selectedStatus === status ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50'}`}
                           >
                             <div className={`w-2 h-2 rounded-full ${status === 'Completed' ? 'bg-green-500' : status === 'Rejected' ? 'bg-red-500' : status === 'Pending' ? 'bg-amber-500' : 'bg-blue-500'}`}></div>
                             {status}
@@ -549,31 +586,31 @@ const OrderDetails = ({ order: propOrder, onClose }) => {
                     )}
                   </div>
                   {statusChanged && (
-                    <div className="flex flex-col gap-2 mt-1">
+                    <div className="flex flex-col gap-2 mt-2">
                       <textarea
                         value={statusRemarks}
                         onChange={(e) => setStatusRemarks(e.target.value)}
                         placeholder="Add remarks for user..."
-                        className="bg-white/15 border border-white/20 rounded-xl p-2.5 text-xs text-white placeholder:text-blue-200/50 focus:outline-none focus:ring-1 focus:ring-white/40 resize-none h-16"
+                        className="bg-white border border-slate-300 rounded-lg p-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none h-16"
                       />
                       <button
                         onClick={handleUpdateStatus}
                         disabled={updatingStatus}
-                        className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-3 py-2 rounded-xl text-xs font-black tracking-widest transition-all"
+                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-3 py-2 rounded-lg text-xs font-bold tracking-wide transition-all"
                       >
-                        {updatingStatus ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : <Send size={11} />}
+                        {updatingStatus ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : <Send size={12} />}
                         UPDATE &amp; SEND MAIL
                       </button>
                     </div>
                   )}
                   {itrData?.updatedAt && !statusChanged && (
-                    <p className="text-blue-200/60 text-xs italic">Last update: {formatDate(itrData.updatedAt)}</p>
+                    <p className="text-slate-400 text-xs italic mt-1">Last update: {formatDate(itrData.updatedAt)}</p>
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${(itrData?.status || order.status)?.toLowerCase() === 'completed' ? 'bg-green-400' : 'bg-yellow-300'}`}></div>
-                  <span className="font-bold text-sm capitalize">{(itrData?.status || order.status)?.replace('-', ' ')}</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={`w-2 h-2 rounded-full ${(itrData?.status || order.status)?.toLowerCase() === 'completed' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                  <span className="font-semibold text-sm text-slate-800 capitalize">{(itrData?.status || order.status)?.replace('-', ' ')}</span>
                 </div>
               )}
             </div>
