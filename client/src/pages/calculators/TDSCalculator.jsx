@@ -1,49 +1,73 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Info } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import Navbar from "../frontend/Navbar";
 import Footer from "../frontend/Footer";
 
-// ── TDS Rate Table (FY 2025-26) ───────────────────────────────────────────────
-// Sources: Section 192, 193, 194, 194A, 194C, 194H, 194I, 194J, 194N, etc.
+// ── TDS Rate Table (FY 2025-26 / AY 2026-27) ─────────────────────────────────
+// Sources: Income Tax Act 1961 as amended by Finance Act 2025 (Budget 2025)
+// Key Budget 2025 changes effective 1 Apr 2025:
+//   • 194A — bank interest threshold: ₹40,000 → ₹50,000 (non-senior); ₹50,000 → ₹1,00,000 (senior citizen); others ₹5,000 → ₹10,000
+//   • 194-I — annual rent threshold: ₹2,40,000 → ₹6,00,000 (i.e. ₹50,000/month)
+//   • 194-IB — individual/HUF rent rate: 5% → 2% (effective 1 Oct 2024)
+//   • 194H — commission/brokerage threshold: ₹15,000 (unchanged), rate reduced from 5% → 2% (effective 1 Oct 2024) — but officially 5% as per Act; Budget 2025 kept 5%
+//   • 194T — NEW section: salary/commission/remuneration to firm partners, 10% above ₹20,000
+//   • 194O — e-commerce: rate reduced 1% → 0.1% (effective 1 Oct 2024)
+//   • 194DA — insurance maturity proceeds: 5% → 2% (effective 1 Oct 2024)
 
 const TDS_SECTIONS = [
+  // ── Salary ──────────────────────────────────────────────────────────────────
   {
     section: "192",
     nature: "Salary",
     category: "salary",
     threshold: 0,
-    rate: null, // slab-based, handled separately
-    surcharge: true,
-    notes: "TDS on salary is deducted at applicable income tax slab rate. No fixed rate.",
+    rate: null,
+    notes: "TDS on salary is calculated at the applicable income tax slab rate on estimated annual income. No fixed flat rate.",
     isSlab: true,
   },
+  // ── Interest ────────────────────────────────────────────────────────────────
   {
     section: "194A",
-    nature: "Interest on FD / Savings (Bank)",
+    nature: "Interest on FD / Savings — Bank / Post Office (Non-Senior)",
     category: "interest",
-    threshold: 50000, // ₹50,000 for senior citizens; ₹40,000 for others
+    threshold: 50000,
     rate: 0.10,
-    surcharge: false,
-    notes: "Threshold: ₹40,000/year for general; ₹50,000/year for senior citizens. PAN mandatory to avoid 20% TDS.",
+    notes: "Threshold ₹50,000/year (Budget 2025, raised from ₹40,000). For senior citizens the threshold is ₹1,00,000. PAN mandatory to avoid 20% TDS (Sec 206AA).",
   },
   {
     section: "194A",
-    nature: "Interest (Non-Banking)",
+    nature: "Interest on FD / Savings — Bank / Post Office (Senior Citizen)",
     category: "interest",
-    threshold: 5000,
+    threshold: 100000,
     rate: 0.10,
-    surcharge: false,
-    notes: "Interest from loans, deposits with non-banks. Threshold ₹5,000/year.",
+    notes: "Threshold ₹1,00,000/year for senior citizens (Budget 2025, raised from ₹50,000). PAN mandatory to avoid 20% TDS.",
   },
+  {
+    section: "194A",
+    nature: "Interest from Other Sources (Company Deposits, Loans etc.)",
+    category: "interest",
+    threshold: 10000,
+    rate: 0.10,
+    notes: "Threshold ₹10,000/year (Budget 2025, raised from ₹5,000). Covers deposits with companies, co-operative societies other than banks, etc.",
+  },
+  {
+    section: "193",
+    nature: "Interest on Securities (Debentures / Bonds)",
+    category: "interest",
+    threshold: 10000,
+    rate: 0.10,
+    notes: "10% TDS on interest above ₹10,000/year on listed debentures and bonds. Govt. securities and RBI bonds are generally exempt.",
+  },
+  // ── Contractor ──────────────────────────────────────────────────────────────
   {
     section: "194C",
     nature: "Payment to Contractor",
     category: "contractor",
-    threshold: 30000, // Single; ₹1,00,000 aggregate
-    rate: 0.01, // 1% individual/HUF, 2% others
-    surcharge: false,
-    notes: "1% for Individual/HUF payees; 2% for companies. Single payment > ₹30,000 or aggregate > ₹1,00,000.",
+    threshold: 30000,
+    rate: 0.01,
+    notes: "1% for Individual/HUF payees; 2% for companies/firms. Threshold: single payment > ₹30,000 OR aggregate > ₹1,00,000 in a year.",
     hasVariant: true,
     variantLabel: "Payee Type",
     variants: [
@@ -51,84 +75,161 @@ const TDS_SECTIONS = [
       { label: "Company / Firm", rate: 0.02 },
     ],
   },
+  // ── Commission / Brokerage ──────────────────────────────────────────────────
   {
     section: "194H",
     nature: "Commission / Brokerage",
     category: "commission",
     threshold: 15000,
     rate: 0.05,
-    surcharge: false,
-    notes: "Threshold ₹15,000/year. Covers insurance agents, brokers, etc.",
+    notes: "5% TDS on commission or brokerage above ₹15,000/year. Covers insurance agents, brokers, etc. (Excludes securities transactions.)",
   },
+  // ── Rent ────────────────────────────────────────────────────────────────────
   {
     section: "194I",
-    nature: "Rent",
+    nature: "Rent — by Business / Entity (Tax Audit applicable)",
     category: "rent",
-    threshold: 240000, // ₹2,40,000/year
-    rate: 0.10, // 2% plant & machinery, 10% land/building
-    surcharge: false,
-    notes: "10% for land, building, furniture; 2% for plant & machinery. Threshold ₹2,40,000/year.",
+    threshold: 600000,
+    rate: 0.10,
+    notes: "Threshold raised to ₹6,00,000/year (₹50,000/month) by Budget 2025, up from ₹2,40,000. 10% for land/building/furniture; 2% for plant & machinery.",
     hasVariant: true,
     variantLabel: "Asset Type",
     variants: [
       { label: "Land / Building / Furniture", rate: 0.10 },
-      { label: "Plant & Machinery", rate: 0.02 },
+      { label: "Plant & Machinery / Equipment", rate: 0.02 },
     ],
   },
   {
     section: "194IB",
-    nature: "Rent by Individual / HUF (>₹50K/month)",
+    nature: "Rent — by Individual / HUF (> ₹50,000/month)",
     category: "rent",
-    threshold: 50000, // per month
-    rate: 0.05,
-    surcharge: false,
-    notes: "5% TDS when monthly rent exceeds ₹50,000. Deducted once a year or on last month of tenancy.",
+    threshold: 50000,
+    rate: 0.02,
+    notes: "2% TDS (reduced from 5% effective 1 Oct 2024) when monthly rent exceeds ₹50,000. Deducted once at year-end or on vacation of property. Filed via Form 26QC.",
   },
+  // ── Professional / Technical ────────────────────────────────────────────────
   {
     section: "194J",
-    nature: "Professional / Technical Fees",
+    nature: "Professional / Technical Services Fees",
     category: "professional",
     threshold: 30000,
-    rate: 0.10, // 2% for technical, 10% for professional
-    surcharge: false,
-    notes: "2% for technical services; 10% for professional services (doctors, lawyers, CAs, etc.).",
+    rate: 0.10,
+    notes: "10% for professional services (doctors, lawyers, CAs, architects, consultants). 2% for technical services, software, call centres. Threshold ₹30,000/year.",
     hasVariant: true,
     variantLabel: "Service Type",
     variants: [
-      { label: "Professional Services", rate: 0.10 },
-      { label: "Technical Services", rate: 0.02 },
+      { label: "Professional Services (lawyers, CAs, doctors…)", rate: 0.10 },
+      { label: "Technical Services / Software / Call Centre", rate: 0.02 },
     ],
   },
+  // ── Dividends ───────────────────────────────────────────────────────────────
   {
-    section: "194N",
-    nature: "Cash Withdrawal from Bank",
-    category: "cash",
-    threshold: 2000000,
-    rate: 0.02,
-    surcharge: false,
-    notes: "2% on cash withdrawal above ₹20L (if ITR filed for last 3 years); 5% above ₹20L if ITR not filed.",
+    section: "194",
+    nature: "Dividend from Domestic Company",
+    category: "dividend",
+    threshold: 5000,
+    rate: 0.10,
+    notes: "10% TDS on dividend above ₹5,000 per company per year. Submit Form 15G/15H if income is below taxable limit.",
   },
   {
-    section: "194Q",
-    nature: "Purchase of Goods",
-    category: "goods",
-    threshold: 5000000,
-    rate: 0.001,
-    surcharge: false,
-    notes: "0.1% on purchase exceeding ₹50L in a year. Applies to buyers with turnover > ₹10 crore.",
+    section: "194K",
+    nature: "Dividend / Income from Mutual Fund Units",
+    category: "dividend",
+    threshold: 5000,
+    rate: 0.10,
+    notes: "10% TDS on dividend (IDCW) from MF units above ₹5,000 per fund house per year. Submit Form 15G/15H if eligible.",
   },
+  // ── Property ─────────────────────────────────────────────────────────────────
   {
     section: "194IA",
-    nature: "Sale of Immovable Property",
+    nature: "Purchase of Immovable Property (Buyer Deducts)",
     category: "property",
     threshold: 5000000,
     rate: 0.01,
-    surcharge: false,
-    notes: "1% TDS by buyer on purchase of property worth ₹50L or more. Deducted from payment to seller.",
+    notes: "1% TDS deducted by buyer on purchase price of property ≥ ₹50 lakh. Filed via Form 26QB within 30 days. Applies on every installment, not just after aggregate crosses ₹50L.",
+  },
+  // ── Cash Withdrawals ─────────────────────────────────────────────────────────
+  {
+    section: "194N",
+    nature: "Cash Withdrawal from Bank — ITR Filer",
+    category: "cash",
+    threshold: 10000000,
+    rate: 0.02,
+    notes: "2% on cash withdrawal above ₹1 crore in a year (for persons who have filed ITR in at least one of the last 3 years). Threshold is per bank, per FY.",
+  },
+  {
+    section: "194N",
+    nature: "Cash Withdrawal from Bank — ITR Non-Filer",
+    category: "cash",
+    threshold: 2000000,
+    rate: 0.02,
+    notes: "For non-filers: 2% on ₹20L–₹1Cr; 5% above ₹1Cr. If you haven't filed ITR for the last 3 years with TDS/TCS > ₹50,000 per year.",
+    hasVariant: true,
+    variantLabel: "Withdrawal Amount",
+    variants: [
+      { label: "₹20L – ₹1 Crore", rate: 0.02 },
+      { label: "Above ₹1 Crore", rate: 0.05 },
+    ],
+  },
+  // ── VDA / Crypto ─────────────────────────────────────────────────────────────
+  {
+    section: "194S",
+    nature: "VDA / Crypto Transfer (Virtual Digital Assets)",
+    category: "vda",
+    threshold: 10000,
+    rate: 0.01,
+    notes: "1% TDS on transfer of VDA (Bitcoin, Ethereum, NFTs etc.) above ₹10,000 per transaction (₹50,000 for specified persons). Exchange deducts automatically — check Form 26AS / AIS.",
+  },
+  // ── Purchase of Goods ───────────────────────────────────────────────────────
+  {
+    section: "194Q",
+    nature: "Purchase of Goods (Buyer Turnover > ₹10 Crore)",
+    category: "goods",
+    threshold: 5000000,
+    rate: 0.001,
+    notes: "0.1% TDS by buyer on purchase of goods exceeding ₹50 lakh in a year. Applies when buyer's turnover exceeds ₹10 crore. Does not apply if TCS already collected under 206C(1H).",
+  },
+  // ── E-Commerce ───────────────────────────────────────────────────────────────
+  {
+    section: "194O",
+    nature: "E-Commerce — Payment to Participants",
+    category: "ecommerce",
+    threshold: 500000,
+    rate: 0.001,
+    notes: "0.1% TDS by e-commerce operator on gross sale value above ₹5,00,000/year to individual/HUF participants (reduced from 1% effective 1 Oct 2024).",
+  },
+  // ── Partner Remuneration (NEW) ───────────────────────────────────────────────
+  {
+    section: "194T",
+    nature: "Salary / Commission / Remuneration to Partners of Firm",
+    category: "partner",
+    threshold: 20000,
+    rate: 0.10,
+    notes: "NEW section effective 1 Apr 2025 (Budget 2025). 10% TDS on salary, remuneration, commission, bonus, or interest paid by a firm to its partners above ₹20,000/year.",
+  },
+  // ── Lottery / Games ──────────────────────────────────────────────────────────
+  {
+    section: "194B",
+    nature: "Lottery / Crossword / Game Show Winnings",
+    category: "lottery",
+    threshold: 10000,
+    rate: 0.30,
+    notes: "30% TDS on winnings above ₹10,000 per transaction. No deduction of expenses allowed. Applies to lottery tickets, game shows, online games (non-skill), etc.",
+  },
+  {
+    section: "194BA",
+    nature: "Winnings from Online Games",
+    category: "lottery",
+    threshold: 0,
+    rate: 0.30,
+    notes: "30% TDS on net winnings from online games (effective 1 Apr 2023). No threshold — applies on any net winning at year-end or on withdrawal. Platform deducts automatically.",
   },
 ];
 
-const CATEGORIES = ["All", "salary", "interest", "contractor", "commission", "rent", "professional", "cash", "goods", "property"];
+const CATEGORIES = [
+  "All", "salary", "interest", "contractor", "commission", "rent",
+  "professional", "dividend", "property", "cash", "vda", "goods", "ecommerce", "partner", "lottery",
+];
 const CATEGORY_LABELS = {
   All: "All",
   salary: "Salary",
@@ -137,13 +238,21 @@ const CATEGORY_LABELS = {
   commission: "Commission",
   rent: "Rent",
   professional: "Professional",
-  cash: "Cash",
-  goods: "Goods",
+  dividend: "Dividend",
   property: "Property",
+  cash: "Cash",
+  vda: "VDA/Crypto",
+  goods: "Goods",
+  ecommerce: "E-Commerce",
+  partner: "Partner",
+  lottery: "Lottery",
 };
 
 const fmt = (n) => "₹" + Math.round(n).toLocaleString("en-IN");
-const fmtPct = (r) => (r * 100).toFixed(1) + "%";
+const fmtPct = (r) => {
+  const p = r * 100;
+  return (p % 1 === 0 ? p.toFixed(0) : p.toFixed(1)) + "%";
+};
 
 function InfoTip({ text }) {
   const [show, setShow] = useState(false);
@@ -184,7 +293,7 @@ function RupeeInput({ label, value, onChange, info }) {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function TDSCalculator() {
-  const [selectedSection, setSelectedSection] = useState(TDS_SECTIONS[1]); // default: FD interest
+  const [selectedSection, setSelectedSection] = useState(TDS_SECTIONS[1]); // default: FD interest (non-senior)
   const [amount, setAmount] = useState(0);
   const [variantIdx, setVariantIdx] = useState(0);
   const [hasPAN, setHasPAN] = useState(true);
@@ -192,7 +301,7 @@ export default function TDSCalculator() {
 
   const activeRate = useMemo(() => {
     if (selectedSection.isSlab) return null;
-    if (!hasPAN) return 0.20; // No PAN → 20% or double, whichever higher
+    if (!hasPAN) return Math.max(0.20, (selectedSection.hasVariant ? selectedSection.variants[variantIdx].rate : selectedSection.rate) * 2);
     if (selectedSection.hasVariant) return selectedSection.variants[variantIdx].rate;
     return selectedSection.rate;
   }, [selectedSection, hasPAN, variantIdx]);
@@ -212,6 +321,15 @@ export default function TDSCalculator() {
 
   return (
     <>
+      <Helmet>
+        <title>TDS Calculator FY 2025-26 | All Sections & Rates | LedgerLine</title>
+        <meta name="description" content="Calculate TDS for FY 2025-26 across all sections — 194A, 194C, 194I, 194J, 194IB, 194T and more. Updated with Budget 2025 threshold and rate changes." />
+        <meta name="keywords" content="TDS calculator, TDS rates FY 2025-26, tax deducted at source, TDS on salary, TDS on rent, TDS on interest, TDS on professional fees, ITR filing, income tax return filing online, TDS refund filing" />
+        <meta property="og:title" content="TDS Calculator FY 2025-26 | LedgerLine" />
+        <meta property="og:description" content="Calculate TDS across all sections with Budget 2025 updated rates and thresholds." />
+        <meta property="og:url" content="https://powerfiling.com/calculators/tds" />
+        <link rel="canonical" href="https://powerfiling.com/calculators/tds" />
+      </Helmet>
       <Navbar />
       <main className="bg-white min-h-screen">
         {/* Header */}
@@ -222,8 +340,8 @@ export default function TDSCalculator() {
             </Link>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900">TDS Calculator</h1>
             <div className="flex items-center gap-2 mt-1.5">
-              <span className="text-xs text-slate-400">Tax Deducted at Source · FY 2025-26</span>
-              <span className="text-[11px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Updated</span>
+              <span className="text-xs text-slate-400">Tax Deducted at Source · FY 2025-26 (AY 2026-27)</span>
+              <span className="text-[11px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Budget 2025 Updated</span>
             </div>
           </div>
         </div>
@@ -239,7 +357,7 @@ export default function TDSCalculator() {
                 <h2 className="text-sm font-bold text-slate-700 mb-3">Payment Category</h2>
                 <div className="flex flex-wrap gap-2">
                   {CATEGORIES.map((cat) => (
-                    <button key={cat} onClick={() => { setFilterCat(cat); }}
+                    <button key={cat} onClick={() => setFilterCat(cat)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${filterCat === cat ? "bg-blue-600 text-white border-blue-600" : "border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600"}`}>
                       {CATEGORY_LABELS[cat]}
                     </button>
@@ -250,16 +368,16 @@ export default function TDSCalculator() {
               {/* Section picker */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
                 <h2 className="text-sm font-bold text-slate-700 mb-3">Select Payment Type</h2>
-                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                   {filteredSections.map((s, i) => (
                     <button key={i} onClick={() => { setSelectedSection(s); setVariantIdx(0); }}
                       className={`w-full text-left rounded-xl px-4 py-3 border transition-all ${selectedSection === s ? "border-blue-500 bg-blue-50" : "border-slate-100 hover:border-blue-300 hover:bg-slate-50"}`}>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-slate-800">{s.nature}</span>
-                        <span className="text-[11px] font-bold text-slate-400">Sec {s.section}</span>
+                        <span className="text-[11px] font-bold text-slate-400 shrink-0 ml-2">Sec {s.section}</span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        {s.isSlab ? "Slab rate" : `${fmtPct(s.rate)} · Threshold: ${fmt(s.threshold)}`}
+                        {s.isSlab ? "Slab rate" : `${fmtPct(s.rate)} · Threshold: ${fmt(s.threshold)}${s.category === "rent" && s.section === "194IB" ? "/mo" : "/yr"}`}
                       </p>
                     </button>
                   ))}
@@ -270,7 +388,7 @@ export default function TDSCalculator() {
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <h2 className="text-sm font-bold text-slate-700 mb-4">Calculate TDS</h2>
 
-                {/* Variant selector (contractor / rent / professional) */}
+                {/* Variant selector */}
                 {selectedSection.hasVariant && (
                   <div className="mb-5">
                     <label className="text-sm font-medium text-slate-600 mb-2 block">{selectedSection.variantLabel}</label>
@@ -289,26 +407,42 @@ export default function TDSCalculator() {
                   info="Enter the gross payment amount before TDS deduction." />
 
                 {/* PAN toggle */}
-                <div className="mb-4">
-                  <label className="text-sm font-medium text-slate-600 mb-2 block flex items-center gap-1.5">
-                    PAN Available?
-                    <InfoTip text="If payee's PAN is not provided, TDS is deducted at 20% or double the applicable rate, whichever is higher, as per Section 206AA." />
-                  </label>
-                  <div className="flex gap-3">
-                    {[{ v: true, l: "Yes — PAN provided" }, { v: false, l: "No — PAN not provided" }].map(({ v, l }) => (
-                      <button key={String(v)} onClick={() => setHasPAN(v)}
-                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${hasPAN === v ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-blue-300"}`}>
-                        {l}
-                      </button>
-                    ))}
+                {!selectedSection.isSlab && (
+                  <div className="mb-4">
+                    <label className="text-sm font-medium text-slate-600 mb-2 flex items-center gap-1.5">
+                      PAN Available?
+                      <InfoTip text="If payee's PAN is not provided, TDS is deducted at 20% or double the applicable rate, whichever is higher, as per Section 206AA." />
+                    </label>
+                    <div className="flex gap-3">
+                      {[{ v: true, l: "Yes — PAN provided" }, { v: false, l: "No — PAN not provided" }].map(({ v, l }) => (
+                        <button key={String(v)} onClick={() => setHasPAN(v)}
+                          className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${hasPAN === v ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-blue-300"}`}>
+                          {l}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {selectedSection.isSlab && (
                   <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-xs text-blue-800 leading-relaxed">
-                    <strong>Salary TDS (Section 192)</strong> is calculated based on your estimated annual income and applicable tax slab. Use the <Link to="/calculators/income-tax" className="underline font-semibold">Income Tax Calculator</Link> to estimate your salary TDS.
+                    <strong>Salary TDS (Section 192)</strong> is computed based on your estimated annual income and applicable tax slab. Use the{" "}
+                    <Link to="/calculators/income-tax" className="underline font-semibold">Income Tax Calculator</Link> to estimate your salary TDS.
                   </div>
                 )}
+              </div>
+
+              {/* Budget 2025 changes callout */}
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+                <p className="text-xs font-bold text-amber-800 mb-2">Budget 2025 Changes (Effective 1 Apr 2025)</p>
+                <ul className="text-xs text-amber-700 space-y-1.5 list-disc list-inside leading-relaxed">
+                  <li><strong>194A Interest (Bank/Post Office):</strong> Threshold raised ₹40,000 → <strong>₹50,000</strong>; Senior Citizens ₹50,000 → <strong>₹1,00,000</strong></li>
+                  <li><strong>194A Interest (Others):</strong> Threshold raised ₹5,000 → <strong>₹10,000</strong></li>
+                  <li><strong>194-I Rent (Business):</strong> Annual threshold raised ₹2,40,000 → <strong>₹6,00,000</strong> (₹50,000/month)</li>
+                  <li><strong>194-IB Rent (Individual/HUF):</strong> Rate reduced 5% → <strong>2%</strong></li>
+                  <li><strong>194T (NEW):</strong> 10% TDS on salary/commission to firm partners above ₹20,000/year</li>
+                  <li><strong>194O E-Commerce:</strong> Rate reduced 1% → <strong>0.1%</strong></li>
+                </ul>
               </div>
             </div>
 
@@ -331,7 +465,7 @@ export default function TDSCalculator() {
                     <div className="space-y-2.5">
                       {[
                         { label: "Gross Payment", value: fmt(amount) },
-                        { label: "TDS Rate", value: fmtPct(result.rate) + (!hasPAN ? " (No PAN)" : "") },
+                        { label: "TDS Rate", value: fmtPct(result.rate) + (!hasPAN ? " (No PAN — Sec 206AA)" : "") },
                         { label: "TDS Amount", value: fmt(result.tds), red: true },
                         { label: "Net Amount Payable", value: fmt(result.netAmount), green: true },
                       ].map(({ label, value, red, green }) => (
@@ -352,7 +486,7 @@ export default function TDSCalculator() {
                     <p className="text-[11px] text-slate-400 leading-relaxed mb-4">{selectedSection.notes}</p>
                     <Link to="/services/salary-basic-itr"
                       className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold text-center py-3 rounded-xl transition-colors">
-                      File ITR & Claim TDS Refund
+                      File ITR &amp; Claim TDS Refund
                     </Link>
                   </div>
                 )}
@@ -372,34 +506,64 @@ export default function TDSCalculator() {
 
           {/* Full rate reference table */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-800">TDS Rate Reference Table — FY 2025-26</h3>
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-sm font-bold text-slate-800">TDS Rate Reference Table — FY 2025-26 (AY 2026-27)</h3>
+              <span className="text-[11px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Finance Act 2025</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50">
-                    {["Section", "Nature of Payment", "Threshold", "TDS Rate"].map((h) => (
+                    {["Section", "Nature of Payment", "Threshold", "TDS Rate", "Budget 2025"].map((h) => (
                       <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {TDS_SECTIONS.map((s, i) => (
+                  {[
+                    { sec: "192",   nature: "Salary",                                          threshold: "As per slab",     rate: "Slab rate",   changed: false },
+                    { sec: "193",   nature: "Interest on Securities (Debentures/Bonds)",       threshold: "₹10,000",         rate: "10%",         changed: false },
+                    { sec: "194",   nature: "Dividend from Domestic Company",                  threshold: "₹5,000",          rate: "10%",         changed: false },
+                    { sec: "194A",  nature: "Interest — Bank/Post Office (Non-Senior)",        threshold: "₹50,000 ★",       rate: "10%",         changed: true },
+                    { sec: "194A",  nature: "Interest — Bank/Post Office (Senior Citizen)",    threshold: "₹1,00,000 ★",     rate: "10%",         changed: true },
+                    { sec: "194A",  nature: "Interest — Others (Company deposits etc.)",       threshold: "₹10,000 ★",       rate: "10%",         changed: true },
+                    { sec: "194B",  nature: "Lottery / Crossword / Game Show Winnings",        threshold: "₹10,000/txn",     rate: "30%",         changed: false },
+                    { sec: "194BA", nature: "Online Game Winnings",                            threshold: "Nil",             rate: "30%",         changed: false },
+                    { sec: "194C",  nature: "Contractor — Individual/HUF",                    threshold: "₹30,000 / ₹1L",  rate: "1%",          changed: false },
+                    { sec: "194C",  nature: "Contractor — Company/Firm",                      threshold: "₹30,000 / ₹1L",  rate: "2%",          changed: false },
+                    { sec: "194H",  nature: "Commission / Brokerage",                         threshold: "₹15,000",         rate: "5%",          changed: false },
+                    { sec: "194I(a)",nature: "Rent — Plant & Machinery",                      threshold: "₹6,00,000/yr ★",  rate: "2%",          changed: true },
+                    { sec: "194I(b)",nature: "Rent — Land / Building / Furniture",            threshold: "₹6,00,000/yr ★",  rate: "10%",         changed: true },
+                    { sec: "194IA", nature: "Purchase of Immovable Property",                 threshold: "₹50,00,000",      rate: "1%",          changed: false },
+                    { sec: "194IB", nature: "Rent by Individual/HUF (> ₹50K/month)",          threshold: "₹50,000/mo",      rate: "2% ★",        changed: true },
+                    { sec: "194J(a)",nature: "Technical Services / Software / Call Centre",   threshold: "₹30,000",         rate: "2%",          changed: false },
+                    { sec: "194J(b)",nature: "Professional Fees (CA, Doctor, Lawyer…)",       threshold: "₹30,000",         rate: "10%",         changed: false },
+                    { sec: "194K",  nature: "MF Dividend (IDCW)",                             threshold: "₹5,000",          rate: "10%",         changed: false },
+                    { sec: "194N",  nature: "Cash Withdrawal — ITR Filer",                    threshold: "₹1 Crore",        rate: "2%",          changed: false },
+                    { sec: "194N",  nature: "Cash Withdrawal — Non-Filer (₹20L–₹1Cr)",       threshold: "₹20 Lakh",        rate: "2%",          changed: false },
+                    { sec: "194N",  nature: "Cash Withdrawal — Non-Filer (above ₹1Cr)",      threshold: "₹1 Crore",        rate: "5%",          changed: false },
+                    { sec: "194O",  nature: "E-Commerce Participant Payment",                  threshold: "₹5,00,000",       rate: "0.1% ★",      changed: true },
+                    { sec: "194Q",  nature: "Purchase of Goods (Buyer turnover > ₹10Cr)",     threshold: "₹50 Lakh",        rate: "0.1%",        changed: false },
+                    { sec: "194S",  nature: "VDA / Crypto Transfer",                          threshold: "₹10,000/txn",     rate: "1%",          changed: false },
+                    { sec: "194T",  nature: "Partner Salary / Commission / Remuneration",     threshold: "₹20,000 ★ NEW",   rate: "10%",         changed: true },
+                  ].map((r, i) => (
                     <tr key={i} className={`border-b border-slate-50 hover:bg-blue-50/40 transition-colors ${i % 2 === 1 ? "bg-slate-50/60" : ""}`}>
-                      <td className="px-4 py-3 font-semibold text-blue-700 whitespace-nowrap">{s.section}</td>
-                      <td className="px-4 py-3 text-slate-700">{s.nature}</td>
-                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{fmt(s.threshold)}/yr</td>
-                      <td className="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">
-                        {s.isSlab ? "Slab rate" : fmtPct(s.rate)}
+                      <td className="px-4 py-3 font-semibold text-blue-700 whitespace-nowrap">{r.sec}</td>
+                      <td className="px-4 py-3 text-slate-700">{r.nature}</td>
+                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{r.threshold}</td>
+                      <td className="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">{r.rate}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {r.changed
+                          ? <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Changed</span>
+                          : <span className="text-[10px] text-slate-300">—</span>}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="px-5 py-3 text-[11px] text-slate-400">
-              All rates are subject to 4% health & education cess. Surcharge applies for higher incomes. TDS at 20% if PAN not provided (Sec 206AA).
+            <p className="px-5 py-3 text-[11px] text-slate-400 leading-relaxed">
+              ★ Changed by Budget 2025 / Finance Act 2025 (effective 1 Apr 2025). Without valid PAN, TDS is deducted at 20% or double the normal rate, whichever is higher (Section 206AA). For non-residents, surcharge and 4% health &amp; education cess apply additionally. Section 206AB applies higher rates for persons who have not filed ITR in preceding 2 years with TDS/TCS &gt; ₹50,000 per year.
             </p>
           </div>
         </div>
